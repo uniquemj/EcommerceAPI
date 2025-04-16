@@ -1,8 +1,8 @@
 import { Schema, Document, Model, model } from "mongoose";
-import { IUser } from "../../types/user.types";
+import { User } from "../../types/user.types";
 import { UserRole } from "../../types/user.types";
 
-interface CustomerDocument extends IUser, Document{
+interface CustomerDocument extends User, Document{
     fullname: string,
     date_of_birth?: Date
 }

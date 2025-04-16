@@ -8,5 +8,5 @@ interface IUser{
     is_verified?:boolean
 }
 export interface IAuthRequest extends Request{
-    user: IUser
+    user?: IUser
 }

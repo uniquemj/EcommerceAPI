@@ -1,7 +1,6 @@
 import { Request, Response, Router } from "express";
 import { CustomerServices } from "../../services/user/customer.services";
 import { validate } from "../../middlewares/validation.middleware";
-import {v4} from 'uuid'
 import { customerRegisterSchema, loginSchema } from "../../validation/user.validate";
 import createHttpError from "../../utils/httperror.utils";
 import { COOKIE } from "../../constant/cookie";
@@ -22,7 +21,7 @@ export class CustomerController{
         instance.router.post('/register', validate(customerRegisterSchema), instance.registerCustomer)
         instance.router.post('/verify/:code', instance.verifyCustomer)
         instance.router.post('/login', validate(loginSchema), instance.loginCustomer)
-        instance.router.post('/logout', instance.logoutCustomer)
+        instance.router.post('/logout',instance.logoutCustomer)
         return instance
     }
 
@@ -53,12 +52,13 @@ export class CustomerController{
             const token = result.token
             const user = result.user
 
-            res.cookie(COOKIE.AUTH_TOKEN, token,{
+            res.cookie(COOKIE.USER_TOKEN, token,{
                 httpOnly: true,
                 secure: true,
                 sameSite: 'strict',
                 maxAge: 24*60*60*1000
             })
+
 
             res.status(200).send({message: "Customer Logged In", token: token, user: user})
         }catch(e:any){
@@ -68,7 +68,7 @@ export class CustomerController{
 
     logoutCustomer = async(req: Request, res: Response) =>{
         try{
-            res.clearCookie('AUTH_TOKEN')
+            res.clearCookie('USER_TOKEN')
             res.status(200).send({message: "Customer Logged out."})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

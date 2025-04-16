@@ -1,7 +1,7 @@
 import { Schema, Document, Model, model } from "mongoose";
-import { IUser, UserRole } from "../../types/user.types";
+import { User, UserRole } from "../../types/user.types";
 
-interface SellerDocument extends IUser, Document{
+interface SellerDocument extends User, Document{
     store_name: string,
 }
 

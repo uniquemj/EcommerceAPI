@@ -1,3 +1,3 @@
 export const COOKIE = {
-    AUTH_TOKEN: 'AUTH_TOKEN'
+    USER_TOKEN: 'USER_TOKEN'
 }

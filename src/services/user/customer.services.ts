@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import bcrypt from 'bcryptjs';
 import { CustomerRepository } from "../../repository/user/customer.repository";
-import { ICustomer, IUserCredentials } from "../../types/user.types";
+import { CustomerInfo, User, UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
 import { sendMail } from "../../utils/sendmail.utils";
 
@@ -12,11 +12,11 @@ export class CustomerServices{
         this.customerRepository = new CustomerRepository();
     }
 
-    async registerCustomer(userInfo: ICustomer){
+    async registerCustomer(userInfo: CustomerInfo){
         try{
-            const userExist = await this.customerRepository.getCustomer(userInfo.email)
+            const customerExist = await this.customerRepository.getCustomer(userInfo.email)
 
-            if(userExist){
+            if(customerExist){
                 throw createHttpError.BadRequest("Customer with Email exists.")
             }
 
@@ -28,11 +28,11 @@ export class CustomerServices{
                 password: hashedPassword,
                 code: v4()
             }
-            const status = await sendMail(userDetail.email, userDetail.code)
+            // const status = await sendMail(userDetail.email, userDetail.code)
 
-            if(!status){
-                throw createHttpError.InternalServerError("Something went wrong.")
-            }
+            // if(!status){
+            //     throw createHttpError.InternalServerError("Something went wrong.")
+            // }
 
             const result = await this.customerRepository.registerCustomer(userDetail)
 
@@ -54,18 +54,18 @@ export class CustomerServices{
         }
     }
 
-    async loginCustomer(userCredentials: IUserCredentials){
+    async loginCustomer(userCredentials: UserCredentials){
         try{
-            const userExist = await this.customerRepository.getCustomer(userCredentials.email)
-            if(!userExist){
-                throw createHttpError.NotFound("User with email doesn't exist.")
+            const customerExist = await this.customerRepository.getCustomer(userCredentials.email) as CustomerInfo
+            if(!customerExist){
+                throw createHttpError.NotFound("Customer with email doesn't exist.")
             }
 
-            if(!userExist.is_verified){
-                throw createHttpError.BadRequest("User is not verified. Please Verify with verificaiton link sent in mail.")
+            if(!customerExist.is_verified){
+                throw createHttpError.BadRequest("Customer is not verified. Please Verify with verificaiton link sent in mail.")
             }
 
-            const isPasswordMatch = bcrypt.compare(userExist.password, userCredentials.password)
+            const isPasswordMatch = await bcrypt.compare(userCredentials.password, customerExist.password)
 
             if(!isPasswordMatch){
                 throw createHttpError.BadRequest("Invalid Password.")

@@ -6,6 +6,12 @@ export const customerRegisterSchema = z.object({
     password: z.string().min(8)
 })
 
+export const sellerRegisterSchema = z.object({
+    store_name: z.string(),
+    email: z.string().email(),
+    password: z.string().min(8)
+})
+
 export const loginSchema = z.object({
     email: z.string().email(),
     password: z.string().min(8)

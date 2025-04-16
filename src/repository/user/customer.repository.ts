@@ -1,5 +1,5 @@
 import Customer from "../../model/user/customer.model";
-import { ICustomer, IUserCredentials } from "../../types/user.types";
+import { CustomerInfo, UserCredentials, User } from "../../types/user.types";
 import jwt from 'jsonwebtoken'
 
 
@@ -10,7 +10,7 @@ export class CustomerRepository{
         return await Customer.findOne({email: email})
     }
 
-    async registerCustomer(userInfo: ICustomer){
+    async registerCustomer(userInfo: CustomerInfo){
         const result = await Customer.create(userInfo)
         return result
     }
@@ -21,8 +21,8 @@ export class CustomerRepository{
         return result
     }
 
-    async loginCustomer(userCredentials: IUserCredentials){
-        const user = await Customer.findOne({email: userCredentials.email})
+    async loginCustomer(userCredentials: UserCredentials){
+        const user = await Customer.findOne({email: userCredentials.email}) as CustomerInfo
 
         const token = jwt.sign({_id: user?._id,email: user?.email, role: user?.role, is_verified: user?.is_verified},JWT_SECRET_KEY as string, {expiresIn: "1d"})
 
