@@ -11,16 +11,16 @@ export interface DeliverInfo{
 }
 
 export interface PaymentInfo{
-    payment_method: PaymentMethod,
-    payment_status: PaymentStatus
+    payment_method?: PaymentMethod,
+    payment_status?: PaymentStatus
 }
 
 export interface OrderInfo extends DeliverInfo, PaymentInfo{
     customer: string,
-    order_status: OrderStatus,
-    orderCompleted: boolean,
+    order_status?: OrderStatus,
+    orderCompleted?: boolean,
     orderItems: CartItem[],
     orderTotal: number,
-    order_timeStamp: Date,
-    isCancelled: boolean
+    order_timeStamp?: Date,
+    isCancelled?: boolean
 }

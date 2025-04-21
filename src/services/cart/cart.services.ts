@@ -91,7 +91,7 @@ export class CartServices{
         }
     }
 
-    updateQuantity = async(itemId: string, quantity: number, userId: string) =>{
+    updateCart = async(itemId: string, quantity: number, userId: string) =>{
         try{
             const itemExist = await this.cartRepository.getCartItem(userId, itemId)
             if(!itemExist){
@@ -103,6 +103,24 @@ export class CartServices{
                 await this.cartRepository.removeItemFromCart(itemId, userId)
             }
             return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    getCartTotal = async(userId: string) =>{
+        try{
+            const cartExist = await this.cartRepository.getCartByUserId(userId)
+            if(!cartExist){
+                throw createHttpError.BadRequest("Cart for User not found.")
+            }
+            
+            let cartTotal = 0
+            for(let cartItem of cartExist.items){
+                const item = await this.variantRepository.getVariant(cartItem.productVariant as unknown as string) 
+                cartTotal += item?.price! * cartItem.quantity
+            }
+            return cartTotal
         }catch(error){
             throw error
         }

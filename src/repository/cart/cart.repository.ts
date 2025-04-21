@@ -37,4 +37,14 @@ export class CartRepository{
             {new: true}
         )
     }
+
+    async resetCart(userId: string){
+        return await Cart.findOneAndUpdate(
+            {customer: userId},
+            {$set:{
+                items: []
+            }},
+            {new: true}
+        )
+    }
 }

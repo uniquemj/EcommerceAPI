@@ -23,7 +23,8 @@ export class CartController{
         instance.router.get('/', allowedRole('customer'), instance.getCart)
         instance.router.post('/add/:id', validate(addCartSchema), allowedRole('customer'), instance.addToCart)
         instance.router.post('/remove/:id', allowedRole('customer'), allowedRole('customer'), instance.removeItemFromCart)
-        instance.router.post('/quantity/:id', validate(updateQuantitySchema), allowedRole('customer'), instance.updateQuantity)
+        instance.router.post('/quantity/:id', validate(updateQuantitySchema), allowedRole('customer'), instance.updateCart)
+        instance.router.get('/total/', allowedRole('customer'), instance.getCartTotal)
         return instance
     }
 
@@ -60,14 +61,24 @@ export class CartController{
         }
     }
 
-    updateQuantity = async(req: AuthRequest, res: Response) =>{
+    updateCart = async(req: AuthRequest, res: Response) =>{
         try{
             const itemId = req.params.id
             const userId = req.user?._id as string
             const quantity = req.body.quantity
 
-            const result = await this.cartServices.updateQuantity(itemId, quantity, userId)
+            const result = await this.cartServices.updateCart(itemId, quantity, userId)
             res.status(200).send({message: "Quantity updated.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getCartTotal = async(req: AuthRequest, res: Response) =>{
+        try{
+            const userId = req.user?._id as string
+            const result = await this.cartServices.getCartTotal(userId)
+            res.status(200).send({message: "Cart Total Calculated.", total: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
