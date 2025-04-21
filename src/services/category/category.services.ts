@@ -21,14 +21,30 @@ export class CategoryServices{
         }
     }
 
-    createCategory = async(name: string) =>{
+    createCategory = async(title: string) =>{
         try{
-            const categoryExist = await this.categoryRepository.getCategory(name.toLowerCase()) as unknown as CategoryInfo
+            const categoryExist = await this.categoryRepository.getCategory(title.toLowerCase()) as unknown as CategoryInfo
             if(categoryExist){
                 return categoryExist
             }
-            const category = await this.categoryRepository.createCategoryList(name.toLowerCase())
+            const category = await this.categoryRepository.createCategory(title.toLowerCase())
             return category
+        }catch(error){
+            throw error
+        }
+    }
+
+    updateCategory = async(id: string, title: string) =>{
+        try{
+            const categoryExist = await this.categoryRepository.getCategoryById(id)
+            if(!categoryExist){
+                throw createHttpError.NotFound("Category with id does not exist.")
+            }
+            const categoryInfo = {
+                title: title.toLowerCase()
+            }
+            const result = await this.categoryRepository.updateCategory(id,categoryInfo)
+            return result
         }catch(error){
             throw error
         }

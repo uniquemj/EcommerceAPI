@@ -1,10 +1,12 @@
-import { Schema, Document, model, Model } from "mongoose";
+import { Schema, Document, model, Model, SchemaType } from "mongoose";
 import { ImageInfo } from "../../types/image.types";
 
 interface VariantDocument extends Document{
+    product: Schema.Types.ObjectId
     images: ImageInfo[],
     color: string,
     price: number,
+    size: string,
     specialPrice: number,
     stock: number,
     sellerSKU: string,
@@ -12,15 +14,17 @@ interface VariantDocument extends Document{
 }
 
 const variantSchema: Schema<VariantDocument> = new Schema({
+    product: {type: Schema.Types.ObjectId, ref: 'product'},
     images: [{
-        url: {types: String}
+        url: {type: String}
     }],
-    color: {types: String},
-    price: {types: Number},
-    specialPrice: {types: Number, default: 1, max: 1, min: 0},
-    stock: {types: Number},
-    sellerSKU: {types: String},
-    availability: {types: Boolean, default: true}
+    color: {type: String},
+    size: {type: String},
+    price: {type: Number},
+    specialPrice: {type: Number, default: 1, max: 1, min: 0},
+    stock: {type: Number},
+    sellerSKU: {type: String},
+    availability: {type: Boolean, default: true}
 })
 
 const Variant: Model<VariantDocument> = model('variant', variantSchema)

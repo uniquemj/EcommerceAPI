@@ -3,7 +3,7 @@ import { SellerServices } from "../../services/user/seller.services";
 import createHttpError from "../../utils/httperror.utils";
 import { validate } from "../../middlewares/validation.middleware";
 import { loginSchema, sellerRegisterSchema } from "../../validation/user.validate";
-import { IAuthRequest } from "../../types/auth.types";
+import { AuthRequest } from "../../types/auth.types";
 import { COOKIE } from "../../constant/cookie";
 
 export class SellerController{
@@ -66,7 +66,7 @@ export class SellerController{
         }
     }
 
-    logoutSeller = async(req: IAuthRequest, res: Response) =>{
+    logoutSeller = async(req: AuthRequest, res: Response) =>{
         try{
             res.clearCookie('USER_TOKEN')
             res.status(200).send({message: "Seller Logged out."})

@@ -20,12 +20,8 @@ interface ProductDocument extends Document{
     name: string,
     images: ImageInfo[],
     category: CategoryInfo[],
-    variant: VariantInfo[],
-    price: number,
-    specialPrice: number,
-    stock: number,
-    sellerSKU: string,
-    availability: boolean
+    variants: VariantInfo[],
+    
     productDescripton: string,
     productHighlights: string,
     packageWeight: number,
@@ -43,12 +39,7 @@ const productSchema: Schema<ProductDocument> = new Schema({
         url: {type: String}
     }],
     category: [{type: Schema.Types.ObjectId, ref: 'category'}],
-    variant: [{type: Schema.Types.ObjectId, ref: 'variant'}],
-    price: {type: Number},
-    specialPrice: {type: Number, min: 0, max: 1, default: 1},
-    availability: {type: Boolean, default: true},
-    sellerSKU: {type: String},
-    stock: {type: Number, default: 1, min: 0},
+    variants: [{type: Schema.Types.ObjectId, ref: 'variant'}],
     productDescripton: {type: String},
     productHighlights: {type: String},
     packageWeight: {type: Number},

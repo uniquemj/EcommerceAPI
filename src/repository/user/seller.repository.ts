@@ -11,18 +11,19 @@ export class SellerRepository{
     }
 
     async registerSeller(sellerInfo: SellerInfo){
-        const seller = await Seller.create(sellerInfo)
+        const newSeller = (await Seller.create(sellerInfo))
+        const seller = await Seller.findById(newSeller._id).select('-password')
         return seller
     }
 
     async verifySeller(code: string){
         const seller = await Seller.findOne({code: code})
-        const result = await Seller.findByIdAndUpdate(seller?._id, {is_verified: true}, {new: true})
+        const result = await Seller.findByIdAndUpdate(seller?._id, {is_verified: true}, {new: true}).select('-password')
         return result
     }
 
     async loginSeller(sellerCredentials: UserCredentials){
-        const seller = await Seller.findOne({email: sellerCredentials.email}) as SellerInfo
+        const seller = await Seller.findOne({email: sellerCredentials.email}).select('-password') as SellerInfo
 
         const token = jwt.sign({_id: seller?._id, email: seller?.email, role: seller?.role, is_verified: seller?.is_verified}, JWT_SECRET_KEY, {expiresIn: "1d"})
 

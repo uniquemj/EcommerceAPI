@@ -1,12 +1,12 @@
 import { Request } from "express";
 
 
-interface IUser{
+interface User{
     _id?:string,
     email?:string,
     role?:string,
     is_verified?:boolean
 }
-export interface IAuthRequest extends Request{
-    user?: IUser
+export interface AuthRequest extends Request{
+    user?: User
 }

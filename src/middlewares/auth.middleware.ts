@@ -1,11 +1,11 @@
-import { IAuthRequest } from "../types/auth.types";
+import { AuthRequest } from "../types/auth.types";
 import { Response, NextFunction } from "express";
 import createHttpError from "../utils/httperror.utils";
 import jwt, {JwtPayload} from 'jsonwebtoken'
 
 const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string
 
-export const verifyToken = (req: IAuthRequest, res: Response, next: NextFunction) =>{
+export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) =>{
     try{
         const {USER_TOKEN} = req.cookies
 

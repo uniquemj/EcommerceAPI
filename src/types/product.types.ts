@@ -6,25 +6,25 @@ import { DangerousGoods, WarrantyType } from "../model/product/product.model"
 
 
 export interface ProductInfo{
+    _id?:string,
     seller?: string,
     name?: string,
     images?: ImageInfo[],
     category?: CategoryInfo[] | string,
-    variant?: VariantInfo[],
+    variants?: VariantInfo[],
 
-    color?: string,
-    price?: number | string,
-    specialPrice?: number | string,
-    stock?: number | string,
+    price?: number,
+    specialPrice?: number,
+    stock?: number,
     sellerSKU?: string,
     availability?: boolean,
 
     productDescripton?: string,
     productHighlights?: string,
-    packageWeight?: string | number,
+    packageWeight?: number,
     packageLength?: string,
     dangerousGoods?: DangerousGoods,
     warrantyType?: WarrantyType,
-    warrantyPeriod?: string | number,
+    warrantyPeriod?: number,
     warrantyPolicy?: string
 }
