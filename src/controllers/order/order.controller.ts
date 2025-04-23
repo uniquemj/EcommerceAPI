@@ -5,7 +5,7 @@ import createHttpError from "../../utils/httperror.utils";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { DeliverInfo } from "../../types/order.types";
 import { validate } from "../../middlewares/validation.middleware";
-import { deliveryInfoSchema } from "../../validation/order.validate";
+import { deliveryInfoSchema, orderStatusSchema } from "../../validation/order.validate";
 
 export class OrderController{
     readonly router: Router;
@@ -21,15 +21,16 @@ export class OrderController{
         const instance = new OrderController()
         OrderController.instance = instance
 
-        instance.router.get('/',allowedRole('customer'), instance.getOrder)
+        instance.router.get('/',allowedRole('customer'), instance.getCustomerOrder)
         instance.router.post('/', allowedRole('customer'), validate(deliveryInfoSchema), instance.createOrder)
+        instance.router.put('/status/:id', allowedRole('seller'), validate(orderStatusSchema), instance.updateOrderStatus)
         return instance
     }
 
-    getOrder = async(req: AuthRequest, res: Response) =>{
+    getCustomerOrder = async(req: AuthRequest, res: Response) =>{
         try{
             const userId = req.user?._id as string
-            const result = await this.orderServices.getOrder(userId)
+            const result = await this.orderServices.getCustomerOrder(userId)
             res.status(200).send({message: "Order Fetched.", response: result})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -44,6 +45,18 @@ export class OrderController{
             const result = await this.orderServices.createOrder(deliveryInfo, userId)
             res.status(200).send({message: "Order Created", response: result})
         }catch(e: any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    updateOrderStatus = async(req: AuthRequest, res: Response) =>{
+        try{
+            const {order_status} = req.body
+            const orderItemId = req.params.id
+            const userId = req.user?._id as string
+            const result = await this.orderServices.updateOrderStatus(order_status, orderItemId, userId)
+            res.status(200).send({message: "Order Status Updated", response: result})
+        }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

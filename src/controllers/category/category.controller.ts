@@ -6,6 +6,7 @@ import { verifyToken } from '../../middlewares/auth.middleware';
 import { validate } from '../../middlewares/validation.middleware';
 import { categorySchema } from '../../validation/category.validate';
 import { AuthRequest } from '../../types/auth.types';
+import { CategoryInfo } from '../../types/category.types';
 
 export class CategoryController{
     readonly router: Router;
@@ -39,8 +40,8 @@ export class CategoryController{
 
     createCategory = async(req: AuthRequest, res: Response) =>{
         try{
-            const {title} = req.body
-            const category = await this.categoryServices.createCategory(title)
+            const categoryInfo = req.body as CategoryInfo
+            const category = await this.categoryServices.createCategory(categoryInfo)
             res.status(200).send({message: "Category Created.", response: category})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message,e.errors)

@@ -1,26 +1,20 @@
 import Product from "../../model/product/product.model";
 import { ImageInfo } from "../../types/image.types";
 import { ProductInfo } from "../../types/product.types";
-import { VariantRepository } from "../variant/variant.repository";
-import { VariantInfo } from "../../types/variants.types";
 
 export class ProductRepository{
-    private readonly variantRepository: VariantRepository
 
-    constructor(){
-        this.variantRepository = new VariantRepository()
-    }
 
     async getProductList(){
-        return await Product.find({}).populate('category seller variants','title images color price special_price stock sellerSKU store_name _id')
+        return await Product.find({}).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 
     async getProductByUserId(id: string, userId: string){
-        return await Product.findOne({_id: id, seller: userId})
+        return await Product.findOne({_id: id, seller: userId}).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 
     async getProductById(id: string){
-        return await Product.findById(id)
+        return await Product.findById(id).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 
     async createProduct(productInfo: ProductInfo){

@@ -7,11 +7,11 @@ export class VariantRepository{
     }
 
     async getVariant(variantId: string){
-        return await Variant.findById(variantId).populate('product', '_id name')
+        return await Variant.findById(variantId).populate('product', '_id name seller')
     }
 
     async getVariantByProduct(productId: string){
-        return await Variant.find({product: productId}).populate('product', '_id name')
+        return await Variant.find({product: productId}).populate('product', '_id name seller')
     }
 
     async deleteVariant(variantId: string){

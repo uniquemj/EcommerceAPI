@@ -6,7 +6,7 @@ import { allowedRole } from "../../middlewares/role.middleware";
 import { AuthRequest } from "../../types/auth.types";
 import upload from "../../middlewares/file.middleware";
 import { UploadFields } from "../../constant/uploadFields";
-import { productSchema } from "../../validation/product.validate";
+import { productSchema, updateProductSchema } from "../../validation/product.validate";
 import { validate } from "../../middlewares/validation.middleware";
 import { FileInfo } from "../../types/file.types";
 import { ProductInfo } from "../../types/product.types";
@@ -29,7 +29,7 @@ export class ProductController{
         instance.router.get('/', allowedRole('customer', 'seller'), instance.getProductList)
         instance.router.get('/:id', allowedRole('customer', 'seller'), instance.getProductById)
         instance.router.post('/', allowedRole('seller'), upload.fields(UploadFields), validate(productSchema), instance.createProduct)
-        instance.router.put('/:id', allowedRole('seller'), instance.editProduct)
+        instance.router.put('/:id', allowedRole('seller'), validate(updateProductSchema), instance.editProduct)
         instance.router.delete('/:id', allowedRole('seller'), instance.removeProduct)
         
         //Variant
@@ -58,9 +58,8 @@ export class ProductController{
     getProductById = async(req: AuthRequest, res: Response) =>{
         try{
             const productId = req.params.id
-            const userId = req.user?._id as string
 
-            const result = await this.productServices.getProductById(productId, userId)
+            const result = await this.productServices.getProductById(productId)
             res.status(200).send({message: "Product Fetched.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

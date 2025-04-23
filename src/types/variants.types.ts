@@ -1,4 +1,6 @@
 import { ImageInfo } from "./image.types"
+import { DangerousGoods, WarrantyType } from "../model/variant/variant.model"
+
 
 export interface VariantInfo{
     _id?:string,
@@ -7,8 +9,12 @@ export interface VariantInfo{
     color?: string,
     price?: number,
     size?: string,
-    specialPrice?: number,
     stock?: number,
-    sellerSKU?: string,
     availability?: boolean
+    packageWeight?: number,
+    packageLength?: string,
+    dangerousGoods?: DangerousGoods,
+    warrantyType?: WarrantyType,
+    warrantyPeriod?: number,
+    warrantyPolicy?: string
 }

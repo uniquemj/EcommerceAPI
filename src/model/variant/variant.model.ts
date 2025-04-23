@@ -1,16 +1,32 @@
 import { Schema, Document, model, Model, SchemaType } from "mongoose";
 import { ImageInfo } from "../../types/image.types";
 
+
+export enum DangerousGoods{
+    No="no",
+    ContainsBattery = "contains battery",
+    Substance = 'flammables/liquid'
+}
+
+export enum WarrantyType{
+    NoWarranty = "no warranty",
+    SellerWarranty = "seller warranty"
+}
+
 interface VariantDocument extends Document{
     product: Schema.Types.ObjectId
     images: ImageInfo[],
     color: string,
     price: number,
     size: string,
-    specialPrice: number,
     stock: number,
-    sellerSKU: string,
     availability: boolean
+    packageWeight: number,
+    packageLength: string,
+    dangerousGoods: DangerousGoods,
+    warrantyType: WarrantyType,
+    warrantyPeriod: number,
+    warrantyPolicy: string
 }
 
 const variantSchema: Schema<VariantDocument> = new Schema({
@@ -21,10 +37,14 @@ const variantSchema: Schema<VariantDocument> = new Schema({
     color: {type: String},
     size: {type: String},
     price: {type: Number},
-    specialPrice: {type: Number, default: 1, max: 1, min: 0},
     stock: {type: Number},
-    sellerSKU: {type: String},
-    availability: {type: Boolean, default: true}
+    availability: {type: Boolean, default: true},
+    packageWeight: {type: Number},
+    packageLength: {type: String},
+    dangerousGoods: {type: String, enum: Object.values(DangerousGoods), default: DangerousGoods.No},
+    warrantyType: {type: String, enum: Object.values(WarrantyType), default: WarrantyType.NoWarranty},
+    warrantyPeriod: {type: Number},
+    warrantyPolicy: {type: String}
 })
 
 const Variant: Model<VariantDocument> = model('variant', variantSchema)

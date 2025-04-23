@@ -7,6 +7,7 @@ interface User{
     role?:string,
     is_verified?:boolean
 }
+
 export interface AuthRequest extends Request{
     user?: User
 }

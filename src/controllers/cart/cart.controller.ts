@@ -4,7 +4,7 @@ import { AuthRequest } from "../../types/auth.types";
 import createHttpError from "../../utils/httperror.utils";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { validate } from "../../middlewares/validation.middleware";
-import { addCartSchema, updateQuantitySchema } from "../../validation/cart.validate";
+import { addCartSchema, updateCartSchema } from "../../validation/cart.validate";
 
 export class CartController{
     readonly router: Router
@@ -23,8 +23,9 @@ export class CartController{
         instance.router.get('/', allowedRole('customer'), instance.getCart)
         instance.router.post('/add/:id', validate(addCartSchema), allowedRole('customer'), instance.addToCart)
         instance.router.post('/remove/:id', allowedRole('customer'), allowedRole('customer'), instance.removeItemFromCart)
-        instance.router.post('/quantity/:id', validate(updateQuantitySchema), allowedRole('customer'), instance.updateCart)
-        instance.router.get('/total/', allowedRole('customer'), instance.getCartTotal)
+        instance.router.post('/quantity/:id', validate(updateCartSchema), allowedRole('customer'), instance.updateCart)
+        instance.router.get('/total', allowedRole('customer'), instance.getCartTotal)
+        
         return instance
     }
 

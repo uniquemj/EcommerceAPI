@@ -32,9 +32,10 @@ export class ProductServices{
         }
     }
 
-    async getProductById(productId: string, userId: string){
+    async getProductById(productId: string){
         try{
-            const product = this.productRepository.getProductByUserId(productId, userId)
+            const product = await this.productRepository.getProductById(productId)
+            
             if(!product){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
@@ -46,7 +47,7 @@ export class ProductServices{
 
     async createProduct(productInfo: ProductInfo, productImages: Express.Multer.File[],variantImages: Express.Multer.File[], userId: string){
         try{
-            const {name, category, variants,productDescripton, productHighlights, packageWeight, packageLength, warrantyPeriod, warrantyPolicy} = productInfo
+            const {name, category, variants, productDescripton, productHighlights} = productInfo
             
             const productImageUrls =  await Promise.all(
                 productImages?.map(async(image) =>{
@@ -76,10 +77,6 @@ export class ProductServices{
                 variants: variantList,
                 productDescripton: productDescripton ?? "",
                 productHighlights: productHighlights ?? "",
-                packageWeight: packageWeight ?? 1,
-                packageLength: packageLength,
-                warrantyPeriod: warrantyPeriod ?? 1,
-                warrantyPolicy: warrantyPolicy ?? ""
             }
             
             const product = await this.productRepository.createProduct(productDetail) as unknown as ProductInfo
@@ -92,10 +89,14 @@ export class ProductServices{
                             images: [variantImagesUrls[index]],
                             price: variant.price,
                             size: variant.size ?? "",
-                            specialPrice: variant.specialPrice,
                             stock: variant.stock,
-                            sellerSKU: variant.sellerSKU ?? "",
-                            availability: variant.availability
+                            availability: variant.availability,
+                            packageWeight: variant.packageWeight ?? 1,
+                            packageLength: variant.packageLength,
+                            dangerousGoods: variant.dangerousGoods,
+                            warrantyType: variant.warrantyType,
+                            warrantyPeriod: variant.warrantyPeriod ?? 1,
+                            warrantyPolicy: variant.warrantyPolicy ?? ""
                         }
                         const newVariant =  await this.variantRepository.createVariant(variantInfo)
                         return newVariant as unknown as VariantInfo
@@ -134,10 +135,14 @@ export class ProductServices{
                             price: variant.price,
                             images: [variantImagesUrls[index]],
                             size: variant.size ?? "",
-                            specialPrice: variant.specialPrice,
                             stock: variant.stock,
-                            sellerSKU: variant.sellerSKU ?? "",
-                            availability: variant.availability
+                            availability: variant.availability,
+                            packageWeight: variant.packageWeight ?? 1,
+                            packageLength: variant.packageLength,
+                            dangerousGoods: variant.dangerousGoods,
+                            warrantyType: variant.warrantyType,
+                            warrantyPeriod: variant.warrantyPeriod ?? 1,
+                            warrantyPolicy: variant.warrantyPolicy ?? ""
                         }
                         const newVariant =  await this.variantRepository.createVariant(variantInfo)
                         return newVariant as unknown as VariantInfo

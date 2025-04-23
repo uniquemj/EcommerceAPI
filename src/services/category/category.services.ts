@@ -21,13 +21,20 @@ export class CategoryServices{
         }
     }
 
-    createCategory = async(title: string) =>{
+    createCategory = async(categoryInfo: CategoryInfo) =>{
         try{
-            const categoryExist = await this.categoryRepository.getCategory(title.toLowerCase()) as unknown as CategoryInfo
+            const {title, parent_category} = categoryInfo
+
+            const categoryDetail = {
+                title: title.toLowerCase(),
+                parent_category: parent_category
+            }
+
+            const categoryExist = await this.categoryRepository.getCategory(categoryDetail.title) as unknown as CategoryInfo
             if(categoryExist){
                 return categoryExist
             }
-            const category = await this.categoryRepository.createCategory(title.toLowerCase())
+            const category = await this.categoryRepository.createCategory(categoryDetail)
             return category
         }catch(error){
             throw error
