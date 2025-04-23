@@ -21,9 +21,11 @@ export class OrderController{
         const instance = new OrderController()
         OrderController.instance = instance
 
-        instance.router.get('/',allowedRole('customer'), instance.getCustomerOrder)
+        instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrder)
         instance.router.post('/', allowedRole('customer'), validate(deliveryInfoSchema), instance.createOrder)
         instance.router.put('/status/:id', allowedRole('seller'), validate(orderStatusSchema), instance.updateOrderStatus)
+        instance.router.get('/seller', allowedRole('seller'), instance.getOrderForSeller)
+
         return instance
     }
 
@@ -44,6 +46,16 @@ export class OrderController{
 
             const result = await this.orderServices.createOrder(deliveryInfo, userId)
             res.status(200).send({message: "Order Created", response: result})
+        }catch(e: any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getOrderForSeller = async(req: AuthRequest, res: Response) =>{
+        try{
+            const sellerId = req.user?._id as string
+            const result = await this.orderServices.getOrderForSeller(sellerId)
+            res.status(200).send({message: "Order Fetched for Seller.", response : result})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

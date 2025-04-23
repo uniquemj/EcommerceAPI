@@ -1,0 +1,78 @@
+import { Response, Router } from "express";
+import { ShipmentAddressServices } from "../../services/shipmentAddress/shipmentAddress.services";
+import { allowedRole } from "../../middlewares/role.middleware";
+import { AuthRequest } from "../../types/auth.types";
+import createHttpError from "../../utils/httperror.utils";
+import { ShipmentInfo } from "../../types/shipment.types";
+import { validate } from "../../middlewares/validation.middleware";
+import { addressSchema, updateAddressSchema } from "../../validation/address.validate";
+
+export class ShipmentAddressController{
+    readonly router: Router;
+    private static instance: ShipmentAddressController
+    private readonly shipmentAddressServices: ShipmentAddressServices
+
+    private constructor(){
+        this.router = Router()
+        this.shipmentAddressServices = new ShipmentAddressServices()
+    }
+
+    static initController(){
+        const instance = new ShipmentAddressController()
+        ShipmentAddressController.instance = instance
+
+        instance.router.get('/', allowedRole('customer'), instance.getShipmentAddressListOfCustomer)
+        instance.router.post('/', allowedRole('customer'), validate(addressSchema),instance.createShipmentAddress)
+        instance.router.put('/:id', allowedRole('customer'), validate(updateAddressSchema), instance.editShipmentAddress)
+        instance.router.delete('/:id', allowedRole('customer'), instance.deleteShipmentAddress)
+
+        return instance
+    }
+
+    getShipmentAddressListOfCustomer = async(req: AuthRequest, res: Response) =>{
+        try{
+            const userId = req.user?._id as string
+            const result = await this.shipmentAddressServices.getShipmentAddressListOfCustomer(userId)
+            res.status(200).send({message: "Shipment Address Fetched.", response: result})
+        }catch(e: any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    createShipmentAddress = async(req: AuthRequest, res: Response) =>{
+        try{
+            const deliveryInfo = req.body as ShipmentInfo
+            const customer_id = req.user?._id as string
+
+            const result = await this.shipmentAddressServices.createShipmentAddress(deliveryInfo, customer_id)
+            res.status(200).send({message: "Shipment Address Created.", response: result})
+        }catch(e: any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    editShipmentAddress = async(req: AuthRequest, res: Response) =>{
+        try{
+            const addressId = req.params.id
+            const updateAddressInfo = req.body
+            const customer_id = req.user?._id as string
+
+            const result = await this.shipmentAddressServices.updateShipmentAddress(addressId, updateAddressInfo, customer_id)
+            res.status(200).send({message: "Shipment Address Updated.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    deleteShipmentAddress = async(req: AuthRequest, res: Response) =>{
+        try{
+            const addressId = req.params.id
+            const customer_id = req.user?._id as string
+
+            const result = await this.shipmentAddressServices.deleteShipmentAddress(addressId, customer_id)
+            res.status(200).send({message: "Shipment Address Deleted.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+}

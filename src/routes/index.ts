@@ -6,6 +6,7 @@ import { ProductController } from '../controllers/product/product.controller'
 import { CartController } from '../controllers/cart/cart.controller'
 import { verifyToken } from '../middlewares/auth.middleware'
 import { OrderController } from '../controllers/order/order.controller'
+import { ShipmentAddressController } from '../controllers/shipmentAddress/shipmentAddress.controller'
 
 const router = express.Router()
 
@@ -25,6 +26,9 @@ const cartController = CartController.initController()
 // Orderr
 const orderController = OrderController.initController()
 
+// Shipment Address
+const shipmetAddressController = ShipmentAddressController.initController()
+
 //User Route
 router.use('/auth/customers',customerController.router)
 router.use('/auth/seller', sellerController.router)
@@ -40,5 +44,8 @@ router.use('/carts',verifyToken, cartController.router)
 
 // Order Route
 router.use('/orders', verifyToken, orderController.router)
+
+//Shipment Address Route
+router.use('/shipment', verifyToken, shipmetAddressController.router)
 
 export default router

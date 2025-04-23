@@ -26,8 +26,10 @@ export class ProductController{
         const instance = new ProductController()
         ProductController.instance = instance
 
-        instance.router.get('/', allowedRole('customer', 'seller'), instance.getProductList)
-        instance.router.get('/:id', allowedRole('customer', 'seller'), instance.getProductById)
+        instance.router.get('/', allowedRole('customer'), instance.getProductList)
+        instance.router.get('/seller',allowedRole('seller'), instance.getSellerProductList)
+        instance.router.get('/:id', allowedRole('customer'), instance.getProductById)
+
         instance.router.post('/', allowedRole('seller'), upload.fields(UploadFields), validate(productSchema), instance.createProduct)
         instance.router.put('/:id', allowedRole('seller'), validate(updateProductSchema), instance.editProduct)
         instance.router.delete('/:id', allowedRole('seller'), instance.removeProduct)
@@ -51,6 +53,28 @@ export class ProductController{
             const product = await this.productServices.getProductList()
             res.status(200).send({message: "Product Fetched.", response: product})
         }catch(e: any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getSellerProductList = async(req: AuthRequest, res: Response) =>{
+        try{
+            const sellerId = req.user?._id as string
+
+            const result = await this.productServices.getSellerProductList(sellerId)
+            res.status(200).send({message: "Seller Product List Fetched.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getSellerProduct = async(req: AuthRequest, res: Response) =>{
+        try{
+            const productId = req.params.id
+            const sellerId = req.user?._id as string
+            const result = await this.productServices.getSellerProduct(productId, sellerId)
+            res.status(200).send({message: "Seller Product Fetched.", response: result})
+        }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

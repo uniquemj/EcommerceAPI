@@ -7,11 +7,21 @@ export class OrderItemRepository{
     }
 
     async getOrderItemById(orderId: string){
-        return await OrderItem.findById(orderId).populate({path: "item", populate: {path: "productVariant", populate: {path: "product", select: "_id seller name"}}})
+        return await OrderItem.findById(orderId).populate({path: "item", populate: {path: "productVariant", populate: {path: "product", select: "_id name"}}})
     }
 
     async getOrderItemList(orderId: string){
-        return await OrderItem.find({order_id: orderId}).populate({path: "item", populate: {path: "productVariant", populate: {path: "product", select: "_id seller name"}}})
+        return await OrderItem.find({order_id: orderId}).populate({path: "item", populate: {path: "productVariant", populate: {path: "product", select: "_id name"}}})
+    }
+
+    async getOrderForSeller(userId: string){
+        const productVariantPopulate = {path: "item", populate: {path: "productVariant", select: "-__v", populate: {path: "product", select: "_id name"}}}
+        const customerPopulate = {path: "customer_id", select: "-_id fullname"}
+        const shippingPopulate = {path: "shipping_id", select: "-_id -__v"}
+
+        const orderPopulate = {path: "order_id", select:"-_id -__v", populate:[ customerPopulate, shippingPopulate ]}
+
+        return await OrderItem.find({seller_id: userId}).populate(productVariantPopulate).populate(orderPopulate)
     }
 
     // .populate({path:'item': populate:{path: 'productVariant'}})

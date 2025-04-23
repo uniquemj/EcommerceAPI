@@ -9,7 +9,11 @@ export class ProductRepository{
         return await Product.find({}).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 
-    async getProductByUserId(id: string, userId: string){
+    async getSellerProductList(sellerId: string){
+        return await Product.find({seller: sellerId}).populate('variants', '-__v').populate('seller', '_id, store_name')
+    }
+
+    async getSellerProductById(id: string, userId: string){
         return await Product.findOne({_id: id, seller: userId}).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 

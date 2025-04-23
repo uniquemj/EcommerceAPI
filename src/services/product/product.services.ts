@@ -45,6 +45,31 @@ export class ProductServices{
         }
     }
 
+    async getSellerProductList(sellerId: string){
+        try{
+            const productExist = await this.productRepository.getSellerProductList(sellerId)
+
+            if(productExist.length == 0){
+                throw createHttpError.NotFound("Seller Product List Empty.")
+            }
+            return productExist
+        }catch(error){
+            throw error
+        }
+    }
+    
+    async getSellerProduct(productId: string, sellerID: string){
+        try{
+            const productExist = await this.productRepository.getSellerProductById(productId, sellerID)
+            if(!productExist){
+                throw createHttpError.NotFound("Product with Id not found.")
+            }
+            return productExist
+        }catch(error){
+            throw error
+        }
+    }
+
     async createProduct(productInfo: ProductInfo, productImages: Express.Multer.File[],variantImages: Express.Multer.File[], userId: string){
         try{
             const {name, category, variants, productDescripton, productHighlights} = productInfo
@@ -113,7 +138,7 @@ export class ProductServices{
 
     async editProduct(productId: string, productInfo: ProductInfo, variantImages: Express.Multer.File[], userId: string){
         try{
-            const productExist = await this.productRepository.getProductByUserId(productId, userId)
+            const productExist = await this.productRepository.getSellerProductById(productId, userId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
@@ -172,7 +197,7 @@ export class ProductServices{
 
     async removeProduct(productId: string, userId: string){
         try{
-            const productExist = await this.productRepository.getProductByUserId(productId, userId)
+            const productExist = await this.productRepository.getSellerProductById(productId, userId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
@@ -189,7 +214,7 @@ export class ProductServices{
 
     async removeCategoryFromProduct(productId: string, categoryId: string, userId: string){
         try{
-            const productExist = await this.productRepository.getProductByUserId(productId, userId)
+            const productExist = await this.productRepository.getSellerProductById(productId, userId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
@@ -202,7 +227,7 @@ export class ProductServices{
 
     async addImageToProduct(productId: string, productImages: Express.Multer.File[], userId: string){
         try{
-            const productExist = await this.productRepository.getProductByUserId(productId,userId)
+            const productExist = await this.productRepository.getSellerProductById(productId,userId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
@@ -216,7 +241,7 @@ export class ProductServices{
                 await this.productRepository.addImageToProduct(productId, userId, image)
             })
 
-            const product = await this.productRepository.getProductByUserId(productId, userId)
+            const product = await this.productRepository.getSellerProductById(productId, userId)
             return product
         }catch(error){
             throw error
@@ -225,7 +250,7 @@ export class ProductServices{
 
     async removeImageFromProduct(productId:string, imageId: string, userId: string){
         try{
-            const productExist = await this.productRepository.getProductByUserId(productId,userId)
+            const productExist = await this.productRepository.getSellerProductById(productId,userId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
@@ -240,7 +265,7 @@ export class ProductServices{
 
     async removeVariant(productId: string, variantId: string, userId: string){
         try{
-            const productExist = await this.productRepository.getProductByUserId(productId, userId)
+            const productExist = await this.productRepository.getSellerProductById(productId, userId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }

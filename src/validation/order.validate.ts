@@ -2,12 +2,7 @@ import {z} from 'zod'
 import { OrderStatus, PaymentMethod, PaymentStatus } from '../types/order.types'
 
 export const deliveryInfoSchema = z.object({
-    full_name: z.string(),
-    email: z.string().email(),
-    phone_number: z.string().min(10),
-    region: z.string(),
-    city: z.string(),
-    address: z.string()
+    shipping_id: z.string(),
 })
 
 export const paymentMethodSchema = z.object({
