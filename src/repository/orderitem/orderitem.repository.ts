@@ -18,11 +18,11 @@ export class OrderItemRepository{
 
     async getOrderForSeller(userId: string){
         const customerPopulate = {path: "customer_id", select: "-_id fullname"}
-        const shippingPopulate = {path: "shipping_id", select: "-_id -__v"}
+        const shippingPopulate = {path: "shipping_id", select: "-_id -customer_id -__v"}
 
-        const orderPopulate = {path: "order_id", select:" -__v", populate:[ customerPopulate, shippingPopulate ]}
+        const orderPopulate = {path: "order_id", select:" -__v -orderTotal", populate:[ customerPopulate, shippingPopulate ]}
 
-        return await OrderItem.find({seller_id: userId, order_status: {$ne: "canceled"}}).populate(this.productVariantPopulate).populate(orderPopulate)
+        return await OrderItem.find({seller_id: userId, order_status: {$ne: "canceled"}}).populate(this.productVariantPopulate).populate(orderPopulate).select('-seller_id')
     }
 
 

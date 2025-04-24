@@ -3,7 +3,6 @@ import { User } from "../../types/user.types";
 import { UserRole } from "../../types/user.types";
 
 interface CustomerDocument extends User, Document{
-    fullname: string,
     date_of_birth?: Date
 }
 

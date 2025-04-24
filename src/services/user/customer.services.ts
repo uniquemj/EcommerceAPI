@@ -83,18 +83,18 @@ export class CustomerServices{
     async updatePassword(email: string, oldPassword: string, newPassword: string){
         try{
             const customerExist = await this.customerRepository.getCustomer(email)
+
             if(!customerExist){
                 throw createHttpError.NotFound("Customer with email doesn't exist")
             }
-
             const oldPasswordMatch = await comparePassword(oldPassword, customerExist.password as string)
-
             if(!oldPasswordMatch){
-                throw createHttpError.BadRequest("Old password does not match with current password.")
+                throw createHttpError.BadRequest("Old passowrd does not match with current password.")
             }
 
             const newHashPassword = await hashPassword(newPassword)
             const result = await this.customerRepository.updateCustomerInfo(customerExist._id as string, {password: newHashPassword})
+
             return result
         }catch(error){
             console.log("throwing in service")

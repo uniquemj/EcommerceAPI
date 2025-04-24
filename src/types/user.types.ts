@@ -1,6 +1,7 @@
 import { Types } from "mongoose"
 
 export interface User{
+    fullname: string,
     email: string,
     password: string,
     is_verified?: boolean,
@@ -35,4 +36,8 @@ export interface CustomerProfile{
     email?: string,
     phone_number?: string,
     date_of_birth?: string
+}
+
+export interface SellerProfile{
+    
 }

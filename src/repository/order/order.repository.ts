@@ -7,7 +7,7 @@ export class OrderRepository{
     }
 
     async getCustomerOrder(orderId: string, userId: string){
-        return await Order.find({_id: orderId, customer_id: userId})
+        return await Order.find({_id: orderId, customer_id: userId, isCanceled: false, isCompleted: false})
     }
     
     async getOrderById(orderId: string){

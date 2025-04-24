@@ -96,10 +96,9 @@ export class CustomerController{
         try{
             const email = req.user?.email as string
             const {old_password, new_password} = req.body
-            const result = this.customerService.updatePassword(email, old_password, new_password)
+            const result = await this.customerService.updatePassword(email, old_password, new_password)
             res.status(200).send({message: "Customer Password Updated.", response: result})
         }catch(e:any){
-            console.log("throwing in controller")
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
