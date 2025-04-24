@@ -7,27 +7,69 @@ import { CartController } from '../controllers/cart/cart.controller'
 import { verifyToken } from '../middlewares/auth.middleware'
 import { OrderController } from '../controllers/order/order.controller'
 import { ShipmentAddressController } from '../controllers/shipmentAddress/shipmentAddress.controller'
+import { CustomerServices } from '../services/user/customer.services'
+import { CustomerRepository } from '../repository/user/customer.repository'
+import { SellerServices } from '../services/user/seller.services'
+import { SellerRepository } from '../repository/user/seller.repository'
+import { CategoryRepository } from '../repository/category/category.repository'
+import { CategoryServices } from '../services/category/category.services'
+import { ProductRepository } from '../repository/product/product.repository'
+import { ProductServices } from '../services/product/product.services'
+import { VariantRepository } from '../repository/variant/variant.repository'
+import { VariantServices } from '../services/variant/variant.services'
+import { CartRepository } from '../repository/cart/cart.repository'
+import { CartServices } from '../services/cart/cart.services'
+import { OrderRepository } from '../repository/order/order.repository'
+import { OrderServices } from '../services/order/order.services'
+import { OrderItemRepository } from '../repository/orderitem/orderitem.repository'
+import { OrderItemServices } from '../services/orderItem/orderItem.services'
+import { ShipmentAddressRepository } from '../repository/shipmentAddress/shipmentAddress.repository'
+import { ShipmentAddressServices } from '../services/shipmentAddress/shipmentAddress.services'
 
 const router = express.Router()
 
 //User
-const customerController = CustomerController.initController()
-const sellerController = SellerController.initController()
+const customerRepository = new CustomerRepository()
+const customerService = new CustomerServices(customerRepository)
+const customerController = CustomerController.initController(customerService)
+
+const sellerRepository = new SellerRepository()
+const sellerService = new SellerServices(sellerRepository)
+const sellerController = SellerController.initController(sellerService)
 
 //Category
-const categoryController = CategoryController.initController()
+const cateogryRepository = new CategoryRepository()
+const categoryServices = new CategoryServices(cateogryRepository)
+const categoryController = CategoryController.initController(categoryServices)
+
+
+//Variant
+const variantRepository = new VariantRepository()
+const variantServices = new VariantServices(variantRepository)
 
 //Product
-const productController = ProductController.initController()
+const productRepository = new ProductRepository()
+const productServices = new ProductServices(productRepository, categoryServices, variantServices)
+const productController = ProductController.initController(productServices)
 
 // Cart
-const cartController = CartController.initController()
+const cartRepository = new CartRepository()
+const cartServices = new CartServices(cartRepository, variantServices)
+const cartController = CartController.initController(cartServices)
+
+//Order item
+const orderItemRepository = new OrderItemRepository()
+const orderItemServices = new OrderItemServices(orderItemRepository)
 
 // Orderr
-const orderController = OrderController.initController()
+const orderRepository = new OrderRepository()
+const orderServices = new OrderServices(orderRepository, cartServices, orderItemServices, variantServices, productServices)
+const orderController = OrderController.initController(orderServices, orderItemServices)
 
 // Shipment Address
-const shipmetAddressController = ShipmentAddressController.initController()
+const shipmentRepository = new ShipmentAddressRepository()
+const shipmentServices = new ShipmentAddressServices(shipmentRepository)
+const shipmetAddressController = ShipmentAddressController.initController(shipmentServices)
 
 //User Route
 router.use('/auth/customers',customerController.router)

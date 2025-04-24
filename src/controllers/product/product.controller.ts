@@ -10,40 +10,39 @@ import { productSchema, updateProductSchema } from "../../validation/product.val
 import { validate } from "../../middlewares/validation.middleware";
 import { FileInfo } from "../../types/file.types";
 import { ProductInfo } from "../../types/product.types";
-import { variantSchema } from "../../validation/variant.validate";
+import { updateVariantSchema, variantSchema } from "../../validation/variant.validate";
 
 export class ProductController{
     readonly router: Router;
     private static instance: ProductController;
-    private readonly productServices: ProductServices
-
-    private constructor(){
+    
+    private constructor(private readonly productServices: ProductServices){
         this.router = Router()
-        this.productServices = new ProductServices()
     }
 
-    static initController(){
-        const instance = new ProductController()
+    static initController(productServices: ProductServices){
+        const instance = new ProductController(productServices)
         ProductController.instance = instance
 
         instance.router.get('/', allowedRole('customer'), instance.getProductList)
         instance.router.get('/seller',allowedRole('seller'), instance.getSellerProductList)
+        instance.router.get('/seller/:id',allowedRole('seller'), instance.getSellerProductById)
         instance.router.get('/:id', allowedRole('customer'), instance.getProductById)
 
-        instance.router.post('/', allowedRole('seller'), upload.fields(UploadFields), validate(productSchema), instance.createProduct)
+        instance.router.post('/', allowedRole('seller'), validate(productSchema), instance.createProduct)
         instance.router.put('/:id', allowedRole('seller'), validate(updateProductSchema), instance.editProduct)
         instance.router.delete('/:id', allowedRole('seller'), instance.removeProduct)
         
         //Variant
-        instance.router.get('/:id/variants', allowedRole('seller', 'customer'), instance.getProductVariant)
+        instance.router.get('/:id/variants', allowedRole('seller'), instance.getProductVariant)
         instance.router.post('/:id/variants/:variantId', allowedRole('seller'), upload.fields(UploadFields), instance.removeVariant)
 
         // Remove Category
-        instance.router.post('/category/:id', allowedRole('seller'), instance.removeCategoryFromProduct)
+        instance.router.post('/:id/category/:categoryId', allowedRole('seller'), instance.removeCategoryFromProduct)
         
         // Remove and Add Image
-        instance.router.post('/:id/images', allowedRole('seller'), upload.fields(UploadFields), instance.addImageToProduct)
-        instance.router.put('/:id/images/:imageId', allowedRole('seller'), instance.removeImageFromProduct)
+        instance.router.put('/:id/variants/:variantId', allowedRole('seller'), validate(updateVariantSchema), instance.updateProductVariant)
+        instance.router.put('/:id/variants/:variantId/images/:imageId', allowedRole('seller'), instance.removeImageFromProductVariant)
 
         return instance
     }   
@@ -68,11 +67,11 @@ export class ProductController{
         }
     }
 
-    getSellerProduct = async(req: AuthRequest, res: Response) =>{
+    getSellerProductById = async(req: AuthRequest, res: Response) =>{
         try{
             const productId = req.params.id
             const sellerId = req.user?._id as string
-            const result = await this.productServices.getSellerProduct(productId, sellerId)
+            const result = await this.productServices.getSellerProductById(productId, sellerId)
             res.status(200).send({message: "Seller Product Fetched.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -93,15 +92,7 @@ export class ProductController{
     createProduct = async(req: AuthRequest, res: Response) =>{
         try{
             const productInfo = req.body as ProductInfo
-            const files = req.files as FileInfo
-
-            let productImages = [] as Express.Multer.File[]
-            let variantImages = [] as Express.Multer.File[]
-            if (files){
-                productImages = files['productImages'] as Express.Multer.File[]
-                variantImages = files['variantImages'] as Express.Multer.File[]
-            }
-            const product = await this.productServices.createProduct(productInfo, productImages, variantImages, req.user!._id!)
+            const product = await this.productServices.createProduct(productInfo, req.user!._id!)
             res.status(200).send({message: "Product Created.", response: product})
         } catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -113,14 +104,8 @@ export class ProductController{
             const productId = req.params.id
             const productInfo = req.body
             const userId = req.user?._id as string
-            const files = req.files as FileInfo
 
-            let variantImages = [] as Express.Multer.File[]
-            if (files){
-                variantImages = files['variantImages'] as Express.Multer.File[]
-            }
-
-            const result = await this.productServices.editProduct(productId, productInfo,variantImages, userId)
+            const result = await this.productServices.editProduct(productId, productInfo, userId)
             res.status(200).send({message: "Product updated.", response: result})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -141,8 +126,8 @@ export class ProductController{
 
     removeCategoryFromProduct = async(req: AuthRequest, res: Response) =>{
         try{
-            const categoryId = req.params.id
-            const {productId} = req.body
+            const categoryId = req.params.categoryId
+            const productId = req.params.id
             const userId = req.user?._id as string
 
             const result = await this.productServices.removeCategoryFromProduct(productId, categoryId, userId)
@@ -152,32 +137,29 @@ export class ProductController{
         }
     }
 
-    addImageToProduct = async(req: AuthRequest, res: Response) =>{
+    updateProductVariant = async(req: AuthRequest, res: Response) =>{
         try{
             const productId = req.params.id
-            const files = req.files as FileInfo
-            let productImages = [] as Express.Multer.File[]
-
-            if(files){
-                productImages = files['productImages'] as Express.Multer.File[]
-            }
+            const variantId = req.params.variantId
+            const updateInfo = req.body
             const userId = req.user?._id as string
 
-            const product = await this.productServices.addImageToProduct(productId, productImages,userId)
-            res.status(200).send({message:"Image Added.", response: product})
+            const result= await this.productServices.updateProductVariant(productId, variantId, updateInfo, userId)
+            res.status(200).send({message:"Variant Updated.", response: result})
             
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
 
-    removeImageFromProduct = async(req: AuthRequest, res: Response) =>{
+    removeImageFromProductVariant = async(req: AuthRequest, res: Response) =>{
         try{
             const imageId = req.params.imageId
             const productId = req.params.id
+            const variantId = req.params.variantId
             const userId = req.user?._id as string
 
-            const result = await this.productServices.removeImageFromProduct(productId, imageId, userId)
+            const result = await this.productServices.removeImageFromProductVariant(productId,variantId, imageId, userId)
             res.status(200).send({message: "Image removed.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode,e.message, e.errors)

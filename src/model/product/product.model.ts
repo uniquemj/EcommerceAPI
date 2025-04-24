@@ -7,7 +7,7 @@ import { ImageInfo } from "../../types/image.types";
 interface ProductDocument extends Document{
     seller: Schema.Types.ObjectId,
     name: string,
-    images: ImageInfo[],
+    defaultVariant: Schema.Types.ObjectId,
     category: CategoryInfo[],
     variants: VariantInfo[],
     
@@ -18,9 +18,7 @@ interface ProductDocument extends Document{
 const productSchema: Schema<ProductDocument> = new Schema({
     seller: {type: Schema.Types.ObjectId, ref: 'seller'},
     name: {type: String},
-    images: [{
-        url: {type: String}
-    }],
+    defaultVariant: {type: Schema.Types.ObjectId, ref: 'variant'},
     category: [{type: Schema.Types.ObjectId, ref: 'category'}],
     variants: [{type: Schema.Types.ObjectId, ref: 'variant'}],
     productDescripton: {type: String},

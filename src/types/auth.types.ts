@@ -1,7 +1,7 @@
 import { Request } from "express";
 
 
-interface User{
+export interface User{
     _id?:string,
     email?:string,
     role?:string,

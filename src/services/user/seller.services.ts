@@ -5,11 +5,8 @@ import { SellerInfo,UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
 
 export class SellerServices{
-    private readonly sellerRepository: SellerRepository;
-
-    constructor(){
-        this.sellerRepository = new SellerRepository();
-    }
+    
+    constructor(private readonly sellerRepository: SellerRepository){}
 
     async registerSeller(sellerInfo: SellerInfo){
         try{

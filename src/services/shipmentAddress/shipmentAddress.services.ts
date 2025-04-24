@@ -1,15 +1,11 @@
 import { ShipmentAddressRepository } from "../../repository/shipmentAddress/shipmentAddress.repository";
-import { DeliverInfo } from "../../types/order.types";
 import { ShipmentInfo } from "../../types/shipment.types";
 import createHttpError from "../../utils/httperror.utils";
 
 
 export class ShipmentAddressServices{
-    private readonly shipmentAddressRepository: ShipmentAddressRepository
-
-    constructor(){
-        this.shipmentAddressRepository = new ShipmentAddressRepository()
-    }
+    
+    constructor(private readonly shipmentAddressRepository: ShipmentAddressRepository){}
 
     async getShipmentAddressListOfCustomer(customer_id: string){
         try{

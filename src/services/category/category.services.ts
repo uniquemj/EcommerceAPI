@@ -3,11 +3,8 @@ import { CategoryInfo } from "../../types/category.types";
 import createHttpError from "../../utils/httperror.utils";
 
 export class CategoryServices{
-    private readonly categoryRepository: CategoryRepository;
 
-    constructor(){
-        this.categoryRepository = new CategoryRepository()
-    }
+    constructor(private readonly categoryRepository: CategoryRepository){}
 
     getCategoryList = async() =>{
         try{
@@ -16,6 +13,30 @@ export class CategoryServices{
                 throw createHttpError.NotFound("Category List is Empty.")
             }
             return category
+        }catch(error){
+            throw error
+        }
+    }
+
+    getCategoryByTitle = async(title: string)=>{
+        try{
+            const result = await this.categoryRepository.getCategoryByTitle(title)
+            if(!result){
+                throw createHttpError.NotFound("Category doesn't exist.")
+            }
+            return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    getCategoryById = async (id: string) =>{
+        try{
+            const result = await this.categoryRepository.getCategoryById(id)
+            if(!result){
+                throw createHttpError.NotFound("Category with Id doesn't exist.")
+            }
+            return result
         }catch(error){
             throw error
         }
@@ -30,7 +51,7 @@ export class CategoryServices{
                 parent_category: parent_category
             }
 
-            const categoryExist = await this.categoryRepository.getCategory(categoryDetail.title) as unknown as CategoryInfo
+            const categoryExist = await this.categoryRepository.getCategoryByTitle(categoryDetail.title) as unknown as CategoryInfo
             if(categoryExist){
                 return categoryExist
             }

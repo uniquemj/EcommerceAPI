@@ -10,15 +10,13 @@ import { addressSchema, updateAddressSchema } from "../../validation/address.val
 export class ShipmentAddressController{
     readonly router: Router;
     private static instance: ShipmentAddressController
-    private readonly shipmentAddressServices: ShipmentAddressServices
-
-    private constructor(){
+    
+    private constructor(private readonly shipmentAddressServices: ShipmentAddressServices){
         this.router = Router()
-        this.shipmentAddressServices = new ShipmentAddressServices()
     }
 
-    static initController(){
-        const instance = new ShipmentAddressController()
+    static initController(shipmentAddressServices: ShipmentAddressServices){
+        const instance = new ShipmentAddressController(shipmentAddressServices)
         ShipmentAddressController.instance = instance
 
         instance.router.get('/', allowedRole('customer'), instance.getShipmentAddressListOfCustomer)

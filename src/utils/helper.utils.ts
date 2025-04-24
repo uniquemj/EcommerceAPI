@@ -1,19 +1,22 @@
-import { ProductRepository } from "../repository/product/product.repository"
-import { VariantRepository } from "../repository/variant/variant.repository"
 
+import jwt, { JwtPayload } from 'jsonwebtoken'
+import { User } from '../types/auth.types'
+import bcrypt from 'bcryptjs'
 
-export class Helper{
-    private readonly variantRepository: VariantRepository
-    private readonly productRepository: ProductRepository
+const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string
 
-    constructor(){
-        this.variantRepository = new VariantRepository()
-        this.productRepository = new ProductRepository()
-    }
+export const signToken = (userInfo: User) =>{
+    return jwt.sign(userInfo, JWT_SECRET_KEY, {expiresIn: "1d"})
+}
 
-    getVariantSeller = async(variantId: string): Promise<string> =>{
-        const variant = await this.variantRepository.getVariant(variantId)
-        const productDetail = await this.productRepository.getProductById(variant?.product as unknown as string)
-        return productDetail?.seller as unknown as string
-    }
+export const verifyJWTToken = (user_token: string) =>{
+    return jwt.verify(user_token, JWT_SECRET_KEY) as JwtPayload
+}
+
+export const hashPassword = async(password: string) =>{
+    return await bcrypt.hash(password, 10)
+}
+
+export const comparePassword = async(userInputPassword: string, hashedPassword: string) =>{
+    return await bcrypt.compare(userInputPassword, hashedPassword)
 }

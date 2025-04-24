@@ -11,6 +11,11 @@ interface OrderDocument extends Document{
     payment_method: PaymentMethod,
     payment_status: PaymentStatus,
     
+    isCanceled: boolean,
+    cancelAt: Date,
+
+    isCompleted: boolean,
+    
     orderTotal: number,
     order_timeStamp: Date,
 }
@@ -21,6 +26,11 @@ const orderSchema: Schema<OrderDocument> = new Schema({
 
     payment_method: {type: String, enum: Object.values(PaymentMethod), default: PaymentMethod.COD},
     payment_status: {type: String, enum: Object.values(PaymentStatus), default: PaymentStatus.UnPaid},
+
+    isCanceled: {type: Boolean, default: false},
+    cancelAt: {type: Date},
+
+    isCompleted: {type: Boolean, default: false},
 
     orderTotal: {type: Number, min: 0},
     order_timeStamp: {type: Date, default: Date.now},

@@ -28,3 +28,11 @@ export interface UserCredentials{
     email: string,
     password: string
 }
+
+export interface CustomerProfile{
+    fullname?: string,
+    password?: string,
+    email?: string,
+    phone_number?: string,
+    date_of_birth?: string
+}

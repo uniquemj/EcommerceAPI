@@ -7,18 +7,19 @@ import { AuthRequest } from "../../types/auth.types";
 import { COOKIE } from "../../constant/cookie";
 
 export class SellerController{
+    
     readonly router: Router;
     private static instance: SellerController;
-    private readonly sellerServices: SellerServices;
-
-    private constructor(){
+    
+    private constructor(private readonly sellerServices: SellerServices){
         this.router = Router();
-        this.sellerServices = new SellerServices;
     }
 
-    static initController(){
-        const instance = new SellerController();
+    static initController(sellerServices: SellerServices){
+        const instance = new SellerController(sellerServices);
+        
         SellerController.instance = instance;
+        
         instance.router.post('/register', validate(sellerRegisterSchema), instance.registerSeller)
         instance.router.post('/verify/:code', instance.verifySeller)
         instance.router.post('/login',validate(loginSchema), instance.loginSeller)

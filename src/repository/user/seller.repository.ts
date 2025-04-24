@@ -1,9 +1,7 @@
-import jwt from 'jsonwebtoken'
 import Seller from "../../model/user/seller.model";
-import { SellerInfo, UserCredentials, User } from "../../types/user.types";
+import { SellerInfo, UserCredentials} from "../../types/user.types";
+import { signToken } from '../../utils/helper.utils';
 
-
-const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string
 
 export class SellerRepository{
     async getSeller(email: string){
@@ -25,7 +23,7 @@ export class SellerRepository{
     async loginSeller(sellerCredentials: UserCredentials){
         const seller = await Seller.findOne({email: sellerCredentials.email}).select('-password') as SellerInfo
 
-        const token = jwt.sign({_id: seller?._id, email: seller?.email, role: seller?.role, is_verified: seller?.is_verified}, JWT_SECRET_KEY, {expiresIn: "1d"})
+        const token = signToken({_id: seller?._id, email: seller?.email, role: seller?.role, is_verified: seller?.is_verified})
 
         return {token, seller}
     }

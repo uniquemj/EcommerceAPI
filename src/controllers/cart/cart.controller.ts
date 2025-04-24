@@ -9,18 +9,16 @@ import { addCartSchema, updateCartSchema } from "../../validation/cart.validate"
 export class CartController{
     readonly router: Router
     private static instace: CartController;
-    private readonly cartServices: CartServices;
 
-    private constructor(){
+    private constructor(private readonly cartServices: CartServices){
         this.router = Router()
-        this.cartServices = new CartServices()
     }
 
-    static initController(){
-        const instance = new CartController()
+    static initController(cartServices: CartServices){
+        const instance = new CartController(cartServices)
         CartController.instace = instance
 
-        instance.router.get('/', allowedRole('customer'), instance.getCart)
+        instance.router.get('/', allowedRole('customer'), instance.getCartByUserId)
         instance.router.post('/add/:id', validate(addCartSchema), allowedRole('customer'), instance.addToCart)
         instance.router.post('/remove/:id', allowedRole('customer'), allowedRole('customer'), instance.removeItemFromCart)
         instance.router.post('/quantity/:id', validate(updateCartSchema), allowedRole('customer'), instance.updateCart)
@@ -29,10 +27,10 @@ export class CartController{
         return instance
     }
 
-    getCart = async(req: AuthRequest, res: Response) =>{
+    getCartByUserId = async(req: AuthRequest, res: Response) =>{
         try{
             const userId = req.user?._id as string
-            const cart = await this.cartServices.getCart(userId)
+            const cart = await this.cartServices.getCartByUserId(userId)
             res.status(200).send({message: "Cart Fetched Successfully", response: cart})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

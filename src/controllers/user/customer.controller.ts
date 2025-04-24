@@ -1,27 +1,32 @@
 import { Request, Response, Router } from "express";
 import { CustomerServices } from "../../services/user/customer.services";
 import { validate } from "../../middlewares/validation.middleware";
-import { customerRegisterSchema, loginSchema } from "../../validation/user.validate";
+import { customerRegisterSchema, loginSchema, updatePasswordSchema } from "../../validation/user.validate";
 import createHttpError from "../../utils/httperror.utils";
 import { COOKIE } from "../../constant/cookie";
+import { AuthRequest } from "../../types/auth.types";
+import { verifyToken } from "../../middlewares/auth.middleware";
+import { updateCustomerProfileSchema } from "../../validation/user.validate";
 
 export class CustomerController{
+    
     readonly router: Router;
     private static instance: CustomerController;
-    private readonly customerService: CustomerServices
 
-    private constructor(){
+    private constructor(private readonly customerService: CustomerServices){
         this.router = Router()
-        this.customerService = new CustomerServices()
     }
 
-    static initController(){
-        const instance = new CustomerController()
+    static initController(customerService: CustomerServices){
+        const instance = new CustomerController(customerService)
+        
         CustomerController.instance = instance
         instance.router.post('/register', validate(customerRegisterSchema), instance.registerCustomer)
         instance.router.post('/verify/:code', instance.verifyCustomer)
         instance.router.post('/login', validate(loginSchema), instance.loginCustomer)
         instance.router.post('/logout',instance.logoutCustomer)
+        instance.router.put('/', verifyToken, validate(updateCustomerProfileSchema), instance.updateCustomerProfile)
+        instance.router.put('/password', verifyToken, validate(updatePasswordSchema), instance.updatePassword)
         return instance
     }
 
@@ -71,6 +76,30 @@ export class CustomerController{
             res.clearCookie('USER_TOKEN')
             res.status(200).send({message: "Customer Logged out."})
         }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    updateCustomerProfile = async(req: AuthRequest, res: Response) =>{
+        try{
+            const customerEmail = req.user?.email as string
+            const updateProfileInfo = req.body
+
+            const result = await this.customerService.updateCustomerInfo(customerEmail, updateProfileInfo)
+            res.status(200).send({message: "Customer Profile Updated.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    updatePassword = async(req: AuthRequest, res: Response) =>{
+        try{
+            const email = req.user?.email as string
+            const {old_password, new_password} = req.body
+            const result = this.customerService.updatePassword(email, old_password, new_password)
+            res.status(200).send({message: "Customer Password Updated.", response: result})
+        }catch(e:any){
+            console.log("throwing in controller")
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

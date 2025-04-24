@@ -6,7 +6,7 @@ export interface ProductInfo{
     _id?:string,
     seller?: string,
     name?: string,
-    images?: ImageInfo[],
+    defaultVariant?:string,
     category?: CategoryInfo[] | string,
     variants?: VariantInfo[],
     productDescripton?: string,

@@ -2,7 +2,6 @@ import {Request, Response, Router} from 'express'
 import { CategoryServices } from '../../services/category/category.services';
 import createHttpError from '../../utils/httperror.utils';
 import { allowedRole } from '../../middlewares/role.middleware';
-import { verifyToken } from '../../middlewares/auth.middleware';
 import { validate } from '../../middlewares/validation.middleware';
 import { categorySchema } from '../../validation/category.validate';
 import { AuthRequest } from '../../types/auth.types';
@@ -11,15 +10,14 @@ import { CategoryInfo } from '../../types/category.types';
 export class CategoryController{
     readonly router: Router;
     private static instance: CategoryController;
-    private readonly categoryServices: CategoryServices;
+    
 
-    private constructor(){
+    private constructor(private readonly categoryServices: CategoryServices){
         this.router = Router()
-        this.categoryServices = new CategoryServices()
     }
 
-    static initController(){
-        const instance = new CategoryController()
+    static initController(categoryServices: CategoryServices){
+        const instance = new CategoryController(categoryServices)
         CategoryController.instance = instance
 
         instance.router.get('/', allowedRole('customer','seller'),instance.getCategoryList)

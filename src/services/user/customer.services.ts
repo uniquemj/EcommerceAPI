@@ -1,16 +1,11 @@
 import { v4 } from "uuid";
-import bcrypt from 'bcryptjs';
 import { CustomerRepository } from "../../repository/user/customer.repository";
-import { CustomerInfo, User, UserCredentials } from "../../types/user.types";
+import { CustomerInfo, CustomerProfile, UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
-import { sendMail } from "../../utils/sendmail.utils";
+import { hashPassword, comparePassword } from "../../utils/helper.utils";
 
 export class CustomerServices{
-    private readonly customerRepository: CustomerRepository;
-
-    constructor(){
-        this.customerRepository = new CustomerRepository();
-    }
+    constructor(private readonly customerRepository: CustomerRepository){}
 
     async registerCustomer(userInfo: CustomerInfo){
         try{
@@ -20,7 +15,7 @@ export class CustomerServices{
                 throw createHttpError.BadRequest("Customer with Email exists.")
             }
 
-            const hashedPassword = await bcrypt.hash(userInfo.password, 10)
+            const hashedPassword = await hashPassword(userInfo.password)
             
             const userDetail = {
                 fullname: userInfo.fullname,
@@ -28,11 +23,6 @@ export class CustomerServices{
                 password: hashedPassword,
                 code: v4()
             }
-            // const status = await sendMail(userDetail.email, userDetail.code)
-
-            // if(!status){
-            //     throw createHttpError.InternalServerError("Something went wrong.")
-            // }
 
             const result = await this.customerRepository.registerCustomer(userDetail)
 
@@ -65,7 +55,7 @@ export class CustomerServices{
                 throw createHttpError.BadRequest("Customer is not verified. Please Verify with verificaiton link sent in mail.")
             }
 
-            const isPasswordMatch = await bcrypt.compare(userCredentials.password, customerExist.password)
+            const isPasswordMatch = await comparePassword(userCredentials.password, customerExist.password)
 
             if(!isPasswordMatch){
                 throw createHttpError.BadRequest("Invalid Password.")
@@ -73,6 +63,41 @@ export class CustomerServices{
             const result = await this.customerRepository.loginCustomer(userCredentials)
             return result
         }catch(error){
+            throw error
+        }
+    }
+
+    async updateCustomerInfo(email: string, updateInfo: CustomerProfile){
+        try{
+            const customerExist = await this.customerRepository.getCustomer(email)
+            if(!customerExist){
+                throw createHttpError.NotFound("Customer with email doesn't exist")
+            }
+            const result = await this.customerRepository.updateCustomerInfo(customerExist._id as string, updateInfo)
+            return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    async updatePassword(email: string, oldPassword: string, newPassword: string){
+        try{
+            const customerExist = await this.customerRepository.getCustomer(email)
+            if(!customerExist){
+                throw createHttpError.NotFound("Customer with email doesn't exist")
+            }
+
+            const oldPasswordMatch = await comparePassword(oldPassword, customerExist.password as string)
+
+            if(!oldPasswordMatch){
+                throw createHttpError.BadRequest("Old password does not match with current password.")
+            }
+
+            const newHashPassword = await hashPassword(newPassword)
+            const result = await this.customerRepository.updateCustomerInfo(customerExist._id as string, {password: newHashPassword})
+            return result
+        }catch(error){
+            console.log("throwing in service")
             throw error
         }
     }

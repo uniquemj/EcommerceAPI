@@ -4,19 +4,15 @@ import { VariantRepository } from "../../repository/variant/variant.repository";
 import { CartInfo, CartItem } from "../../types/cart.types";
 import { VariantInfo } from "../../types/variants.types";
 import createHttpError from "../../utils/httperror.utils";
+import { VariantServices } from "../variant/variant.services";
 
 export class CartServices{
-    private readonly cartRepository: CartRepository
-    private readonly variantRepository: VariantRepository
-    private readonly productRepository: ProductRepository
+    
 
-    constructor(){
-        this.cartRepository = new CartRepository()
-        this.variantRepository = new VariantRepository()
-        this.productRepository = new ProductRepository()
-    }
+    constructor(private readonly cartRepository: CartRepository,
+        private readonly variantServices: VariantServices){}
 
-    getCart = async(userId: string) =>{
+    getCartByUserId = async(userId: string) =>{
         try{
             const cartExist = await this.cartRepository.getCartByUserId(userId)
             if(!cartExist){
@@ -28,13 +24,21 @@ export class CartServices{
         }
     }
 
+    getCartItem = async(userId: string, itemId: string) =>{
+        try{
+            const cartItem = this.cartRepository.getCartItem(userId, itemId)
+            if(!cartItem){
+                throw createHttpError.NotFound("Cart Item not found.")
+            }
+            return cartItem
+        }catch(error){
+            throw error
+        }
+    }
+    
     addToCart = async(itemId: string, userId: string, quantity: number = 1) =>{
         try{
-            const productItem = await this.variantRepository.getVariant(itemId) as unknown as VariantInfo
-
-            if(!productItem){
-                throw createHttpError.NotFound("Product Item not found.")
-            }
+            const productItem = await this.variantServices.getVariant(itemId) as unknown as VariantInfo
 
             if(productItem.stock as number < quantity){
                 throw createHttpError.BadRequest("Quantity exceeds product stock.")
@@ -117,10 +121,23 @@ export class CartServices{
             
             let cartTotal = 0
             for(let cartItem of cartExist.items){
-                const item = await this.variantRepository.getVariant(cartItem.productVariant as unknown as string) 
+                const item = await this.variantServices.getVariant(cartItem.productVariant as unknown as string) 
                 cartTotal += item?.price! * cartItem.quantity
             }
             return cartTotal
+        }catch(error){
+            throw error
+        }
+    }
+
+    resetCart = async(userId: string) =>{
+        try{
+            const userCart = await this.cartRepository.getCartByUserId(userId)
+            if(!userCart){
+                throw createHttpError.NotFound("Cart for User not found.")
+            }
+            const result = await this.cartRepository.resetCart(userId)
+            return result
         }catch(error){
             throw error
         }

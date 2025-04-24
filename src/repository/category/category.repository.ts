@@ -8,7 +8,7 @@ export class CategoryRepository{
         return await Category.find({}).populate('parent_category', 'title parent_category')
     }
 
-    async getCategory(title: string){
+    async getCategoryByTitle(title: string){
         return await Category.findOne({title: title}).populate('parent_category', 'title parent_category')
     }
 

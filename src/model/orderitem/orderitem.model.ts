@@ -7,10 +7,7 @@ interface OrderItemDocument extends Document{
     item: CartItem,
     
     order_status : OrderStatus,
-    seller_id: Schema.Types.ObjectId,
-    cancelAt: Date,
-    isDeleted: boolean,
-    deletedAt: Date
+    seller_id: Schema.Types.ObjectId
 }
 
 
@@ -22,9 +19,6 @@ const orderItemSchema: Schema<OrderItemDocument> = new Schema({
     },
     seller_id: {type: Schema.Types.ObjectId, ref: 'seller'},
     order_status: {type: String, enum: Object.values(OrderStatus), default: OrderStatus.Pending},
-    cancelAt: {type: Date},
-    isDeleted: {type: Boolean, default: false},
-    deletedAt: {type: Date}
 })
 
 const OrderItem : Model<OrderItemDocument> = model('orderitem', orderItemSchema)

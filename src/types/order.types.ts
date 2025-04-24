@@ -12,7 +12,7 @@ export enum PaymentStatus{
 }
 
 export enum OrderStatus{
-    Cancel="cancel",
+    Canceled = "canceled",
     Pending="pending",
     ToPack="to_pack",
     ToArrangeShipment = "to_arrange_shipment",
@@ -33,12 +33,16 @@ export interface PaymentInfo{
 }
 
 export interface OrderInfo{
-    customer_id: string,
-    shipping_id: string,
+    customer_id?: string,
+    shipping_id?: string,
 
     payment_method?: PaymentMethod,
     payment_status?: PaymentStatus,
 
-    orderTotal: number,
+    isCanceled?:boolean,
+    cancelAt?:Date,
+    isCompleted?: boolean,
+    
+    orderTotal?: number,
     order_timeStamp?: Date,
 }

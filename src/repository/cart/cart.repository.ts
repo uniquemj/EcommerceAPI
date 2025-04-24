@@ -33,7 +33,7 @@ export class CartRepository{
     async updateQuantity(quantity: number, userId: string, itemId: string){
         return await Cart.findOneAndUpdate(
             {customer: userId, 'items.productVariant': itemId},
-            {$inc: {'items.$.quantity': quantity}},
+            {$set: {'items.$.quantity': quantity}},
             {new: true}
         )
     }

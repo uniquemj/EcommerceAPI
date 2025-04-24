@@ -4,11 +4,14 @@ import { ProductInfo } from "../../types/product.types";
 
 export class ProductRepository{
 
-
     async getProductList(){
         return await Product.find({}).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 
+    async getProductById(id: string){
+        return await Product.findById(id).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
+    }
+    
     async getSellerProductList(sellerId: string){
         return await Product.find({seller: sellerId}).populate('variants', '-__v').populate('seller', '_id, store_name')
     }
@@ -17,9 +20,6 @@ export class ProductRepository{
         return await Product.findOne({_id: id, seller: userId}).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 
-    async getProductById(id: string){
-        return await Product.findById(id).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
-    }
 
     async createProduct(productInfo: ProductInfo){
         const product = await Product.create(productInfo)
@@ -38,22 +38,6 @@ export class ProductRepository{
         return await Product.findOneAndUpdate(
             {_id: productId, seller: userId},
             {$pull: {category: categoryId}},
-            {new: true}
-        )
-    }
-
-    async addImageToProduct(productId: string, userId: string, image: ImageInfo){
-        await Product.findOneAndUpdate(
-            {_id: productId, seller: userId},
-            {$push: {images: image}},
-            {new: true}
-        )
-    }
-
-    async removeImageFromProduct(productId:string, imageId: string, userId:string){
-        return await Product.findOneAndUpdate(
-            {_id: productId, seller: userId},
-            {$pull: {images: {_id: imageId}}},
             {new: true}
         )
     }

@@ -1,9 +1,8 @@
 import { AuthRequest } from "../types/auth.types";
 import { Response, NextFunction } from "express";
 import createHttpError from "../utils/httperror.utils";
-import jwt, {JwtPayload} from 'jsonwebtoken'
+import { verifyJWTToken } from "../utils/helper.utils";
 
-const JWT_SECRET_KEY = process.env.JWT_SECRET_KEY as string
 
 export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction) =>{
     try{
@@ -15,7 +14,7 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
 
         try{
 
-            const decode = jwt.verify(USER_TOKEN, JWT_SECRET_KEY) as JwtPayload
+            const decode = verifyJWTToken(USER_TOKEN)
             
             req.user = {
                 _id: decode._id,

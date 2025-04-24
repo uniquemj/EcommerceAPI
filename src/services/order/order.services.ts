@@ -1,38 +1,56 @@
-import { CartRepository } from "../../repository/cart/cart.repository";
+
 import { OrderRepository } from "../../repository/order/order.repository";
-import { OrderItemRepository } from "../../repository/orderitem/orderitem.repository";
-import { ShipmentAddressRepository } from "../../repository/shipmentAddress/shipmentAddress.repository";
 import { CartItem } from "../../types/cart.types";
 import { DeliverInfo } from "../../types/order.types";
-import { Helper } from "../../utils/helper.utils";
 import createHttpError from "../../utils/httperror.utils";
 import { CartServices } from "../cart/cart.services";
+import { OrderItemServices } from "../orderItem/orderItem.services";
+import { ProductServices } from "../product/product.services";
+import { VariantServices } from "../variant/variant.services";
 
 export class OrderServices{
-    private readonly orderRepository: OrderRepository
-    private readonly cartRepository: CartRepository
-    private readonly cartServices: CartServices
-    private readonly orderItemRepository: OrderItemRepository   
-    private readonly helper: Helper
 
-    constructor(){
-        this.orderRepository = new OrderRepository()
-        this.cartRepository = new CartRepository()
-        this.cartServices = new CartServices()
-        this.orderItemRepository = new OrderItemRepository()
-    
-        this.helper = new Helper()
+    constructor(private readonly orderRepository: OrderRepository,
+        private readonly cartServices: CartServices,
+        private readonly orderItemServices: OrderItemServices, 
+        private readonly variantServices: VariantServices,
+        private readonly productServices: ProductServices
+    ){}
+
+    getCustomerOrderList = async(userId: string) =>{
+        try{
+            const orderExist = await this.orderRepository.getCustomerOrderList(userId)
+            
+
+            if(!orderExist){
+                throw createHttpError.NotFound("Order for User not found.")
+            }
+            
+            const orders =  await Promise.all(orderExist.map(async(order)=>{
+                const orderItems = await this.orderItemServices.getOrderItemList(order._id as string)
+                
+                const orderDetail = {
+                    order: order,
+                    orderItems: orderItems
+                }
+                return orderDetail
+            }))
+
+            return orders
+        }catch(error){
+            throw error
+        }
     }
 
-    getCustomerOrder = async(userId: string) =>{
+    getCustomerOrder = async(orderId: string, userId: string) =>{
         try{
-            const orderExist = await this.orderRepository.getCustomerOrder(userId)
+            const orderExist = await this.orderRepository.getCustomerOrder(orderId, userId)
 
             if(!orderExist){
                 throw createHttpError.NotFound("Order for User not found.")
             }
 
-            const orderItems = await this.orderItemRepository.getOrderItemList(orderExist._id as string)
+            const orderItems = await this.orderItemServices.getOrderItemList(orderId)
 
             const orderResponse = {
                 order: orderExist,
@@ -42,13 +60,12 @@ export class OrderServices{
         }catch(error){
             throw error
         }
-    }
+    } 
 
     createOrder = async(deliveryInfo: DeliverInfo, userId: string) =>{
         try{
-            
 
-            const cartExist = await this.cartRepository.getCartByUserId(userId)
+            const cartExist = await this.cartServices.getCartByUserId(userId)
 
             if(!cartExist){
                 throw createHttpError.BadRequest("Cart for User not found.")
@@ -70,56 +87,75 @@ export class OrderServices{
                     productVariant: item.productVariant,
                     quantity: item.quantity
                 }
-                const variantSeller = await this.helper.getVariantSeller(item.productVariant)
-
+                const product_id = await this.variantServices.getVariantSeller(item.productVariant)
+                const product = await this.productServices.getProductById(product_id as unknown as string)
+                
                 const orderItemInfo = {
                     order_id: order._id as string,
                     item: orderItem,
-                    seller_id: variantSeller
+                    seller_id: product.seller as unknown as string
                 }
 
-                await this.orderItemRepository.createOrderItem(orderItemInfo)
+                await this.orderItemServices.createOrderItem(orderItemInfo)
             })
 
-            await this.cartRepository.resetCart(userId)
+            await this.cartServices.resetCart(userId)
             return order
         }catch(error){
             throw error
         }
     }
 
-    getOrderForSeller = async(sellerId: string) =>{
+
+
+    cancelOrder = async(order_id: string, userId: string) =>{
         try{
-            const orders = await this.orderItemRepository.getOrderForSeller(sellerId)
-            if(orders.length == 0){
-                throw createHttpError.NotFound("No order received.")
+            const orderExist = await this.orderRepository.getOrderById(order_id)
+            
+            if(!orderExist){
+                throw createHttpError.NotFound("Order with Id not found.")
             }
-            return orders
+            if(orderExist.customer_id as unknown as string != userId){
+                throw createHttpError.NotFound("Order not found.")
+            }
+
+            const orderItems = await this.orderItemServices.getOrderItemList(order_id)
+
+            const itemStatus = orderItems.some((item) => item.order_status =='pending')
+
+            if(!itemStatus){
+                throw createHttpError.BadRequest("Order can't be cancelled.")
+            }
+
+            orderItems.forEach(async(item)=>{
+                await this.orderItemServices.updateOrderStatus("canceled", item._id as string)
+            })
+
+            const result = await this.orderRepository.updateOrder(order_id, {isCanceled: true, cancelAt: Date.now() as unknown as Date})
+            return result
         }catch(error){
             throw error
         }
     }
 
-    updateOrderStatus = async(order_status: string, orderItemId: string, userId: string) =>{
-        try{
-            const orderExist = await this.orderItemRepository.getOrderItemById(orderItemId)
-
+    completeOrder = async(order_id: string) =>{
+        try{    
+            const orderExist = await this.orderRepository.getOrderById(order_id)
             if(!orderExist){
-                throw createHttpError.NotFound("Order with Id not found.")
+                throw createHttpError.NotFound("Order of Id not found.")
             }
+            const orderItems = await this.orderItemServices.getOrderItemList(order_id)
+
+            const itemStatus = orderItems.every((item)=>item.order_status =='delivered')
             
-            if(!orderExist.order_status as unknown as string == 'delivered'){
-                throw createHttpError.BadRequest("Order status can't be alter as order is delivered.")
-            }
-            
-            if(userId != orderExist.seller_id as unknown as string){
-                throw createHttpError.BadRequest("Product with seller doesn't exist")
+            if(!itemStatus){
+                throw createHttpError.BadRequest("Order can't be set to complete as order are still need to be delivered.")
             }
 
-            const result = await this.orderItemRepository.updateOrderStatus(order_status, orderItemId)
+            const result = await this.orderRepository.updateOrder(order_id, {isCompleted: true})
             return result
         }catch(error){
             throw error
         }
-    } 
+    }
 }

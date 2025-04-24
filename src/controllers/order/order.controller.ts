@@ -6,35 +6,49 @@ import { allowedRole } from "../../middlewares/role.middleware";
 import { DeliverInfo } from "../../types/order.types";
 import { validate } from "../../middlewares/validation.middleware";
 import { deliveryInfoSchema, orderStatusSchema } from "../../validation/order.validate";
+import { OrderItemServices } from "../../services/orderItem/orderItem.services";
 
 export class OrderController{
     readonly router: Router;
     private static instance: OrderController;
-    private readonly orderServices: OrderServices;
 
-    private constructor(){
+    private constructor(private readonly orderServices:OrderServices, private readonly orderItemServices: OrderItemServices){
         this.router = Router()
-        this.orderServices = new OrderServices()
     }
 
-    static initController(){
-        const instance = new OrderController()
+    static initController(orderServices: OrderServices, orderItemServices: OrderItemServices){
+        const instance = new OrderController(orderServices, orderItemServices)
         OrderController.instance = instance
 
-        instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrder)
+        instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrderList)
+        instance.router.get('/customer/:id', allowedRole('customer'), instance.getCustomerOrderDetail)
         instance.router.post('/', allowedRole('customer'), validate(deliveryInfoSchema), instance.createOrder)
         instance.router.put('/status/:id', allowedRole('seller'), validate(orderStatusSchema), instance.updateOrderStatus)
         instance.router.get('/seller', allowedRole('seller'), instance.getOrderForSeller)
-
+        instance.router.get('/seller/:id', allowedRole('seller'), instance.getSellerOrderDetail)
+        instance.router.put('/cancel/:id', allowedRole('customer'), instance.cancelOrder)
+        instance.router.put('/complete/:id', allowedRole('seller'), instance.completeOrder)
         return instance
     }
 
-    getCustomerOrder = async(req: AuthRequest, res: Response) =>{
+    getCustomerOrderList = async(req: AuthRequest, res: Response) =>{
         try{
             const userId = req.user?._id as string
-            const result = await this.orderServices.getCustomerOrder(userId)
+            const result = await this.orderServices.getCustomerOrderList(userId)
             res.status(200).send({message: "Order Fetched.", response: result})
         }catch(e: any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getCustomerOrderDetail = async(req: AuthRequest, res: Response) =>{
+        try{
+            const orderId = req.params.id
+            const userId = req.user?._id as string
+
+            const result = await this.orderServices.getCustomerOrder(orderId, userId)
+            res.status(200).send({message: "Order detail fetched.", response: result})
+        }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -54,20 +68,50 @@ export class OrderController{
     getOrderForSeller = async(req: AuthRequest, res: Response) =>{
         try{
             const sellerId = req.user?._id as string
-            const result = await this.orderServices.getOrderForSeller(sellerId)
+            const result = await this.orderItemServices.getOrderForSeller(sellerId)
             res.status(200).send({message: "Order Fetched for Seller.", response : result})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
 
+    getSellerOrderDetail = async(req: AuthRequest, res: Response) =>{
+        try{
+            const orderItemId = req.params.id
+            const result = await this.orderItemServices.getOrderItemById(orderItemId)
+            res.status(200).send({message: "Order Item Detail fetched.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
     updateOrderStatus = async(req: AuthRequest, res: Response) =>{
         try{
             const {order_status} = req.body
             const orderItemId = req.params.id
-            const userId = req.user?._id as string
-            const result = await this.orderServices.updateOrderStatus(order_status, orderItemId, userId)
+            const result = await this.orderItemServices.updateOrderStatus(order_status, orderItemId)
             res.status(200).send({message: "Order Status Updated", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    cancelOrder = async(req: AuthRequest, res: Response) =>{
+        try{
+            const order_id = req.params.id
+            const userId = req.user?._id as string
+
+            const result = await this.orderServices.cancelOrder(order_id, userId)
+            res.status(200).send({message: "Order Cancelled.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    completeOrder = async(req: AuthRequest, res: Response) =>{
+        try{
+            const order_id = req.params.id
+            const result = await this.orderServices.completeOrder(order_id)
+            res.status(200).send({message: "Order is completed.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
