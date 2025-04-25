@@ -16,11 +16,21 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
 
             const decode = verifyJWTToken(USER_TOKEN)
             
-            req.user = {
-                _id: decode._id,
-                email: decode.email,
-                role: decode.role,
-                is_verified: decode.is_verified
+            if(decode.role == "customer"){
+                req.user = {
+                    _id: decode._id,
+                    email: decode.email,
+                    role: decode.role,
+                    is_email_verified: decode.is_email_verified
+                }
+            }else{
+                req.user = {
+                    _id: decode._id,
+                    email: decode.email,
+                    role: decode.role,
+                    is_verified: decode.is_verified,
+                    is_email_verified: decode.is_email_verified
+                }
             }
             next()
         }catch(error){

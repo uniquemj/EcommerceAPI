@@ -11,6 +11,21 @@ export enum PaymentStatus{
     Paid = "paid"
 }
 
+export enum AdminOrderStatus{
+    Delivered = "delivered",
+    FailedDelivery = "faildelivery",
+    ReturnOrReplace = "return-or-replace"
+}
+
+export enum SellerOrderStatus{
+    Canceled = "canceled",
+    Pending="pending",
+    ToPack="to_pack",
+    ToArrangeShipment = "to_arrange_shipment",
+    ToHandOver = "to_handover",
+    Shipping = "shipping",
+}
+
 export enum OrderStatus{
     Canceled = "canceled",
     Pending="pending",
@@ -20,7 +35,7 @@ export enum OrderStatus{
     Shipping = "shipping",
     Delivered = "delivered",
     FailedDelivery = "faildelivery",
-    ReturnAndRefund = "return&refund"
+    ReturnOrReplace = "return-or-replace"
 }
 
 export interface DeliverInfo{

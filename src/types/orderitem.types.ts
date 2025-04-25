@@ -1,5 +1,4 @@
 import { CartItem } from "./cart.types";
-import { OrderStatus } from "./order.types";
 
 
 export interface OrderItemInfo{

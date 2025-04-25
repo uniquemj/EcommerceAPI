@@ -135,7 +135,7 @@ export class ProductServices{
                 await this.variantServices.deleteVariant(variant._id as string )
             })
 
-            const result = await this.productRepository.removeProduct(productId, userId)
+            const result = await this.productRepository.removeProduct(productId)
             return result
         }catch(error){
             throw error

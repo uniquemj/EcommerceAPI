@@ -5,7 +5,7 @@ import createHttpError from "../../utils/httperror.utils";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { DeliverInfo } from "../../types/order.types";
 import { validate } from "../../middlewares/validation.middleware";
-import { deliveryInfoSchema, orderStatusSchema } from "../../validation/order.validate";
+import { deliveryInfoSchema, sellerOrderStatusSchema } from "../../validation/order.validate";
 import { OrderItemServices } from "../../services/orderItem/orderItem.services";
 
 export class OrderController{
@@ -23,7 +23,7 @@ export class OrderController{
         instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrderList)
         instance.router.get('/customer/:id', allowedRole('customer'), instance.getCustomerOrderDetail)
         instance.router.post('/', allowedRole('customer'), validate(deliveryInfoSchema), instance.createOrder)
-        instance.router.put('/status/:id', allowedRole('seller'), validate(orderStatusSchema), instance.updateOrderStatus)
+        instance.router.put('/status/:id', allowedRole('seller'), validate(sellerOrderStatusSchema), instance.updateOrderStatus)
         instance.router.get('/seller', allowedRole('seller'), instance.getOrderForSeller)
         instance.router.get('/seller/:id', allowedRole('seller'), instance.getSellerOrderDetail)
         instance.router.put('/cancel/:id', allowedRole('customer'), instance.cancelOrder)

@@ -51,7 +51,7 @@ export class CustomerServices{
                 throw createHttpError.NotFound("Customer with email doesn't exist.")
             }
 
-            if(!customerExist.is_verified){
+            if(!customerExist.is_email_verified){
                 throw createHttpError.BadRequest("Customer is not verified. Please Verify with verificaiton link sent in mail.")
             }
 

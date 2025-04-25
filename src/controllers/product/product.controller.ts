@@ -1,16 +1,13 @@
 import { Response,Router } from "express";
 import { ProductServices } from "../../services/product/product.services";
 import createHttpError from "../../utils/httperror.utils";
-import { verifyToken } from "../../middlewares/auth.middleware";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { AuthRequest } from "../../types/auth.types";
-import upload from "../../middlewares/file.middleware";
-import { UploadFields } from "../../constant/uploadFields";
 import { productSchema, updateProductSchema } from "../../validation/product.validate";
 import { validate } from "../../middlewares/validation.middleware";
-import { FileInfo } from "../../types/file.types";
 import { ProductInfo } from "../../types/product.types";
-import { updateVariantSchema, variantSchema } from "../../validation/variant.validate";
+import { updateVariantSchema} from "../../validation/variant.validate";
+import { verifySeller } from "../../middlewares/sellerVerify.middeware";
 
 export class ProductController{
     readonly router: Router;
@@ -25,24 +22,24 @@ export class ProductController{
         ProductController.instance = instance
 
         instance.router.get('/', allowedRole('customer'), instance.getProductList)
-        instance.router.get('/seller',allowedRole('seller'), instance.getSellerProductList)
-        instance.router.get('/seller/:id',allowedRole('seller'), instance.getSellerProductById)
+        instance.router.get('/seller',allowedRole('seller'), verifySeller,instance.getSellerProductList)
+        instance.router.get('/seller/:id',allowedRole('seller'), verifySeller, instance.getSellerProductById)
         instance.router.get('/:id', allowedRole('customer'), instance.getProductById)
 
-        instance.router.post('/', allowedRole('seller'), validate(productSchema), instance.createProduct)
-        instance.router.put('/:id', allowedRole('seller'), validate(updateProductSchema), instance.editProduct)
-        instance.router.delete('/:id', allowedRole('seller'), instance.removeProduct)
+        instance.router.post('/', allowedRole('seller'), verifySeller, validate(productSchema), instance.createProduct)
+        instance.router.put('/:id', allowedRole('seller'), verifySeller, validate(updateProductSchema), instance.editProduct)
+        instance.router.delete('/:id', allowedRole('seller'), verifySeller, instance.removeProduct)
         
         //Variant
-        instance.router.get('/:id/variants', allowedRole('seller'), instance.getProductVariant)
-        instance.router.post('/:id/variants/:variantId', allowedRole('seller'), upload.fields(UploadFields), instance.removeVariant)
+        instance.router.get('/:id/variants', allowedRole('seller'), verifySeller, instance.getProductVariant)
+        instance.router.post('/:id/variants/:variantId', allowedRole('seller'),verifySeller, instance.removeVariant)
 
         // Remove Category
-        instance.router.post('/:id/category/:categoryId', allowedRole('seller'), instance.removeCategoryFromProduct)
+        instance.router.post('/:id/category/:categoryId', allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
         
         // Remove and Add Image
-        instance.router.put('/:id/variants/:variantId', allowedRole('seller'), validate(updateVariantSchema), instance.updateProductVariant)
-        instance.router.put('/:id/variants/:variantId/images/:imageId', allowedRole('seller'), instance.removeImageFromProductVariant)
+        instance.router.put('/:id/variants/:variantId', allowedRole('seller'), verifySeller, validate(updateVariantSchema), instance.updateProductVariant)
+        instance.router.put('/:id/variants/:variantId/images/:imageId', allowedRole('seller'),verifySeller, instance.removeImageFromProductVariant)
 
         return instance
     }   

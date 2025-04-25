@@ -17,4 +17,6 @@ export const updateAddressSchema = z.object({
     region: z.string().optional(),
     city: z.string().optional(),
     address: z.string().optional()
+}).strict().refine((data)=>Object.keys(data).length > 0,{
+    message: "At least one field must be provided to update. Available fields: full_name, email, phone_number, region, city, address",
 })

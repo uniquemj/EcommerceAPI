@@ -30,8 +30,8 @@ export class ProductRepository{
         return await Product.findOneAndUpdate({seller: userId, _id: productId}, productInfo, {new: true})
     }
 
-    async removeProduct(productId: string, userId: string){
-        return await Product.findOneAndDelete({_id: productId, seller: userId})
+    async removeProduct(productId: string){
+        return await Product.findOneAndDelete({_id: productId})
     }
 
     async removeCategoryFromProduct(productId: string, categoryId: string, userId: string){

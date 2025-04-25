@@ -4,11 +4,11 @@ import { ImageInfo } from "../../types/image.types";
 
 interface SellerDocument extends User, Document{
     store_name: string,
-    owner_name: string,
     legal_document: [ImageInfo],
     address: string,
     city: string,
     country: string,
+    is_verified: boolean
 }
 
 const SellerSchema: Schema<SellerDocument> = new Schema({
@@ -25,9 +25,10 @@ const SellerSchema: Schema<SellerDocument> = new Schema({
     country: {type: String},
     password: {type: String, required: true},
     phone_number: {type: String, maxlength: 10},
+    is_email_verified: {type: Boolean, default: false},
     is_verified: {type: Boolean, default: false},
     code: {type: String},
-    role: {type: String, enum: UserRole, default: UserRole.SELLER}
+    role: {type: String, enum: Object.values(UserRole), default: UserRole.SELLER}
 })
 
 const Seller: Model<SellerDocument> = model('seller', SellerSchema)

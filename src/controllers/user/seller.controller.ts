@@ -2,9 +2,12 @@ import { Request, Response, Router } from "express";
 import { SellerServices } from "../../services/user/seller.services";
 import createHttpError from "../../utils/httperror.utils";
 import { validate } from "../../middlewares/validation.middleware";
-import { loginSchema, sellerRegisterSchema } from "../../validation/user.validate";
+import { addBusinessInfoSchema, loginSchema, sellerRegisterSchema, updateBusinessInfoSchema, updatePasswordSchema } from "../../validation/user.validate";
 import { AuthRequest } from "../../types/auth.types";
 import { COOKIE } from "../../constant/cookie";
+import { SellerProfile } from "../../types/user.types";
+import { verifyToken } from "../../middlewares/auth.middleware";
+
 
 export class SellerController{
     
@@ -24,7 +27,9 @@ export class SellerController{
         instance.router.post('/verify/:code', instance.verifySeller)
         instance.router.post('/login',validate(loginSchema), instance.loginSeller)
         instance.router.post('/logout', instance.logoutSeller)
-
+        instance.router.post('/profile', verifyToken, validate(addBusinessInfoSchema), instance.addBusinessInfo)
+        instance.router.put('/profile', verifyToken, validate(updateBusinessInfoSchema), instance.updateSellerInfo)
+        instance.router.put('/password', verifyToken, validate(updatePasswordSchema), instance.updatePassword)
         return instance
     }
 
@@ -71,6 +76,40 @@ export class SellerController{
         try{
             res.clearCookie('USER_TOKEN')
             res.status(200).send({message: "Seller Logged out."})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    addBusinessInfo = async(req: AuthRequest, res: Response) =>{
+        try{
+            const businessInfo = req.body as SellerProfile
+            const sellerEmail = req.user?.email as string
+            const result = await this.sellerServices.updateSellerInfo(businessInfo, sellerEmail)
+            res.status(200).send({message: "Business Info Added.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statuscode, e.message, e.errors)
+        }
+    }
+
+
+    updateSellerInfo = async(req: AuthRequest, res: Response) =>{
+        try{
+            const sellerInfo = req.body as SellerProfile
+            const sellerEmail = req.user?.email as string
+            const result = await this.sellerServices.updateSellerInfo(sellerInfo, sellerEmail)
+            res.status(200).send({message: "Seller Profile Updated", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    updatePassword = async(req: AuthRequest, res: Response) =>{
+        try{
+            const {old_password, new_password} = req.body
+            const sellerEmail = req.user?.email as string
+            const result = await this.sellerServices.updatePassword(old_password, new_password, sellerEmail)
+            res.status(200).send({message: "Seller password Updated.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

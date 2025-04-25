@@ -6,8 +6,8 @@ export const productSchema = z.object({
     category: z.string({message: "At least 1 category required."}),
     productDescription: z.string().optional(),
     productHighlights: z.string().optional(),
-    variants: variantSchema.array().optional()
-})
+    variants: variantSchema.array()
+}).strict()
 
 export const updateProductSchema = z.object({
     name: z.string().optional(),
@@ -15,4 +15,6 @@ export const updateProductSchema = z.object({
     productDescription: z.string().optional(),
     productHighlights: z.string().optional(),
     variants: variantSchema.array().optional()
+}).strict().refine((data)=>Object.keys(data).length > 0, {
+    message: "At least one field must be provided to update. Available fields: name, category, productDescription, productHighlights, variants"
 })

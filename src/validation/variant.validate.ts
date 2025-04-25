@@ -15,7 +15,8 @@ export const variantSchema = z.object({
     warrantyType: z.nativeEnum(WarrantyType).optional(),
     warrantyPeriod: z.number().min(0).max(18),
     warrantyPolicy: z.string().optional(),
-})
+}).strict()
+
 export const updateVariantSchema = z.object({
     color: z.string().optional(),
     size: z.string().optional(),
@@ -29,4 +30,7 @@ export const updateVariantSchema = z.object({
     warrantyType: z.nativeEnum(WarrantyType).optional(),
     warrantyPeriod: z.number().min(0).max(18).optional(),
     warrantyPolicy: z.string().optional(),
+}).strict()
+.refine((data)=>Object.keys(data).length > 0, {
+    message: "At least one field must be provided to update. Available fields: color, size, images, price, stock, availability, packageWeight, packageLength, dangerousGood, warrantyType, warrantyPeriod, warrantyPolicy",
 })

@@ -11,10 +11,10 @@ const CustomerSchema: Schema<CustomerDocument> = new Schema({
     email: {type: String, required: true, unique: true},
     password: {type: String, required: true},
     phone_number: {type: String, maxlength: 10},
-    is_verified: {type: Boolean, default: false},
+    is_email_verified: {type: Boolean, default: false},
     date_of_birth: {type: Date},
     code: {type: String},
-    role: {type: String, enum: UserRole, default: UserRole.CUSTOMER},
+    role: {type: String, enum: Object.values(UserRole), default: UserRole.CUSTOMER},
 })
 
 const Customer: Model<CustomerDocument> = model('customer', CustomerSchema)
