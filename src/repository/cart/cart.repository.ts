@@ -11,7 +11,7 @@ export class CartRepository{
     }
 
     async getCartByUserId(userId: string){
-        return await Cart.findOne({customer: userId}).populate('items.productVariant', 'price color stock')
+        return await Cart.findOne({customer: userId}).populate({path: 'items', populate: {path: 'productVariant', select: 'price color stock images'}})
     }
 
     async addItemToCart(itemId: CartItem, userId: string){

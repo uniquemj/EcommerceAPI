@@ -40,13 +40,14 @@ export class CartServices{
         try{
             const productItem = await this.variantServices.getVariant(itemId) as unknown as VariantInfo
 
+            if(productItem.stock! < 1){
+                throw createHttpError.BadRequest("Product Out of Stock.")
+            }
+
             if(productItem.stock as number < quantity){
                 throw createHttpError.BadRequest("Quantity exceeds product stock.")
             }
 
-            if(productItem.stock! < 1){
-                throw createHttpError.BadRequest("Product Out of Stock.")
-            }
 
             const cartItem: CartItem = {
                 productVariant: itemId,
@@ -88,6 +89,7 @@ export class CartServices{
             if(itemExist.items.length == 0){
                 throw createHttpError.NotFound("Cart Item not found.")
             }
+            
             const result = await this.cartRepository.removeItemFromCart(itemId, userId)
             return result
         }catch(error){
@@ -101,7 +103,15 @@ export class CartServices{
             if(!itemExist){
                 throw createHttpError.NotFound("Cart Item not found.")
             }
+            const productItem = await this.variantServices.getVariant(itemId) as unknown as VariantInfo
 
+            if(productItem.stock! < 1){
+                throw createHttpError.BadRequest("Product Out of Stock.")
+            }
+            
+            if(productItem.stock as number < quantity){
+                throw createHttpError.BadRequest("Quantity exceeds product stock.")
+            }
             const result = await this.cartRepository.updateQuantity(quantity, userId, itemId) as unknown as CartInfo
             if(result && result.items[0].quantity < 1){
                 await this.cartRepository.removeItemFromCart(itemId, userId)

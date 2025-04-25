@@ -61,3 +61,8 @@ export interface OrderInfo{
     orderTotal?: number,
     order_timeStamp?: Date,
 }
+
+export interface orderItemFilter{
+    status?:string,
+    order_status?:string
+}

@@ -123,4 +123,13 @@ export class VariantServices{
             throw error
         }
     }
+
+    async decreaseStock(variantId: string, quantity: number){
+        try{
+            const result = await this.variantRepository.updateStock(variantId, quantity)
+            return result
+        }catch(error){
+            throw error
+        }
+    }
 }

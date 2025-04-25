@@ -37,4 +37,12 @@ export class VariantRepository{
             {new: true}
         )
     }
+
+    async updateStock(variantId: string, quantity: number){
+        return await Variant.findByIdAndUpdate(
+            variantId,
+            {$inc: {stock: quantity}},
+            {new: true}
+        )
+    }
 }

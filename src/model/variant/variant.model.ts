@@ -37,7 +37,7 @@ const variantSchema: Schema<VariantDocument> = new Schema({
     color: {type: String},
     size: {type: String},
     price: {type: Number},
-    stock: {type: Number},
+    stock: {type: Number, min: 0},
     availability: {type: Boolean, default: true},
     packageWeight: {type: Number},
     packageLength: {type: String},

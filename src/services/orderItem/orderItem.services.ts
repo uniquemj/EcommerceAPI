@@ -1,4 +1,5 @@
 import { OrderItemRepository } from "../../repository/orderitem/orderitem.repository";
+import { orderItemFilter } from "../../types/order.types";
 import { OrderItemInfo } from "../../types/orderitem.types";
 import createHttpError from "../../utils/httperror.utils";
 
@@ -27,18 +28,19 @@ export class OrderItemServices{
         }
     }
 
-    getOrderItemList = async(orderId: string) =>{
+    getOrderItemList = async(orderId: string, status: orderItemFilter) =>{
         try{
-            const orderItems = await this.orderItemRepository.getOrderItemList(orderId)
+            const orderItems = await this.orderItemRepository.getOrderItemList(orderId, status)
             return orderItems
         }catch(error){
             throw error
         }
     }
     
-    getOrderForSeller = async(userId: string) =>{
+    getOrderForSeller = async(userId: string, query: orderItemFilter) =>{
         try{
-            const orderItems = await this.orderItemRepository.getOrderForSeller(userId)
+            const orderStatus = Object.keys(query).length > 0?{order_status: query.status}:{}
+            const orderItems = await this.orderItemRepository.getOrderForSeller(userId, orderStatus)
             if(orderItems.length == 0){
                 throw createHttpError.NotFound("No order received.")
             }

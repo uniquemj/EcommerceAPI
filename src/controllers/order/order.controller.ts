@@ -3,7 +3,7 @@ import { OrderServices } from "../../services/order/order.services";
 import { AuthRequest } from "../../types/auth.types";
 import createHttpError from "../../utils/httperror.utils";
 import { allowedRole } from "../../middlewares/role.middleware";
-import { DeliverInfo } from "../../types/order.types";
+import { DeliverInfo, orderItemFilter } from "../../types/order.types";
 import { validate } from "../../middlewares/validation.middleware";
 import { deliveryInfoSchema, sellerOrderStatusSchema } from "../../validation/order.validate";
 import { OrderItemServices } from "../../services/orderItem/orderItem.services";
@@ -20,10 +20,14 @@ export class OrderController{
         const instance = new OrderController(orderServices, orderItemServices)
         OrderController.instance = instance
 
+        // Customer can filter out based on "pending", "canceled" and "delivered" order status for order item list with each order
         instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrderList)
         instance.router.get('/customer/:id', allowedRole('customer'), instance.getCustomerOrderDetail)
+
         instance.router.post('/', allowedRole('customer'), validate(deliveryInfoSchema), instance.createOrder)
         instance.router.put('/status/:id', allowedRole('seller'), validate(sellerOrderStatusSchema), instance.updateOrderStatus)
+
+        // Seller can filter out based on "pending", "canceled" and "delivered" order status for order item list.
         instance.router.get('/seller', allowedRole('seller'), instance.getOrderForSeller)
         instance.router.get('/seller/:id', allowedRole('seller'), instance.getSellerOrderDetail)
         instance.router.put('/cancel/:id', allowedRole('customer'), instance.cancelOrder)
@@ -34,7 +38,8 @@ export class OrderController{
     getCustomerOrderList = async(req: AuthRequest, res: Response) =>{
         try{
             const userId = req.user?._id as string
-            const result = await this.orderServices.getCustomerOrderList(userId)
+            const status = req.query as orderItemFilter
+            const result = await this.orderServices.getCustomerOrderList(status, userId)
             res.status(200).send({message: "Order Fetched.", response: result})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -68,7 +73,8 @@ export class OrderController{
     getOrderForSeller = async(req: AuthRequest, res: Response) =>{
         try{
             const sellerId = req.user?._id as string
-            const result = await this.orderItemServices.getOrderForSeller(sellerId)
+            const query= req.query as orderItemFilter
+            const result = await this.orderItemServices.getOrderForSeller(sellerId, query)
             res.status(200).send({message: "Order Fetched for Seller.", response : result})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
