@@ -16,7 +16,11 @@ export enum UserRole{
     SELLER='seller',
     ADMIN='admin'
 }
-
+export interface AdminInfo extends User{
+    _id?:string,
+    username: string,
+    isSuperAdmin: boolean
+}
 export interface CustomerInfo extends User{
     _id?:string,
     fullname: string,
@@ -47,5 +51,10 @@ export interface SellerProfile{
     city?: string,
     country?: string,
     phone_number?: string,
+    password?:string
+}
+
+export interface AdminProfile{
+    fullname?:string,
     password?:string
 }

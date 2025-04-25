@@ -23,13 +23,20 @@ export const verifyToken = (req: AuthRequest, res: Response, next: NextFunction)
                     role: decode.role,
                     is_email_verified: decode.is_email_verified
                 }
-            }else{
+            }else if(decode.role == "seller"){
                 req.user = {
                     _id: decode._id,
                     email: decode.email,
                     role: decode.role,
                     is_verified: decode.is_verified,
                     is_email_verified: decode.is_email_verified
+                }
+            } else if(decode.role == "admin"){
+                req.user={
+                    _id: decode._id,
+                    email: decode.email,
+                    role: decode.role,
+                    isSuperAdmin: decode.isSuperAdmin
                 }
             }
             next()

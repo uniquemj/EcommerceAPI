@@ -26,7 +26,7 @@ export class SellerController{
         instance.router.post('/register', validate(sellerRegisterSchema), instance.registerSeller)
         instance.router.post('/verify/:code', instance.verifySeller)
         instance.router.post('/login',validate(loginSchema), instance.loginSeller)
-        instance.router.post('/logout', instance.logoutSeller)
+        instance.router.post('/logout', verifyToken, instance.logoutSeller)
         instance.router.post('/profile', verifyToken, validate(addBusinessInfoSchema), instance.addBusinessInfo)
         instance.router.put('/profile', verifyToken, validate(updateBusinessInfoSchema), instance.updateSellerInfo)
         instance.router.put('/password', verifyToken, validate(updatePasswordSchema), instance.updatePassword)

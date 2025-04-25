@@ -3,6 +3,10 @@ import { CustomerInfo, CustomerProfile, UserCredentials} from "../../types/user.
 import { signToken } from "../../utils/helper.utils";
 
 export class CustomerRepository{
+    async getCustomerById(id: string){
+        return await Customer.findById(id).select('-password')
+    }
+
     async getCustomer(email: string){
         return await Customer.findOne({email: email})
     }

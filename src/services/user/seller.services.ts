@@ -3,12 +3,23 @@ import bcrypt from 'bcryptjs';
 import { SellerRepository } from "../../repository/user/seller.repository";
 import { SellerInfo,SellerProfile,UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
-import { comparePassword, hashPassword } from "../../utils/helper.utils";
+import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
 
 export class SellerServices{
     
     constructor(private readonly sellerRepository: SellerRepository){}
 
+    async getSellerById(id: string){
+        try{
+            const sellerExist = await this.sellerRepository.getSellerById(id)
+            if(!sellerExist){
+                throw createHttpError.NotFound("Seller does not exist.")
+            }
+            return sellerExist
+        }catch(error){
+            throw error
+        }
+    }
     async registerSeller(sellerInfo: SellerInfo){
         try{
             const sellerExist = await this.sellerRepository.getSeller(sellerInfo.email)

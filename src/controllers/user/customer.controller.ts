@@ -7,6 +7,7 @@ import { COOKIE } from "../../constant/cookie";
 import { AuthRequest } from "../../types/auth.types";
 import { verifyToken } from "../../middlewares/auth.middleware";
 import { updateCustomerProfileSchema } from "../../validation/user.validate";
+import { allowedRole } from "../../middlewares/role.middleware";
 
 export class CustomerController{
     
@@ -24,7 +25,7 @@ export class CustomerController{
         instance.router.post('/register', validate(customerRegisterSchema), instance.registerCustomer)
         instance.router.post('/verify/:code', instance.verifyCustomer)
         instance.router.post('/login', validate(loginSchema), instance.loginCustomer)
-        instance.router.post('/logout',instance.logoutCustomer)
+        instance.router.post('/logout',verifyToken, instance.logoutCustomer)
         instance.router.put('/', verifyToken, validate(updateCustomerProfileSchema), instance.updateCustomerProfile)
         instance.router.put('/password', verifyToken, validate(updatePasswordSchema), instance.updatePassword)
         return instance

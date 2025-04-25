@@ -14,9 +14,22 @@ export const sellerRegisterSchema = z.object({
     password: z.string().min(8)
 })
 
+export const adminRegisterSchema = z.object({
+    fullname: z.string(),
+    username: z.string(),
+    email: z.string().email(),
+    isSuperAdmin: z.boolean(),
+    password: z.string().min(5)
+})
+
 export const loginSchema = z.object({
     email: z.string().email(),
     password: z.string().min(8)
+})
+
+export const adminLoginSchema = z.object({
+    email: z.string().email(),
+    password: z.string().min(5)
 })
 
 export const updateCustomerProfileSchema = z.object({
@@ -30,7 +43,12 @@ export const updateCustomerProfileSchema = z.object({
 export const updatePasswordSchema = z.object({
     old_password: z.string().min(8),
     new_password: z.string().min(8)
-})
+}).strict()
+
+export const updateAdminPasswordSchema = z.object({
+    old_password: z.string().min(5),
+    new_password: z.string().min(5)
+}).strict()
 
 export const addBusinessInfoSchema = z.object({
     legal_document: imageSchema.array(),
@@ -49,4 +67,18 @@ export const updateBusinessInfoSchema = z.object({
 }).strict().refine((data)=>Object.keys(data).length>0,{
     message:
       "At least one field must be provided to update. Available fields: store_name, address, city, country, phone_number.",
+})
+
+export const updateAdminInfo = z.object({
+    fullname: z.string().optional()
+}).strict().refine((data)=>Object.keys(data).length > 0, {
+    message: "At least one field must be provided to update. Available fields: fullname."
+})
+
+export const updateNormalAdminInfo = z.object({
+    fullname: z.string().optional(),
+    password: z.string().optional(),
+    isSuperAdmin: z.boolean().optional()
+}).strict().refine((data)=>Object.keys(data).length > 0, {
+    message: "At least one field must be provided to update. Available fields: fullname, password, isSuperAdmin."
 })

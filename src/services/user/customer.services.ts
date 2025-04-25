@@ -2,11 +2,22 @@ import { v4 } from "uuid";
 import { CustomerRepository } from "../../repository/user/customer.repository";
 import { CustomerInfo, CustomerProfile, UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
-import { hashPassword, comparePassword } from "../../utils/helper.utils";
+import { hashPassword, comparePassword, signToken } from "../../utils/helper.utils";
 
 export class CustomerServices{
     constructor(private readonly customerRepository: CustomerRepository){}
 
+    async getCustomerById(id: string){
+        try{
+            const customerExist = await this.customerRepository.getCustomerById(id)
+            if(!customerExist){
+                throw createHttpError.NotFound("Customer does not exist")
+            }
+            return customerExist
+        }catch(error){
+            throw error
+        }
+    }
     async registerCustomer(userInfo: CustomerInfo){
         try{
             const customerExist = await this.customerRepository.getCustomer(userInfo.email)

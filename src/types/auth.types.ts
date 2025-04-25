@@ -7,6 +7,7 @@ export interface User{
     role?:string,
     is_verified?:boolean,
     is_email_verified?: boolean,
+    isSuperAdmin?:boolean
 }
 
 export interface AuthRequest extends Request{

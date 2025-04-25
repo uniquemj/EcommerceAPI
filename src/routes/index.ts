@@ -25,10 +25,17 @@ import { OrderItemRepository } from '../repository/orderitem/orderitem.repositor
 import { OrderItemServices } from '../services/orderItem/orderItem.services'
 import { ShipmentAddressRepository } from '../repository/shipmentAddress/shipmentAddress.repository'
 import { ShipmentAddressServices } from '../services/shipmentAddress/shipmentAddress.services'
+import { AdminRepository } from '../repository/user/admin.repository'
+import { AdminServices } from '../services/user/admin.services'
+import { AdminController } from '../controllers/user/admin.controller'
 
 const router = express.Router()
 
 //User
+const adminRepository = new AdminRepository()
+const adminServices = new AdminServices(adminRepository)
+const adminController = AdminController.initController(adminServices)
+
 const customerRepository = new CustomerRepository()
 const customerService = new CustomerServices(customerRepository)
 const customerController = CustomerController.initController(customerService)
@@ -72,7 +79,8 @@ const shipmentServices = new ShipmentAddressServices(shipmentRepository)
 const shipmetAddressController = ShipmentAddressController.initController(shipmentServices)
 
 //User Route
-router.use('/auth/customers',customerController.router)
+router.use('/auth/admin', adminController.router)
+router.use('/auth/customers', customerController.router)
 router.use('/auth/seller', sellerController.router)
 
 //Product Route

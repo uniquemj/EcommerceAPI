@@ -4,6 +4,10 @@ import { signToken } from '../../utils/helper.utils';
 
 
 export class SellerRepository{
+
+    async getSellerById(id: string){
+        return await Seller.findById(id).select('-password')
+    }
     async getSeller(email: string){
         return await Seller.findOne({email: email})
     }
@@ -22,9 +26,7 @@ export class SellerRepository{
 
     async loginSeller(sellerCredentials: UserCredentials){
         const seller = await Seller.findOne({email: sellerCredentials.email}).select('-password -legal_document') as SellerInfo
-
         const token = signToken({_id: seller?._id, email: seller?.email, role: seller?.role, is_email_verified: seller?.is_email_verified, is_verified: seller.is_verified})
-
         return {token, seller}
     }
 
