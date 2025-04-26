@@ -20,10 +20,10 @@ export class CategoryController{
         const instance = new CategoryController(categoryServices)
         CategoryController.instance = instance
 
-        instance.router.get('/', allowedRole('customer','seller'),instance.getCategoryList)
-        instance.router.post('/', allowedRole('seller'),validate(categorySchema), instance.createCategory)
-        instance.router.put('/:id', allowedRole('seller'), instance.updateCategory)
-        instance.router.delete('/:id', allowedRole('seller'), instance.removeCategory)
+        instance.router.get('/', allowedRole('customer','seller', 'admin'),instance.getCategoryList)
+        instance.router.post('/', allowedRole('admin'),validate(categorySchema), instance.createCategory)
+        instance.router.put('/:id', allowedRole('admin'), instance.updateCategory)
+        instance.router.delete('/:id', allowedRole('admin'), instance.removeCategory)
         return instance
     }
 

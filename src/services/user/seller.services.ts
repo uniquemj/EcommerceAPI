@@ -4,10 +4,11 @@ import { SellerRepository } from "../../repository/user/seller.repository";
 import { SellerInfo,SellerProfile,UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
 import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
+import { ProductServices } from "../product/product.services";
 
 export class SellerServices{
     
-    constructor(private readonly sellerRepository: SellerRepository){}
+    constructor(private readonly sellerRepository: SellerRepository, private readonly productServices: ProductServices){}
 
     async getSellerById(id: string){
         try{
@@ -16,6 +17,18 @@ export class SellerServices{
                 throw createHttpError.NotFound("Seller does not exist.")
             }
             return sellerExist
+        }catch(error){
+            throw error
+        }
+    }
+
+    async getSellerList(){
+        try{
+            const sellers = await this.sellerRepository.getSellerList()
+            if(sellers.length == 0){
+                throw createHttpError.NotFound("Seller List is Empty.")
+            }
+            return sellers
         }catch(error){
             throw error
         }
@@ -44,12 +57,25 @@ export class SellerServices{
         }
     }
 
-    async verifySeller(code: string){
+    async verifyEmail(code: string){
         try{
-            const result = await this.sellerRepository.verifySeller(code)
+            const result = await this.sellerRepository.verify({code: code}, {is_email_verified: true})
             if(!result){
                 throw createHttpError.BadRequest("Invalid Code.")
             }
+            return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    async verifySeller(sellerId: string){
+        try{    
+            const sellerExist = await this.sellerRepository.getSellerById(sellerId)
+            if(!sellerExist){
+                throw createHttpError.NotFound("Seller with Id does not exist.")
+            }
+            const result = await this.sellerRepository.verify({_id: sellerId}, {is_verified: true})
             return result
         }catch(error){
             throw error
@@ -108,6 +134,26 @@ export class SellerServices{
 
             const newHashPassword = await hashPassword(new_password)
             const result = await this.sellerRepository.updateSellerInfo({password: newHashPassword}, sellerExist._id as string)
+            return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    async deleteSeller(sellerId: string){
+        try{
+            const sellerExist = await this.sellerRepository.getSellerById(sellerId)
+            if(!sellerExist){
+                throw createHttpError.NotFound("Seller with Id not found.")
+            }
+
+            const result = await this.sellerRepository.deleteSeller(sellerId)
+            const sellerProductList = await this.productServices.getSellerProductList(sellerId)
+
+            sellerProductList.forEach(async(product)=>{
+                await this.productServices.removeProduct(product._id as string, sellerId)
+            })
+
             return result
         }catch(error){
             throw error

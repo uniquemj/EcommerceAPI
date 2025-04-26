@@ -1,8 +1,12 @@
 import Customer from "../../model/user/customer.model";
-import { CustomerInfo, CustomerProfile, UserCredentials} from "../../types/user.types";
+import { CustomerInfo, CustomerProfile, SearchUserField, UserCredentials, VerifyField} from "../../types/user.types";
 import { signToken } from "../../utils/helper.utils";
 
 export class CustomerRepository{
+
+    async getCustomerList(){
+        return await Customer.find({}).select('-password -__v')
+    }
     async getCustomerById(id: string){
         return await Customer.findById(id).select('-password')
     }
@@ -17,9 +21,9 @@ export class CustomerRepository{
         return result
     }
 
-    async verifyCustomer(code: string){
-        const user = await Customer.findOne({code: code})
-        const result = await Customer.findByIdAndUpdate(user?._id, {is_email_verified: true}, {new: true}).select('-password')
+    async verify(search: SearchUserField, verifyStatus: VerifyField){
+        const user = await Customer.findOne(search)
+        const result = await Customer.findByIdAndUpdate(user?._id, verifyStatus, {new: true}).select('-password')
         return result
     }
 
@@ -33,5 +37,9 @@ export class CustomerRepository{
 
     async updateCustomerInfo(userId: string, updateInfo: CustomerProfile){
         return await Customer.findByIdAndUpdate(userId, updateInfo, {new: true}).select('-password -verified -code -role -is_verified')
+    }
+
+    async deleteCustomer(customerId: string){
+        return await Customer.findByIdAndDelete(customerId).select('-password -__v')
     }
 }

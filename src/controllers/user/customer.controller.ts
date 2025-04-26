@@ -8,6 +8,7 @@ import { AuthRequest } from "../../types/auth.types";
 import { verifyToken } from "../../middlewares/auth.middleware";
 import { updateCustomerProfileSchema } from "../../validation/user.validate";
 import { allowedRole } from "../../middlewares/role.middleware";
+import { verifySuperAdmin } from "../../middlewares/admin.middleware";
 
 export class CustomerController{
     
@@ -23,11 +24,18 @@ export class CustomerController{
         
         CustomerController.instance = instance
         instance.router.post('/register', validate(customerRegisterSchema), instance.registerCustomer)
-        instance.router.post('/verify/:code', instance.verifyCustomer)
+        instance.router.post('/verify/:code', instance.verifyEmail)
         instance.router.post('/login', validate(loginSchema), instance.loginCustomer)
-        instance.router.post('/logout',verifyToken, instance.logoutCustomer)
-        instance.router.put('/', verifyToken, validate(updateCustomerProfileSchema), instance.updateCustomerProfile)
-        instance.router.put('/password', verifyToken, validate(updatePasswordSchema), instance.updatePassword)
+        instance.router.post('/logout',verifyToken, allowedRole('customer'), instance.logoutCustomer)
+        
+        instance.router.put('/', verifyToken, allowedRole('customer'), validate(updateCustomerProfileSchema), instance.updateCustomerProfile)
+        instance.router.put('/password', verifyToken, allowedRole('customer'), validate(updatePasswordSchema), instance.updatePassword)
+        instance.router.get('/profile', verifyToken, allowedRole('customer'), instance.getCustomerProfile)
+
+        instance.router.get('/', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.getCustomerList)
+        instance.router.get('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.getCustomerById)
+        instance.router.delete('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.deleteCustomer)
+
         return instance
     }
 
@@ -41,11 +49,11 @@ export class CustomerController{
         }
     }
 
-    verifyCustomer = async(req: Request, res: Response)=>{
+    verifyEmail = async(req: Request, res: Response)=>{
         try{
             const {code} = req.params
-            const result = await this.customerService.verifyCustomer(code)
-            res.status(200).send({message:"Customer verified.", response: result})
+            const result = await this.customerService.verifyEmail(code)
+            res.status(200).send({message:"Customer Email verified.", response: result})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -81,6 +89,16 @@ export class CustomerController{
         }
     }
 
+    getCustomerProfile = async(req: AuthRequest, res: Response) =>{
+        try{
+            const customerId = req.user?._id as string
+            const result = await this.customerService.getCustomerById(customerId)
+            res.status(200).send({message:"Customer Profile Fetched.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
     updateCustomerProfile = async(req: AuthRequest, res: Response) =>{
         try{
             const customerEmail = req.user?.email as string
@@ -99,6 +117,35 @@ export class CustomerController{
             const {old_password, new_password} = req.body
             const result = await this.customerService.updatePassword(email, old_password, new_password)
             res.status(200).send({message: "Customer Password Updated.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+    
+    getCustomerList = async(req:AuthRequest, res: Response) =>{
+        try{
+            const result = await this.customerService.getCustomerList()
+            res.status(200).send({message: "Cusotmer List Fetched.", response: result})
+        }catch(error){
+            throw error
+        }
+    }
+
+    getCustomerById = async(req: AuthRequest, res: Response) =>{
+        try{
+            const customerId = req.params.id
+            const result = await this.customerService.getCustomerById(customerId)
+            res.status(200).send({message: "Customer Fetched.", response: result})
+        }catch(error){
+            throw error
+        }
+    }
+
+    deleteCustomer = async(req: AuthRequest, res: Response) =>{
+        try{
+            const customerId = req.params.id 
+            const result = await this.customerService.deleteCustomer(customerId)
+            res.status(200).send({message: "Customer Deleted.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

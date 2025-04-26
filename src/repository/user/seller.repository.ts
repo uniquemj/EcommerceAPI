@@ -1,13 +1,17 @@
 import Seller from "../../model/user/seller.model";
-import { SellerInfo, SellerProfile, UserCredentials} from "../../types/user.types";
+import { SearchUserField, SellerInfo, SellerProfile, UserCredentials, VerifyField} from "../../types/user.types";
 import { signToken } from '../../utils/helper.utils';
 
 
 export class SellerRepository{
 
+    async getSellerList(){
+        return await Seller.find({}).select('-password -__v')
+    }
     async getSellerById(id: string){
         return await Seller.findById(id).select('-password')
     }
+
     async getSeller(email: string){
         return await Seller.findOne({email: email})
     }
@@ -18,9 +22,9 @@ export class SellerRepository{
         return seller
     }
 
-    async verifySeller(code: string){
-        const seller = await Seller.findOne({code: code})
-        const result = await Seller.findByIdAndUpdate(seller?._id, {is_email_verified: true}, {new: true}).select('-password')
+    async verify(search: SearchUserField, verifyStatus: VerifyField){
+        const seller = await Seller.findOne(search)
+        const result = await Seller.findByIdAndUpdate(seller?._id, verifyStatus, {new: true}).select('-password')
         return result
     }
 
@@ -32,5 +36,9 @@ export class SellerRepository{
 
     async updateSellerInfo(sellerInfo: SellerProfile, sellerId: string){
         return await Seller.findByIdAndUpdate(sellerId, sellerInfo, {new: true}).select('-password -is_verified -is_email_verified -code -__v')
+    }
+
+    async deleteSeller(sellerId: string){
+        return await Seller.findByIdAndDelete(sellerId).select('-password -__v')
     }
 }

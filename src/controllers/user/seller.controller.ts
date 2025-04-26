@@ -7,6 +7,8 @@ import { AuthRequest } from "../../types/auth.types";
 import { COOKIE } from "../../constant/cookie";
 import { SellerProfile } from "../../types/user.types";
 import { verifyToken } from "../../middlewares/auth.middleware";
+import { allowedRole } from "../../middlewares/role.middleware";
+import { verifySuperAdmin } from "../../middlewares/admin.middleware";
 
 
 export class SellerController{
@@ -24,12 +26,20 @@ export class SellerController{
         SellerController.instance = instance;
         
         instance.router.post('/register', validate(sellerRegisterSchema), instance.registerSeller)
-        instance.router.post('/verify/:code', instance.verifySeller)
+        instance.router.post('/verify/:code', instance.verifyEmail)
         instance.router.post('/login',validate(loginSchema), instance.loginSeller)
-        instance.router.post('/logout', verifyToken, instance.logoutSeller)
-        instance.router.post('/profile', verifyToken, validate(addBusinessInfoSchema), instance.addBusinessInfo)
-        instance.router.put('/profile', verifyToken, validate(updateBusinessInfoSchema), instance.updateSellerInfo)
-        instance.router.put('/password', verifyToken, validate(updatePasswordSchema), instance.updatePassword)
+        instance.router.post('/logout', verifyToken, allowedRole('seller'), instance.logoutSeller)
+
+        instance.router.get('/profile', verifyToken, allowedRole('seller'), instance.getSellerProfile)
+        instance.router.post('/profile', verifyToken, allowedRole('seller'), validate(addBusinessInfoSchema), instance.addBusinessInfo)
+        instance.router.put('/profile', verifyToken, allowedRole('seller'), validate(updateBusinessInfoSchema), instance.updateSellerInfo)
+        instance.router.put('/password', verifyToken, allowedRole('seller'), validate(updatePasswordSchema), instance.updatePassword)
+
+        instance.router.get('/', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.getSellerList)
+        instance.router.get('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.getSellerById)
+        instance.router.post('/verify-seller/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.verifySeller)
+        instance.router.delete('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.deleteSeller)
+        
         return instance
     }
 
@@ -43,12 +53,32 @@ export class SellerController{
         }
     }
 
-    verifySeller = async(req: Request, res: Response) =>{
+    verifyEmail = async(req: Request, res: Response) =>{
         try{
             const {code} = req.params
-            const result = await this.sellerServices.verifySeller(code)
-            res.status(200).send({message: "Seller Verified.", response: result})
+            const result = await this.sellerServices.verifyEmail(code)
+            res.status(200).send({message: "Seller Email Verified.", response: result})
         }catch(e: any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    verifySeller = async(req: Request, res: Response) =>{
+        try{
+            const sellerId = req.params.id
+            const result = await this.sellerServices.verifySeller(sellerId)
+            res.status(200).send({message: "Seller Verified.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getSellerProfile = async(req: AuthRequest, res: Response) =>{
+        try{
+            const sellerId = req.user?._id as string
+            const result = await this.sellerServices.getSellerById(sellerId)
+            res.status(200).send({message: "Seller Profile Fetched.", response: result})
+        }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -110,6 +140,35 @@ export class SellerController{
             const sellerEmail = req.user?.email as string
             const result = await this.sellerServices.updatePassword(old_password, new_password, sellerEmail)
             res.status(200).send({message: "Seller password Updated.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getSellerList = async(req: AuthRequest, res: Response) =>{
+        try{
+            const result = await this.sellerServices.getSellerList()
+            res.status(200).send({message: "Seller List Fetched.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getSellerById = async(req: AuthRequest, res: Response) =>{
+        try{
+            const sellerId = req.params.id
+            const result = await this.sellerServices.getSellerById(sellerId)
+            res.status(200).send({message: "Seller Fetched.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    deleteSeller = async(req: AuthRequest, res: Response) =>{
+        try{
+            const sellerId = req.params.id
+            const result = await this.sellerServices.deleteSeller(sellerId)
+            res.status(200).send({message: "Seller Deleted.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

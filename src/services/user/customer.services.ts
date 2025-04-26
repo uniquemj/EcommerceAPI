@@ -7,6 +7,18 @@ import { hashPassword, comparePassword, signToken } from "../../utils/helper.uti
 export class CustomerServices{
     constructor(private readonly customerRepository: CustomerRepository){}
 
+    async getCustomerList(){
+        try{
+            const customers = await this.customerRepository.getCustomerList()
+            if(customers.length == 0){
+                throw createHttpError.NotFound("Customer List is empty.")
+            }
+            return customers
+        }catch(error){  
+            throw error
+        }
+    }
+
     async getCustomerById(id: string){
         try{
             const customerExist = await this.customerRepository.getCustomerById(id)
@@ -18,6 +30,7 @@ export class CustomerServices{
             throw error
         }
     }
+    
     async registerCustomer(userInfo: CustomerInfo){
         try{
             const customerExist = await this.customerRepository.getCustomer(userInfo.email)
@@ -43,9 +56,9 @@ export class CustomerServices{
         }
     }
 
-    async verifyCustomer(code:string){
+    async verifyEmail(code:string){
         try{
-            const result = await this.customerRepository.verifyCustomer(code)
+            const result = await this.customerRepository.verify({code}, {is_email_verified: true})
             if(!result){
                 throw createHttpError.BadRequest("Code not valid.")
             }
@@ -109,6 +122,19 @@ export class CustomerServices{
             return result
         }catch(error){
             console.log("throwing in service")
+            throw error
+        }
+    }
+
+    async deleteCustomer(customerId: string){
+        try{
+            const customerExist = await this.customerRepository.getCustomerById(customerId)
+            if(!customerExist){
+                throw createHttpError.NotFound("Customer with Id does not exist.")
+            }
+            const result = await this.customerRepository.deleteCustomer(customerId)
+            return result
+        }catch(error){
             throw error
         }
     }

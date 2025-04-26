@@ -58,3 +58,13 @@ export interface AdminProfile{
     fullname?:string,
     password?:string
 }
+
+export interface SearchUserField{
+    code?:string,
+    _id?:string
+}
+
+export interface VerifyField{
+    is_email_verified?:boolean,
+    is_verified?:boolean
+}

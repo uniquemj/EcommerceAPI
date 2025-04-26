@@ -31,18 +31,6 @@ import { AdminController } from '../controllers/user/admin.controller'
 
 const router = express.Router()
 
-//User
-const adminRepository = new AdminRepository()
-const adminServices = new AdminServices(adminRepository)
-const adminController = AdminController.initController(adminServices)
-
-const customerRepository = new CustomerRepository()
-const customerService = new CustomerServices(customerRepository)
-const customerController = CustomerController.initController(customerService)
-
-const sellerRepository = new SellerRepository()
-const sellerService = new SellerServices(sellerRepository)
-const sellerController = SellerController.initController(sellerService)
 
 //Category
 const cateogryRepository = new CategoryRepository()
@@ -77,6 +65,20 @@ const orderController = OrderController.initController(orderServices, orderItemS
 const shipmentRepository = new ShipmentAddressRepository()
 const shipmentServices = new ShipmentAddressServices(shipmentRepository)
 const shipmetAddressController = ShipmentAddressController.initController(shipmentServices)
+
+
+//User
+const adminRepository = new AdminRepository()
+const adminServices = new AdminServices(adminRepository)
+const adminController = AdminController.initController(adminServices)
+
+const customerRepository = new CustomerRepository()
+const customerService = new CustomerServices(customerRepository)
+const customerController = CustomerController.initController(customerService)
+
+const sellerRepository = new SellerRepository()
+const sellerService = new SellerServices(sellerRepository, productServices)
+const sellerController = SellerController.initController(sellerService)
 
 //User Route
 router.use('/auth/admin', adminController.router)

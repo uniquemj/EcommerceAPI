@@ -14,7 +14,6 @@ export class OrderItemRepository{
     }
 
     async getOrderItemList(orderId: string, status: orderItemFilter){
-        console.log(status)
         return await OrderItem.find({order_id: orderId, ...status}).populate(this.productVariantPopulate).select('-__v')
     }
 
