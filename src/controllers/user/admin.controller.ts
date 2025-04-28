@@ -23,7 +23,9 @@ export class AdminController{
         AdminController.instance = instance
 
         instance.router.get('/', verifyToken, verifySuperAdmin, allowedRole('admin'), instance.getAllAdmin)
+        instance.router.get('/profile', verifyToken, allowedRole('admin'), instance.getAdminProfile)
         instance.router.get('/:id', verifyToken, allowedRole('admin'), instance.getAdminDetail)
+
         
         instance.router.post('/register',verifyToken, verifySuperAdmin, allowedRole('admin'), validate(adminRegisterSchema), instance.registerAdmin)
         
@@ -52,6 +54,16 @@ export class AdminController{
     getAdminDetail = async(req: Request, res: Response) =>{
         try{
             const adminId = req.params.id 
+            const result = await this.adminServices.getAdminDetail(adminId)
+            res.status(200).send({message: "Admin Detail Fetched.", response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getAdminProfile = async(req: AuthRequest, res: Response) =>{
+        try{
+            const adminId = req.user?._id as string
             const result = await this.adminServices.getAdminDetail(adminId)
             res.status(200).send({message: "Admin Detail Fetched.", response: result})
         }catch(e:any){
@@ -89,7 +101,7 @@ export class AdminController{
         }
     }
     
-    logoutAdmin = async(req: Request, res: Response) =>{
+    logoutAdmin = async(req: AuthRequest, res: Response) =>{
         try{
             res.clearCookie('USER_TOKEN')
             res.status(200).send({message: "Admin Logged out."})
@@ -97,6 +109,7 @@ export class AdminController{
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
+
 
     updateOtherAdmin = async(req: Request, res: Response) =>{
         try{

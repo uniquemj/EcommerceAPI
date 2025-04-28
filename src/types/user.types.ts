@@ -22,12 +22,11 @@ export interface AdminInfo extends User{
     isSuperAdmin: boolean
 }
 export interface CustomerInfo extends User{
-    _id?:string,
-    fullname: string,
+    _id?:string
 }
 
 export interface SellerInfo extends User{
-    _id?:string,
+    _id?:string
     store_name: string,
     is_verified?: boolean,
 }

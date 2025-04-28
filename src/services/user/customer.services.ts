@@ -33,7 +33,7 @@ export class CustomerServices{
     
     async registerCustomer(userInfo: CustomerInfo){
         try{
-            const customerExist = await this.customerRepository.getCustomer(userInfo.email)
+            const customerExist = await this.customerRepository.getCustomerByEmail(userInfo.email)
 
             if(customerExist){
                 throw createHttpError.BadRequest("Customer with Email exists.")
@@ -70,7 +70,7 @@ export class CustomerServices{
 
     async loginCustomer(userCredentials: UserCredentials){
         try{
-            const customerExist = await this.customerRepository.getCustomer(userCredentials.email) as CustomerInfo
+            const customerExist = await this.customerRepository.getCustomerByEmail(userCredentials.email) as CustomerInfo
             if(!customerExist){
                 throw createHttpError.NotFound("Customer with email doesn't exist.")
             }
@@ -93,7 +93,7 @@ export class CustomerServices{
 
     async updateCustomerInfo(email: string, updateInfo: CustomerProfile){
         try{
-            const customerExist = await this.customerRepository.getCustomer(email)
+            const customerExist = await this.customerRepository.getCustomerByEmail(email)
             if(!customerExist){
                 throw createHttpError.NotFound("Customer with email doesn't exist")
             }
@@ -106,7 +106,7 @@ export class CustomerServices{
 
     async updatePassword(email: string, oldPassword: string, newPassword: string){
         try{
-            const customerExist = await this.customerRepository.getCustomer(email)
+            const customerExist = await this.customerRepository.getCustomerByEmail(email)
 
             if(!customerExist){
                 throw createHttpError.NotFound("Customer with email doesn't exist")

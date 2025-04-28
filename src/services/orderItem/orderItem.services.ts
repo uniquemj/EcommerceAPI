@@ -70,7 +70,7 @@ export class OrderItemServices{
                 throw createHttpError.NotFound("Order with Id not found.")
             }
             
-            if(!orderExist.order_status as unknown as string == 'delivered'){
+            if(orderExist.order_status as unknown as string != 'delivered'){
                 throw createHttpError.BadRequest("Order status can't be alter as order is delivered.")
             }
 
@@ -81,6 +81,7 @@ export class OrderItemServices{
         }
     }
 
+    
     updateAdminOrderStatus = async(order_status: string, orderItemId: string) =>{
         try{
             console.log(orderItemId)
@@ -90,26 +91,49 @@ export class OrderItemServices{
             if(!orderExist){
                 throw createHttpError.NotFound("Order with Id not found.")
             }
-
+            
             const result = await this.orderItemRepository.updateOrderItem({order_status: order_status}, orderItemId)
             return result
         }catch(error){
             throw error
         }
     }
-
-    updateOrderReturn = async(orderItemId: string) =>{
+    
+    updateOrderReturnInitialize = async(orderItemId: string) =>{
         try{
             const orderItemExist = await this.orderItemRepository.getOrderItemById(orderItemId)
+            
             if(!orderItemExist){
                 throw createHttpError.NotFound("Order Item with Id does not exist.")
             }
-            const updateOrderItemStatus = await this.orderItemRepository.updateOrderItem({order_status: "return"}, orderItemId)
-            await this.variantServices.updateStock(orderItemExist.item.productVariant, orderItemExist.item.quantity)
+            
+            const updateOrderItemStatus = await this.orderItemRepository.updateOrderItem({order_status: "return-initialized"}, orderItemId)
             return updateOrderItemStatus
         }catch(error){
             throw error
         }
     }
+    
+    updateSellerReturnOrderStatus = async(order_status: string, orderItemId: string) =>{
+        try{
+            const orderExist = await this.orderItemRepository.getOrderItemById(orderItemId)
+    
+            if(!orderExist){
+                throw createHttpError.NotFound("Order with Id not found.")
+            }
+            if(orderExist.order_status as unknown as string != 'return-initialized'){
+                throw createHttpError.BadRequest("Order Item status can't be alter to return status as order is not initialized for return.")
+            }
+            
+            if(order_status == 'return-accepted'){
+                await this.variantServices.updateStock(orderExist.item.productVariant, orderExist.item.quantity)
+            }
+            
+            const result = await this.orderItemRepository.updateOrderItem({order_status: order_status}, orderItemId)
 
+            return result
+        }catch(error){
+            throw error
+        }
+    }
 }

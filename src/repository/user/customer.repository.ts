@@ -11,7 +11,7 @@ export class CustomerRepository{
         return await Customer.findById(id).select('-password')
     }
 
-    async getCustomer(email: string){
+    async getCustomerByEmail(email: string){
         return await Customer.findOne({email: email})
     }
 

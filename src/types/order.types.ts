@@ -22,7 +22,12 @@ export enum SellerOrderStatus{
     ToPack="to_pack",
     ToArrangeShipment = "to_arrange_shipment",
     ToHandOver = "to_handover",
-    Shipping = "shipping",
+    Shipping = "shipping"
+}
+
+export enum SellerReturnOrderStatus{
+    ReturnAccepted = "return-accepted",
+    ReturnRejected = "return-rejected"
 }
 
 export enum OrderStatus{
@@ -34,7 +39,9 @@ export enum OrderStatus{
     Shipping = "shipping",
     Delivered = "delivered",
     FailedDelivery = "faildelivery",
-    Return = "return"
+    ReturnInitialized = "return-initialized",
+    ReturnAccepted = "return-accepted",
+    ReturnRejected = "return-rejected"
 }
 
 export interface DeliverInfo{

@@ -1,5 +1,5 @@
 import {z} from 'zod'
-import {AdminOrderStatus, PaymentMethod, PaymentStatus, SellerOrderStatus } from '../types/order.types'
+import {AdminOrderStatus, PaymentMethod, PaymentStatus, SellerOrderStatus, SellerReturnOrderStatus } from '../types/order.types'
 
 export const deliveryInfoSchema = z.object({
     shipping_id: z.string(),
@@ -17,4 +17,8 @@ export const sellerOrderStatusSchema = z.object({
 
 export const adminOrderStatusSchema = z.object({
     order_status: z.nativeEnum(AdminOrderStatus)
+})
+
+export const updateReturnOrderStatusSchema = z.object({
+    order_status: z.nativeEnum(SellerReturnOrderStatus)
 })

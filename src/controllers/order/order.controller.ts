@@ -5,7 +5,7 @@ import createHttpError from "../../utils/httperror.utils";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { DeliverInfo, orderFilter, orderItemFilter } from "../../types/order.types";
 import { validate } from "../../middlewares/validation.middleware";
-import { adminOrderStatusSchema, deliveryInfoSchema, sellerOrderStatusSchema } from "../../validation/order.validate";
+import { adminOrderStatusSchema, deliveryInfoSchema, sellerOrderStatusSchema, updateReturnOrderStatusSchema } from "../../validation/order.validate";
 import { OrderItemServices } from "../../services/orderItem/orderItem.services";
 
 export class OrderController{
@@ -26,14 +26,15 @@ export class OrderController{
         instance.router.get('/customer/:id', allowedRole('customer'), instance.getCustomerOrderDetail)
         instance.router.put('/cancel/:id', allowedRole('customer'), instance.cancelOrder)
         instance.router.post('/', allowedRole('customer'), validate(deliveryInfoSchema), instance.createOrder)
+        instance.router.put('/return/init/:id', allowedRole('customer'), instance.updateOrderReturnInitialize)
         
         // Seller can filter out based on "pending", "canceled" and "delivered" order status for order item list.
         instance.router.get('/seller', allowedRole('seller'), instance.getOrderForSeller)
         instance.router.put('/seller/status/:id', allowedRole('seller'), validate(sellerOrderStatusSchema), instance.updateSellerOrderStatus)
         instance.router.get('/seller/:id', allowedRole('seller'), instance.getSellerOrderDetail)
+        instance.router.put('/return/update/:id', allowedRole('seller'), validate(updateReturnOrderStatusSchema),instance.updateSellerOrderReturnStatus)
         
         // Admin
-        instance.router.put('/return/:id', allowedRole('admin'), instance.updateOrderReturn)
         instance.router.get('/', allowedRole('admin'), instance.getOrderList)
         instance.router.get('/items', allowedRole('admin'), instance.getOrderItemList)
         instance.router.get('/:orderId', allowedRole('admin'), instance.getOrderItemsForOrder)
@@ -176,11 +177,22 @@ export class OrderController{
         }
     }
 
-    updateOrderReturn= async(req: AuthRequest, res: Response) =>{
+    updateOrderReturnInitialize= async(req: AuthRequest, res: Response) =>{
         try{
             const orderItemId = req.params.id
-            const result = await this.orderItemServices.updateOrderReturn(orderItemId)
-            res.status(200).send({message: "Order Item set to Refund.",response: result})
+            const result = await this.orderItemServices.updateOrderReturnInitialize(orderItemId)
+            res.status(200).send({message: "Order Item initialized for return.",response: result})
+        }catch(e:any){
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    updateSellerOrderReturnStatus = async(req: AuthRequest, res: Response) =>{
+        try{
+            const orderItemId = req.params.id
+            const {order_status} = req.body
+            const result = await this.orderItemServices.updateSellerReturnOrderStatus(order_status, orderItemId)
+            res.status(200).send({message: "Return Order Item Status Changed.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
