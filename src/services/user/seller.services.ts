@@ -151,7 +151,7 @@ export class SellerServices{
             const sellerProductList = await this.productServices.getSellerProductList(sellerId)
 
             sellerProductList.forEach(async(product)=>{
-                await this.productServices.removeProduct(product._id as string, sellerId)
+                await this.productServices.removeProduct(product._id as string)
             })
 
             return result

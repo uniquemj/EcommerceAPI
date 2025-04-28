@@ -2,15 +2,28 @@ import { OrderItemRepository } from "../../repository/orderitem/orderitem.reposi
 import { orderItemFilter } from "../../types/order.types";
 import { OrderItemInfo } from "../../types/orderitem.types";
 import createHttpError from "../../utils/httperror.utils";
+import { VariantServices } from "../variant/variant.services";
 
 
 export class OrderItemServices{
-    constructor(private readonly orderItemRepository: OrderItemRepository){}
+    constructor(private readonly orderItemRepository: OrderItemRepository, private readonly variantServices: VariantServices){}
 
     createOrderItem = async(orderItemInfo: OrderItemInfo) =>{
         try{
             const result = this.orderItemRepository.createOrderItem(orderItemInfo)
             return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    getAllOrderItem = async(query: orderItemFilter) =>{
+        try{
+            const orderItems = await this.orderItemRepository.getAllOrderItems(query)
+            if(orderItems.length == 0){
+                throw createHttpError.NotFound("Order Items list is empty.")
+            }
+            return orderItems
         }catch(error){
             throw error
         }
@@ -28,9 +41,9 @@ export class OrderItemServices{
         }
     }
 
-    getOrderItemList = async(orderId: string, status: orderItemFilter) =>{
+    getOrderItemList = async(orderId: string, query: orderItemFilter) =>{
         try{
-            const orderItems = await this.orderItemRepository.getOrderItemList(orderId, status)
+            const orderItems = await this.orderItemRepository.getOrderItemList(orderId, query)
             return orderItems
         }catch(error){
             throw error
@@ -39,8 +52,7 @@ export class OrderItemServices{
     
     getOrderForSeller = async(userId: string, query: orderItemFilter) =>{
         try{
-            const orderStatus = Object.keys(query).length > 0?{order_status: query.status}:{}
-            const orderItems = await this.orderItemRepository.getOrderForSeller(userId, orderStatus)
+            const orderItems = await this.orderItemRepository.getOrderForSeller(userId, query)
             if(orderItems.length == 0){
                 throw createHttpError.NotFound("No order received.")
             }
@@ -50,7 +62,7 @@ export class OrderItemServices{
         }
     }
 
-    updateOrderStatus = async(order_status: string, orderItemId: string) =>{
+    updateSellerOrderStatus = async(order_status: string, orderItemId: string) =>{
         try{
             const orderExist = await this.orderItemRepository.getOrderItemById(orderItemId)
 
@@ -64,6 +76,37 @@ export class OrderItemServices{
 
             const result = await this.orderItemRepository.updateOrderItem({order_status: order_status}, orderItemId)
             return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    updateAdminOrderStatus = async(order_status: string, orderItemId: string) =>{
+        try{
+            console.log(orderItemId)
+            const orderExist = await this.orderItemRepository.getOrderItemById(orderItemId)
+            console.log(orderExist)
+
+            if(!orderExist){
+                throw createHttpError.NotFound("Order with Id not found.")
+            }
+
+            const result = await this.orderItemRepository.updateOrderItem({order_status: order_status}, orderItemId)
+            return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    updateOrderReturn = async(orderItemId: string) =>{
+        try{
+            const orderItemExist = await this.orderItemRepository.getOrderItemById(orderItemId)
+            if(!orderItemExist){
+                throw createHttpError.NotFound("Order Item with Id does not exist.")
+            }
+            const updateOrderItemStatus = await this.orderItemRepository.updateOrderItem({order_status: "return"}, orderItemId)
+            await this.variantServices.updateStock(orderItemExist.item.productVariant, orderItemExist.item.quantity)
+            return updateOrderItemStatus
         }catch(error){
             throw error
         }

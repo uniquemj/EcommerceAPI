@@ -125,12 +125,13 @@ export class ProductServices{
         }
     }
 
-    async removeProduct(productId: string, userId: string){
+    async removeProduct(productId: string){
         try{
-            const productExist = await this.productRepository.getSellerProductById(productId, userId)
+            const productExist = await this.productRepository.getProductById(productId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
+
             productExist.variants.forEach(async(variant)=>{
                 await this.variantServices.deleteVariant(variant._id as string )
             })
@@ -205,14 +206,14 @@ export class ProductServices{
     }
 
 
-    async removeVariant(productId: string, variantId: string, userId: string){
+    async removeVariant(productId: string, variantId: string){
         try{
-            const productExist = await this.productRepository.getSellerProductById(productId, userId)
+            const productExist = await this.productRepository.getProductById(productId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
             await this.variantServices.deleteVariant(variantId)
-            const result = await this.productRepository.removeVariant(productId, variantId, userId)
+            const result = await this.productRepository.removeVariant(productId, variantId)
             return result
         }catch(error){
             throw error

@@ -1,7 +1,7 @@
 
 import { OrderRepository } from "../../repository/order/order.repository";
 import { CartItem } from "../../types/cart.types";
-import { DeliverInfo, orderItemFilter } from "../../types/order.types";
+import { DeliverInfo, orderFilter, orderItemFilter } from "../../types/order.types";
 import createHttpError from "../../utils/httperror.utils";
 import { CartServices } from "../cart/cart.services";
 import { OrderItemServices } from "../orderItem/orderItem.services";
@@ -17,17 +17,28 @@ export class OrderServices{
         private readonly productServices: ProductServices
     ){}
 
-    getCustomerOrderList = async(status: orderItemFilter, userId: string) =>{
+    getOrderList = async(query: orderFilter) =>{
+        try{
+            const orders = await this.orderRepository.getOrderList(query)
+            if(orders.length == 0){
+                throw createHttpError.NotFound("Order List is Empty.")
+            }
+            return orders
+        }catch(error){
+            throw error
+        }
+    }
+
+    getCustomerOrderList = async(query: orderItemFilter, userId: string) =>{
         try{
             const orderExist = await this.orderRepository.getCustomerOrderList(userId)
             
             if(!orderExist){
                 throw createHttpError.NotFound("Order for User not found.")
             }
-            
             const orders =  await Promise.all(orderExist.map(async(order)=>{
-                const orderItems = await this.orderItemServices.getOrderItemList(order._id as string, {order_status: status.status})
-                
+                const orderItems = await this.orderItemServices.getOrderItemList(order._id as string, query)
+
                 const orderDetail = {
                     order: order,
                     orderItems: orderItems
@@ -87,7 +98,7 @@ export class OrderServices{
                     quantity: item.quantity
                 }
                 const product_id = await this.variantServices.getVariantSeller(item.productVariant)
-                await this.variantServices.decreaseStock(item.productVariant, -item.quantity)
+                await this.variantServices.updateStock(item.productVariant, -item.quantity)
                 const product = await this.productServices.getProductById(product_id as unknown as string)
                 
                 const orderItemInfo = {
@@ -128,7 +139,7 @@ export class OrderServices{
             }
 
             orderItems.forEach(async(item)=>{
-                await this.orderItemServices.updateOrderStatus("canceled", item._id as string)
+                await this.orderItemServices.updateSellerOrderStatus("canceled", item._id as string)
             })
 
             const result = await this.orderRepository.updateOrder(order_id, {isCanceled: true, cancelAt: Date.now() as unknown as Date})

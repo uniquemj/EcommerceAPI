@@ -21,18 +21,18 @@ export class ProductController{
         const instance = new ProductController(productServices)
         ProductController.instance = instance
 
-        instance.router.get('/', allowedRole('customer'), instance.getProductList)
+        instance.router.get('/', allowedRole('customer','admin'), instance.getProductList)
         instance.router.get('/seller',allowedRole('seller'), verifySeller,instance.getSellerProductList)
         instance.router.get('/seller/:id',allowedRole('seller'), verifySeller, instance.getSellerProductById)
-        instance.router.get('/:id', allowedRole('customer'), instance.getProductById)
+        instance.router.get('/:id', allowedRole('customer', 'admin'), instance.getProductById)
 
         instance.router.post('/', allowedRole('seller'), verifySeller, validate(productSchema), instance.createProduct)
         instance.router.put('/:id', allowedRole('seller'), verifySeller, validate(updateProductSchema), instance.editProduct)
-        instance.router.delete('/:id', allowedRole('seller'), verifySeller, instance.removeProduct)
+        instance.router.delete('/:id', allowedRole('seller', 'admin'), verifySeller, instance.removeProduct)
         
         //Variant
         instance.router.get('/:id/variants', allowedRole('seller'), verifySeller, instance.getProductVariant)
-        instance.router.post('/:id/variants/:variantId', allowedRole('seller'),verifySeller, instance.removeVariant)
+        instance.router.post('/:id/variants/:variantId', allowedRole('seller','admin'),verifySeller, instance.removeVariant)
 
         // Remove Category
         instance.router.post('/:id/category/:categoryId', allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
@@ -112,9 +112,8 @@ export class ProductController{
     removeProduct = async(req: AuthRequest, res: Response) =>{
         try{
             const productId = req.params.id
-            const userId = req.user?._id as string
 
-            const result = await this.productServices.removeProduct(productId, userId)
+            const result = await this.productServices.removeProduct(productId)
             res.status(200).send({message: "Product removed.", response: result})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -151,9 +150,9 @@ export class ProductController{
 
     removeImageFromProductVariant = async(req: AuthRequest, res: Response) =>{
         try{
-            const imageId = req.params.imageId
             const productId = req.params.id
             const variantId = req.params.variantId
+            const imageId = req.params.imageId
             const userId = req.user?._id as string
 
             const result = await this.productServices.removeImageFromProductVariant(productId,variantId, imageId, userId)
@@ -167,9 +166,8 @@ export class ProductController{
         try{
             const variantId = req.params.variantId
             const productId = req.params.id
-            const userId = req.user?._id as string
 
-            const result = await this.productServices.removeVariant(productId, variantId, userId)
+            const result = await this.productServices.removeVariant(productId, variantId)
             res.status(200).send({message: "Variant Removed.", response: result})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

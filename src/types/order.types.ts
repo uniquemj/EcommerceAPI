@@ -14,11 +14,10 @@ export enum PaymentStatus{
 export enum AdminOrderStatus{
     Delivered = "delivered",
     FailedDelivery = "faildelivery",
-    ReturnOrReplace = "return-or-replace"
+    Return = "return"
 }
 
 export enum SellerOrderStatus{
-    Canceled = "canceled",
     Pending="pending",
     ToPack="to_pack",
     ToArrangeShipment = "to_arrange_shipment",
@@ -35,7 +34,7 @@ export enum OrderStatus{
     Shipping = "shipping",
     Delivered = "delivered",
     FailedDelivery = "faildelivery",
-    ReturnOrReplace = "return-or-replace"
+    Return = "return"
 }
 
 export interface DeliverInfo{
@@ -62,7 +61,11 @@ export interface OrderInfo{
     order_timeStamp?: Date,
 }
 
+export interface orderFilter{
+    isCanceled?: boolean,
+    isCompleted?: boolean
+}
+
 export interface orderItemFilter{
-    status?:string,
     order_status?:string
 }

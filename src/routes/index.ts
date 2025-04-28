@@ -54,7 +54,7 @@ const cartController = CartController.initController(cartServices)
 
 //Order item
 const orderItemRepository = new OrderItemRepository()
-const orderItemServices = new OrderItemServices(orderItemRepository)
+const orderItemServices = new OrderItemServices(orderItemRepository, variantServices)
 
 // Orderr
 const orderRepository = new OrderRepository()

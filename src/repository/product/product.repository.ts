@@ -1,5 +1,4 @@
 import Product from "../../model/product/product.model";
-import { ImageInfo } from "../../types/image.types";
 import { ProductInfo } from "../../types/product.types";
 
 export class ProductRepository{
@@ -13,7 +12,7 @@ export class ProductRepository{
     }
     
     async getSellerProductList(sellerId: string){
-        return await Product.find({seller: sellerId}).populate('variants', '-__v').populate('seller', '_id, store_name')
+        return await Product.find({seller: sellerId}).populate('category','-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 
     async getSellerProductById(id: string, userId: string){
@@ -42,9 +41,9 @@ export class ProductRepository{
         )
     }
 
-    async removeVariant(productId:string, variantId: string, userId: string){
+    async removeVariant(productId:string, variantId: string){
         return await Product.findOneAndUpdate(
-            {_id: productId, seller: userId},
+            {_id: productId},
             {$pull: {variant: variantId}},
             {new: true}
         )

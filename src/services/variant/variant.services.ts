@@ -124,7 +124,7 @@ export class VariantServices{
         }
     }
 
-    async decreaseStock(variantId: string, quantity: number){
+    async updateStock(variantId: string, quantity: number){
         try{
             const result = await this.variantRepository.updateStock(variantId, quantity)
             return result

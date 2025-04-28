@@ -6,7 +6,4 @@ export interface OrderItemInfo{
     item?: CartItem,
     seller_id?: string,
     order_status?: string,
-    cancelAt?: Date,
-    isDeleted?: boolean,
-    deletedAt?: Date
 }

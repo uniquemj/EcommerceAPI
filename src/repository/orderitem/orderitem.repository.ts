@@ -9,20 +9,25 @@ export class OrderItemRepository{
         return await OrderItem.create(orderItemInfo)
     }
 
-    async getOrderItemById(orderId: string){
-        return await OrderItem.findById(orderId).populate(this.productVariantPopulate)
+    async getOrderItemById(orderItemId: string){
+        return await OrderItem.findById(orderItemId).populate(this.productVariantPopulate)
     }
 
-    async getOrderItemList(orderId: string, status: orderItemFilter){
-        return await OrderItem.find({order_id: orderId, ...status}).populate(this.productVariantPopulate).select('-__v')
+    async getOrderItemList(orderId: string, query: orderItemFilter){
+        return await OrderItem.find({order_id: orderId, ...query}).populate(this.productVariantPopulate).select('-__v')
     }
 
-    async getOrderForSeller(userId: string, status: orderItemFilter){
+    async getAllOrderItems(query: orderItemFilter){
+        return await OrderItem.find({...query}).populate(this.productVariantPopulate).select('-__v')
+    }
+
+    async getOrderForSeller(userId: string, query: orderItemFilter){
         const customerPopulate = {path: "customer_id", select: "-_id fullname"}
         const shippingPopulate = {path: "shipping_id", select: "-_id -customer_id -__v"}
         const orderPopulate = {path: "order_id", select:" -__v -orderTotal", populate:[ customerPopulate, shippingPopulate ]}
         
-        return await OrderItem.find({seller_id: userId, ...status}).populate(this.productVariantPopulate).populate(orderPopulate).select('-seller_id')
+        console.log(query)
+        return await OrderItem.find({seller_id: userId, ...query}).populate(this.productVariantPopulate).populate(orderPopulate).select('-seller_id')
     }
 
 

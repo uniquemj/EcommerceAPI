@@ -1,7 +1,11 @@
 import Order from "../../model/order/order.model";
-import { OrderInfo } from "../../types/order.types";
+import { orderFilter, OrderInfo } from "../../types/order.types";
 
 export class OrderRepository{
+
+    async getOrderList(query: orderFilter){
+        return await Order.find({...query})
+    }
     async getCustomerOrderList(userId: string){
         return await Order.find({customer_id: userId}).select('-__v')
     }
