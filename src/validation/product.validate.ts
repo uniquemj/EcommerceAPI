@@ -2,7 +2,7 @@ import {z} from 'zod';
 import { variantSchema } from './variant.validate';
 
 export const productSchema = z.object({
-    name: z.string(),
+    name: z.string().min(5).max(250),
     category: z.string({message: "At least 1 category required."}),
     productDescription: z.string().optional(),
     productHighlights: z.string().optional(),
@@ -10,7 +10,7 @@ export const productSchema = z.object({
 }).strict()
 
 export const updateProductSchema = z.object({
-    name: z.string().optional(),
+    name: z.string().min(5).max(250).optional(),
     category: z.string().optional(),
     productDescription: z.string().optional(),
     productHighlights: z.string().optional(),
