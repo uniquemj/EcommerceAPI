@@ -22,10 +22,11 @@ export class SellerController{
     }
 
     static initController(sellerServices: SellerServices){
-        const instance = new SellerController(sellerServices);
-        
-        SellerController.instance = instance;
-        
+        if(!SellerController.instance){
+            SellerController.instance = new SellerController(sellerServices);
+        }
+        const instance = SellerController.instance;
+
         instance.router.post('/register', validate(sellerRegisterSchema), instance.registerSeller)
         instance.router.post('/verify/:code', instance.verifyEmail)
         instance.router.post('/login',validate(loginSchema), instance.loginSeller)

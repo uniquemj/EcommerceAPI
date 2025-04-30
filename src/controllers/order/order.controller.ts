@@ -18,9 +18,11 @@ export class OrderController{
     }
 
     static initController(orderServices: OrderServices, orderItemServices: OrderItemServices){
-        const instance = new OrderController(orderServices, orderItemServices)
-        OrderController.instance = instance
 
+        if(!OrderController.instance){
+            OrderController.instance = new OrderController(orderServices, orderItemServices)
+        }
+        const instance = OrderController.instance
 
         // Customer
         instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrderList)

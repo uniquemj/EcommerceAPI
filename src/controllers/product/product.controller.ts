@@ -19,8 +19,10 @@ export class ProductController{
     }
 
     static initController(productServices: ProductServices){
-        const instance = new ProductController(productServices)
-        ProductController.instance = instance
+        if(!ProductController.instance){
+            ProductController.instance = new ProductController(productServices)
+        }
+        const instance = ProductController.instance
 
         instance.router.get('/', allowedRole('customer','admin'), instance.getProductList)
         instance.router.get('/seller',allowedRole('seller'), verifySeller,instance.getSellerProductList)

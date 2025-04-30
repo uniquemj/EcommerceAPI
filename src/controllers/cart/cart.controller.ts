@@ -9,15 +9,17 @@ import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 
 export class CartController{
     readonly router: Router
-    private static instace: CartController;
+    private static instance: CartController;
 
     private constructor(private readonly cartServices: CartServices){
         this.router = Router()
     }
 
     static initController(cartServices: CartServices){
-        const instance = new CartController(cartServices)
-        CartController.instace = instance
+        if(!CartController.instance){
+            CartController.instance = new CartController(cartServices)
+        }
+        const instance = CartController.instance
 
         instance.router.get('/', allowedRole('customer'), instance.getCartByUserId)
         instance.router.post('/add/:id', validate(addCartSchema), allowedRole('customer'), instance.addToCart)

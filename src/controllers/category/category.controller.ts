@@ -18,8 +18,10 @@ export class CategoryController{
     }
 
     static initController(categoryServices: CategoryServices){
-        const instance = new CategoryController(categoryServices)
-        CategoryController.instance = instance
+        if(!CategoryController.instance){
+            CategoryController.instance = new CategoryController(categoryServices)
+        }
+        const instance = CategoryController.instance
 
         instance.router.get('/', allowedRole('customer','seller', 'admin'),instance.getCategoryList)
         instance.router.post('/', allowedRole('admin'),validate(categorySchema), instance.createCategory)

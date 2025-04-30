@@ -17,8 +17,11 @@ export class ShipmentAddressController{
     }
 
     static initController(shipmentAddressServices: ShipmentAddressServices){
-        const instance = new ShipmentAddressController(shipmentAddressServices)
-        ShipmentAddressController.instance = instance
+        if(!ShipmentAddressController.instance){
+            ShipmentAddressController.instance = new ShipmentAddressController(shipmentAddressServices)
+        }
+        
+        const instance = ShipmentAddressController.instance
 
         instance.router.get('/', allowedRole('customer'), instance.getShipmentAddressListOfCustomer)
         instance.router.post('/', allowedRole('customer'), validate(addressSchema),instance.createShipmentAddress)

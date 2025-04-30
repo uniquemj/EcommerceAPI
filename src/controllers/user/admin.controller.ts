@@ -14,14 +14,18 @@ import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 export class AdminController{
     readonly router: Router;
     private static instance: AdminController;
-    
-    constructor(private readonly adminServices: AdminServices){
+
+    private constructor(private readonly adminServices: AdminServices){
         this.router = Router()
     }
 
+    
     static initController(adminServices: AdminServices){
-        const instance = new AdminController(adminServices)
-        AdminController.instance = instance
+        if(!AdminController.instance){
+            AdminController.instance = new AdminController(adminServices)
+        }
+
+        const instance = AdminController.instance
 
         instance.router.get('/', verifyToken, allowedRole('admin'), instance.getAllAdmin)
         instance.router.get('/profile', verifyToken, allowedRole('admin'), instance.getAdminProfile)
@@ -42,7 +46,6 @@ export class AdminController{
 
         return instance
     }
-
     getAllAdmin = async(req: Request, res: Response) =>{
         try{
             const result = await this.adminServices.getAllAdmin()

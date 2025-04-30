@@ -71,6 +71,7 @@ const shipmetAddressController = ShipmentAddressController.initController(shipme
 const adminRepository = new AdminRepository()
 const adminServices = new AdminServices(adminRepository)
 const adminController = AdminController.initController(adminServices)
+const adminController1 = AdminController.initController(adminServices)
 
 const customerRepository = new CustomerRepository()
 const customerService = new CustomerServices(customerRepository)

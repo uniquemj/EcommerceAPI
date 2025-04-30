@@ -21,9 +21,12 @@ export class CustomerController{
     }
 
     static initController(customerService: CustomerServices){
-        const instance = new CustomerController(customerService)
+        if(!CustomerController.instance){
+            CustomerController.instance = new CustomerController(customerService)
+        }
         
-        CustomerController.instance = instance
+        const instance = CustomerController.instance
+
         instance.router.post('/register', validate(customerRegisterSchema), instance.registerCustomer)
         instance.router.post('/verify/:code', instance.verifyEmail)
         instance.router.post('/login', validate(loginSchema), instance.loginCustomer)
