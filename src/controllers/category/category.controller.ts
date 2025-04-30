@@ -6,6 +6,7 @@ import { validate } from '../../middlewares/validation.middleware';
 import { categorySchema } from '../../validation/category.validate';
 import { AuthRequest } from '../../types/auth.types';
 import { CategoryInfo } from '../../types/category.types';
+import { handleSuccessResponse } from '../../utils/httpresponse.utils';
 
 export class CategoryController{
     readonly router: Router;
@@ -30,7 +31,7 @@ export class CategoryController{
     getCategoryList = async(req: AuthRequest, res: Response) =>{
         try{
             const category = await this.categoryServices.getCategoryList()
-            res.status(200).send({message:"Category Fetched.", response: category})
+            handleSuccessResponse(res, "Category Fetched.", category)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -40,7 +41,7 @@ export class CategoryController{
         try{
             const categoryInfo = req.body as CategoryInfo
             const category = await this.categoryServices.createCategory(categoryInfo)
-            res.status(200).send({message: "Category Created.", response: category})
+            handleSuccessResponse(res, "Category Created.", category)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message,e.errors)
         }
@@ -51,7 +52,7 @@ export class CategoryController{
             const {title} = req.body
             const id = req.params.id
             const category = await this.categoryServices.updateCategory(id, title)
-            res.status(200).send({message: "Category Updated", response: category})
+            handleSuccessResponse(res, "Category Updated.", category)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -60,7 +61,7 @@ export class CategoryController{
         try{
             const {id} = req.params
             const result = await this.categoryServices.removeCategory(id)
-            res.status(200).send({message: "Category Removed.", response: result})
+            handleSuccessResponse(res, "Category Removed.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

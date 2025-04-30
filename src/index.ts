@@ -5,6 +5,7 @@ import apiRoute from './routes/index'
 import errorHandler from './middlewares/errorhandler.middleware'
 import cookieParser from 'cookie-parser'
 import { v2 as cloudinary } from 'cloudinary'
+
 const app = express()
 
 app.use(express.json())

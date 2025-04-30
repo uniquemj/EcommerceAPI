@@ -2,21 +2,21 @@ import {z} from 'zod'
 import { imageSchema } from './image.validate'
 
 export const customerRegisterSchema = z.object({
-    fullname: z.string().min(6).max(50),
+    fullname: z.string().trim().min(6).max(50),
     email: z.string().email(),
     password: z.string().min(8)
 })
 
 export const sellerRegisterSchema = z.object({
-    fullname: z.string().min(6).max(50),
-    store_name: z.string().min(3).max(20),
+    fullname: z.string().trim().min(6).max(50),
+    store_name: z.string().min(3).max(20).trim(),
     email: z.string().email(),
     password: z.string().min(8)
 })
 
 export const adminRegisterSchema = z.object({
-    fullname: z.string().min(6).max(50),
-    username: z.string().min(5),
+    fullname: z.string().trim().min(6).max(50),
+    username: z.string().trim().min(5),
     email: z.string().email(),
     isSuperAdmin: z.boolean(),
     password: z.string().min(5)
@@ -33,7 +33,7 @@ export const adminLoginSchema = z.object({
 })
 
 export const updateCustomerProfileSchema = z.object({
-    fullname: z.string().min(6).max(50).optional(),
+    fullname: z.string().trim().min(6).max(50).optional(),
     phone_number: z.string().regex(/^[0-9]{10}$/,{
         message: "Only numbers are allowed and should be of length 10."
     }).optional(),
@@ -54,19 +54,19 @@ export const updateAdminPasswordSchema = z.object({
 
 export const addBusinessInfoSchema = z.object({
     legal_document: imageSchema.array(),
-    address: z.string(),
-    city: z.string(),
-    country: z.string(),
+    address: z.string().trim(),
+    city: z.string().trim(),
+    country: z.string().trim(),
     phone_number: z.string().regex(/^[0-9]{10}$/,{
         message: "Only numbers are allowed and should be of length 10."
     }),
 })
 
 export const updateBusinessInfoSchema = z.object({
-    store_name: z.string().min(3).max(20).optional(),
-    address: z.string().optional(),
-    city: z.string().optional(),
-    country: z.string().optional(),
+    store_name: z.string().trim().min(3).max(20).optional(),
+    address: z.string().trim().optional(),
+    city: z.string().trim().optional(),
+    country: z.string().trim().optional(),
     phone_number: z.string().regex(/^[0-9]{10}$/,{
         message: "Only numbers are allowed and should be of length 10."
     }).optional(),
@@ -76,13 +76,13 @@ export const updateBusinessInfoSchema = z.object({
 })
 
 export const updateAdminInfo = z.object({
-    fullname: z.string().optional()
+    fullname: z.string().trim().optional()
 }).strict().refine((data)=>Object.keys(data).length > 0, {
     message: "At least one field must be provided to update. Available fields: fullname."
 })
 
 export const updateNormalAdminInfo = z.object({
-    fullname: z.string().optional(),
+    fullname: z.string().trim().optional(),
     password: z.string().optional(),
     isSuperAdmin: z.boolean().optional()
 }).strict().refine((data)=>Object.keys(data).length > 0, {

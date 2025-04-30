@@ -70,7 +70,7 @@ export class OrderItemServices{
                 throw createHttpError.NotFound("Order with Id not found.")
             }
             
-            if(orderExist.order_status as unknown as string != 'delivered'){
+            if(orderExist.order_status as unknown as string == 'delivered'){
                 throw createHttpError.BadRequest("Order status can't be alter as order is delivered.")
             }
 
@@ -107,6 +107,9 @@ export class OrderItemServices{
                 throw createHttpError.NotFound("Order Item with Id does not exist.")
             }
             
+            if(orderItemExist.order_status as unknown as string != 'delivered'){
+                throw createHttpError.BadRequest("Order Item status can't be initiated to return as it's not delivered yet.")
+            }
             const updateOrderItemStatus = await this.orderItemRepository.updateOrderItem({order_status: "return-initialized"}, orderItemId)
             return updateOrderItemStatus
         }catch(error){

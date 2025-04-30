@@ -9,6 +9,7 @@ import { SellerProfile } from "../../types/user.types";
 import { verifyToken } from "../../middlewares/auth.middleware";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { verifySuperAdmin } from "../../middlewares/admin.middleware";
+import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 
 
 export class SellerController{
@@ -35,8 +36,8 @@ export class SellerController{
         instance.router.put('/profile', verifyToken, allowedRole('seller'), validate(updateBusinessInfoSchema), instance.updateSellerInfo)
         instance.router.put('/password', verifyToken, allowedRole('seller'), validate(updatePasswordSchema), instance.updatePassword)
 
-        instance.router.get('/', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.getSellerList)
-        instance.router.get('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.getSellerById)
+        instance.router.get('/', verifyToken, allowedRole('admin'), instance.getSellerList)
+        instance.router.get('/:id', verifyToken, allowedRole('admin'), instance.getSellerById)
         instance.router.post('/verify-seller/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.verifySeller)
         instance.router.delete('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.deleteSeller)
         
@@ -47,7 +48,7 @@ export class SellerController{
         try{
             const sellerInfo = req.body
             const result = await this.sellerServices.registerSeller(sellerInfo)
-            res.status(200).send({message: "Seller Registered Successfully.", response: result})
+            handleSuccessResponse(res, "Seller Registered Successfully", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -57,7 +58,7 @@ export class SellerController{
         try{
             const {code} = req.params
             const result = await this.sellerServices.verifyEmail(code)
-            res.status(200).send({message: "Seller Email Verified.", response: result})
+            handleSuccessResponse(res, "Seller Email Verified.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -67,7 +68,7 @@ export class SellerController{
         try{
             const sellerId = req.params.id
             const result = await this.sellerServices.verifySeller(sellerId)
-            res.status(200).send({message: "Seller Verified.", response: result})
+            handleSuccessResponse(res, "Seller Verified.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -77,7 +78,8 @@ export class SellerController{
         try{
             const sellerId = req.user?._id as string
             const result = await this.sellerServices.getSellerById(sellerId)
-            res.status(200).send({message: "Seller Profile Fetched.", response: result})
+
+            handleSuccessResponse(res, "Seller Profile Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -96,7 +98,7 @@ export class SellerController{
                 sameSite: 'strict',
                 maxAge: 24*60*60*1000,
             })
-            res.status(200).send({message: "Seller Logged in.", token: token, user: user})
+            handleSuccessResponse(res, "Seller Logged In.",{token: token, user: user})
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -105,7 +107,7 @@ export class SellerController{
     logoutSeller = async(req: AuthRequest, res: Response) =>{
         try{
             res.clearCookie('USER_TOKEN')
-            res.status(200).send({message: "Seller Logged out."})
+            handleSuccessResponse(res, "Seller Logged out.",[])
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -116,7 +118,7 @@ export class SellerController{
             const businessInfo = req.body as SellerProfile
             const sellerEmail = req.user?.email as string
             const result = await this.sellerServices.updateSellerInfo(businessInfo, sellerEmail)
-            res.status(200).send({message: "Business Info Added.", response: result})
+            handleSuccessResponse(res, "Business Info Added.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statuscode, e.message, e.errors)
         }
@@ -128,7 +130,7 @@ export class SellerController{
             const sellerInfo = req.body as SellerProfile
             const sellerEmail = req.user?.email as string
             const result = await this.sellerServices.updateSellerInfo(sellerInfo, sellerEmail)
-            res.status(200).send({message: "Seller Profile Updated", response: result})
+            handleSuccessResponse(res, "Seller Profile Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -139,7 +141,7 @@ export class SellerController{
             const {old_password, new_password} = req.body
             const sellerEmail = req.user?.email as string
             const result = await this.sellerServices.updatePassword(old_password, new_password, sellerEmail)
-            res.status(200).send({message: "Seller password Updated.", response: result})
+            handleSuccessResponse(res, "Seller Password Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -148,7 +150,7 @@ export class SellerController{
     getSellerList = async(req: AuthRequest, res: Response) =>{
         try{
             const result = await this.sellerServices.getSellerList()
-            res.status(200).send({message: "Seller List Fetched.", response: result})
+            handleSuccessResponse(res, "Seller List Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -158,7 +160,7 @@ export class SellerController{
         try{
             const sellerId = req.params.id
             const result = await this.sellerServices.getSellerById(sellerId)
-            res.status(200).send({message: "Seller Fetched.", response: result})
+            handleSuccessResponse(res, "Seller Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -168,7 +170,7 @@ export class SellerController{
         try{
             const sellerId = req.params.id
             const result = await this.sellerServices.deleteSeller(sellerId)
-            res.status(200).send({message: "Seller Deleted.", response: result})
+            handleSuccessResponse(res, "Seller Deleted.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

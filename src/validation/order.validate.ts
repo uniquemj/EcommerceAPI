@@ -2,7 +2,7 @@ import {z} from 'zod'
 import {AdminOrderStatus, PaymentMethod, PaymentStatus, SellerOrderStatus, SellerReturnOrderStatus } from '../types/order.types'
 
 export const deliveryInfoSchema = z.object({
-    shipping_id: z.string(),
+    shipping_id: z.string().trim(),
 })
 
 export const paymentMethodSchema = z.object({

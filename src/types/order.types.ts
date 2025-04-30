@@ -13,8 +13,7 @@ export enum PaymentStatus{
 
 export enum AdminOrderStatus{
     Delivered = "delivered",
-    FailedDelivery = "faildelivery",
-    Return = "return"
+    FailedDelivery = "faildelivery"
 }
 
 export enum SellerOrderStatus{

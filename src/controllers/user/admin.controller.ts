@@ -9,6 +9,7 @@ import { adminLoginSchema, adminRegisterSchema, updateAdminInfo, updateAdminPass
 import { verifyToken } from "../../middlewares/auth.middleware";
 import { AuthRequest } from "../../types/auth.types";
 import { verifySuperAdmin } from "../../middlewares/admin.middleware";
+import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 
 export class AdminController{
     readonly router: Router;
@@ -22,7 +23,7 @@ export class AdminController{
         const instance = new AdminController(adminServices)
         AdminController.instance = instance
 
-        instance.router.get('/', verifyToken, verifySuperAdmin, allowedRole('admin'), instance.getAllAdmin)
+        instance.router.get('/', verifyToken, allowedRole('admin'), instance.getAllAdmin)
         instance.router.get('/profile', verifyToken, allowedRole('admin'), instance.getAdminProfile)
         instance.router.get('/:id', verifyToken, allowedRole('admin'), instance.getAdminDetail)
 
@@ -45,7 +46,7 @@ export class AdminController{
     getAllAdmin = async(req: Request, res: Response) =>{
         try{
             const result = await this.adminServices.getAllAdmin()
-            res.status(200).send({message: "Admin List Fetched.", response: result})
+            handleSuccessResponse(res, "Admin List Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -55,7 +56,7 @@ export class AdminController{
         try{
             const adminId = req.params.id 
             const result = await this.adminServices.getAdminDetail(adminId)
-            res.status(200).send({message: "Admin Detail Fetched.", response: result})
+            handleSuccessResponse(res, "Admin Detail Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -65,7 +66,7 @@ export class AdminController{
         try{
             const adminId = req.user?._id as string
             const result = await this.adminServices.getAdminDetail(adminId)
-            res.status(200).send({message: "Admin Detail Fetched.", response: result})
+            handleSuccessResponse(res, "Admin Detail Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -75,7 +76,7 @@ export class AdminController{
         try{
             const adminInfo = req.body as AdminInfo
             const result = await this.adminServices.createAdmin(adminInfo)
-            res.status(200).send({message: "Admin Created.", response: result})
+            handleSuccessResponse(res, "Admin Created.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -95,7 +96,7 @@ export class AdminController{
                 maxAge: 24*60*60*1000
             })
             
-            res.status(200).send({message: "Admin Logged In.", token: token, user: user})
+            handleSuccessResponse(res, "Admin Logged In.", {token: token, user: user})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -104,7 +105,7 @@ export class AdminController{
     logoutAdmin = async(req: AuthRequest, res: Response) =>{
         try{
             res.clearCookie('USER_TOKEN')
-            res.status(200).send({message: "Admin Logged out."})
+            handleSuccessResponse(res, "Admin Logged out.", [])
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -116,7 +117,7 @@ export class AdminController{
             const updateAdminInfo = req.body as AdminProfile
             const adminId = req.params.id
             const result = await this.adminServices.updateAdmin(updateAdminInfo, adminId)
-            res.status(200).send({message: "Admin Profile Updated.", response: result})
+            handleSuccessResponse(res, "Admin Profile Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -127,7 +128,7 @@ export class AdminController{
             const updateAdminInfo = req.body as AdminProfile
             const adminId = req.user?._id as string
             const result = await this.adminServices.updateAdmin(updateAdminInfo, adminId)
-            res.status(200).send({message: "Admin profile updated.", response: result})
+            handleSuccessResponse(res, "Admin Profile Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -138,7 +139,7 @@ export class AdminController{
             const adminId = req.params.id
             const userId = req.user?._id as string
             const result = await this.adminServices.deleteAdmin(adminId, userId)
-            res.status(200).send({message: "Admin Removed.", response: result})
+            handleSuccessResponse(res, "Admin Removed.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -149,7 +150,7 @@ export class AdminController{
             const userEmail = req.user?.email as string
             const {old_password, new_password} = req.body
             const result = await this.adminServices.updatePassword(old_password, new_password, userEmail)
-            res.status(200).send({message: "Password Updated.", response: result})
+            handleSuccessResponse(res, "Password Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

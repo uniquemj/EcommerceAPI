@@ -9,6 +9,7 @@ import { verifyToken } from "../../middlewares/auth.middleware";
 import { updateCustomerProfileSchema } from "../../validation/user.validate";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { verifySuperAdmin } from "../../middlewares/admin.middleware";
+import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 
 export class CustomerController{
     
@@ -32,8 +33,8 @@ export class CustomerController{
         instance.router.put('/password', verifyToken, allowedRole('customer'), validate(updatePasswordSchema), instance.updatePassword)
         instance.router.get('/profile', verifyToken, allowedRole('customer'), instance.getCustomerProfile)
 
-        instance.router.get('/', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.getCustomerList)
-        instance.router.get('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.getCustomerById)
+        instance.router.get('/', verifyToken, allowedRole('admin'), instance.getCustomerList)
+        instance.router.get('/:id', verifyToken, allowedRole('admin'), instance.getCustomerById)
         instance.router.delete('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.deleteCustomer)
 
         return instance
@@ -43,7 +44,7 @@ export class CustomerController{
         try{
             const userInfo = req.body
             const result = await this.customerService.registerCustomer(userInfo)
-            res.status(200).send({message: "Customer Registered Successfully.", response: result})
+            handleSuccessResponse(res, "Customer Registered Successfully.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -53,7 +54,7 @@ export class CustomerController{
         try{
             const {code} = req.params
             const result = await this.customerService.verifyEmail(code)
-            res.status(200).send({message:"Customer Email verified.", response: result})
+            handleSuccessResponse(res, "Customer Email verified.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -73,8 +74,7 @@ export class CustomerController{
                 maxAge: 24*60*60*1000
             })
 
-
-            res.status(200).send({message: "Customer Logged In", token: token, user: user})
+            handleSuccessResponse(res, "Customer Logged In.", {token: token, user: user})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -83,7 +83,7 @@ export class CustomerController{
     logoutCustomer = async(req: Request, res: Response) =>{
         try{
             res.clearCookie('USER_TOKEN')
-            res.status(200).send({message: "Customer Logged out."})
+            handleSuccessResponse(res, "Customer Logged out.", [])
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -93,7 +93,7 @@ export class CustomerController{
         try{
             const customerId = req.user?._id as string
             const result = await this.customerService.getCustomerById(customerId)
-            res.status(200).send({message:"Customer Profile Fetched.", response: result})
+            handleSuccessResponse(res, "Cusotmer Profile Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -105,7 +105,7 @@ export class CustomerController{
             const updateProfileInfo = req.body
 
             const result = await this.customerService.updateCustomerInfo(customerEmail, updateProfileInfo)
-            res.status(200).send({message: "Customer Profile Updated.", response: result})
+            handleSuccessResponse(res, "Customer Profile Updated.",result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -116,7 +116,7 @@ export class CustomerController{
             const email = req.user?.email as string
             const {old_password, new_password} = req.body
             const result = await this.customerService.updatePassword(email, old_password, new_password)
-            res.status(200).send({message: "Customer Password Updated.", response: result})
+            handleSuccessResponse(res, "Customer Password updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -125,7 +125,7 @@ export class CustomerController{
     getCustomerList = async(req:AuthRequest, res: Response) =>{
         try{
             const result = await this.customerService.getCustomerList()
-            res.status(200).send({message: "Cusotmer List Fetched.", response: result})
+            handleSuccessResponse(res, "Customer List Fetched.", result)
         }catch(error){
             throw error
         }
@@ -135,7 +135,7 @@ export class CustomerController{
         try{
             const customerId = req.params.id
             const result = await this.customerService.getCustomerById(customerId)
-            res.status(200).send({message: "Customer Fetched.", response: result})
+            handleSuccessResponse(res, "Customer Fetched.", result)
         }catch(error){
             throw error
         }
@@ -145,7 +145,7 @@ export class CustomerController{
         try{
             const customerId = req.params.id 
             const result = await this.customerService.deleteCustomer(customerId)
-            res.status(200).send({message: "Customer Deleted.", response: result})
+            handleSuccessResponse(res, "Customer Deleted.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

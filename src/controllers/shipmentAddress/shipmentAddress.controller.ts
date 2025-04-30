@@ -6,6 +6,7 @@ import createHttpError from "../../utils/httperror.utils";
 import { ShipmentInfo } from "../../types/shipment.types";
 import { validate } from "../../middlewares/validation.middleware";
 import { addressSchema, updateAddressSchema } from "../../validation/address.validate";
+import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 
 export class ShipmentAddressController{
     readonly router: Router;
@@ -31,7 +32,7 @@ export class ShipmentAddressController{
         try{
             const userId = req.user?._id as string
             const result = await this.shipmentAddressServices.getShipmentAddressListOfCustomer(userId)
-            res.status(200).send({message: "Shipment Address Fetched.", response: result})
+            handleSuccessResponse(res, "Shipment Address Fetched.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -43,7 +44,7 @@ export class ShipmentAddressController{
             const customer_id = req.user?._id as string
 
             const result = await this.shipmentAddressServices.createShipmentAddress(deliveryInfo, customer_id)
-            res.status(200).send({message: "Shipment Address Created.", response: result})
+            handleSuccessResponse(res, "Shipement Address Created.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -56,7 +57,7 @@ export class ShipmentAddressController{
             const customer_id = req.user?._id as string
 
             const result = await this.shipmentAddressServices.updateShipmentAddress(addressId, updateAddressInfo, customer_id)
-            res.status(200).send({message: "Shipment Address Updated.", response: result})
+            handleSuccessResponse(res, "Shipment Address Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -68,7 +69,7 @@ export class ShipmentAddressController{
             const customer_id = req.user?._id as string
 
             const result = await this.shipmentAddressServices.deleteShipmentAddress(addressId, customer_id)
-            res.status(200).send({message: "Shipment Address Deleted.", response: result})
+            handleSuccessResponse(res, "Shipment Address Deleted.",result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

@@ -5,6 +5,7 @@ import createHttpError from "../../utils/httperror.utils";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { validate } from "../../middlewares/validation.middleware";
 import { addCartSchema, updateCartSchema } from "../../validation/cart.validate";
+import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 
 export class CartController{
     readonly router: Router
@@ -31,7 +32,7 @@ export class CartController{
         try{
             const userId = req.user?._id as string
             const cart = await this.cartServices.getCartByUserId(userId)
-            res.status(200).send({message: "Cart Fetched Successfully", response: cart})
+            handleSuccessResponse(res, "Cart Fetched Successfully.", cart)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -43,7 +44,7 @@ export class CartController{
             const userId = req.user?._id as string
             const quantity = req.body.quantity
             const result = await this.cartServices.addToCart(itemId, userId, quantity)
-            res.status(200).send({message: "Added to Cart", response: result})
+            handleSuccessResponse(res, "Added to Cart", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -54,7 +55,7 @@ export class CartController{
             const itemId = req.params.id
             const userId = req.user?._id as string
             const result = await this.cartServices.removeItemFromCart(itemId, userId)
-            res.status(200).send({message: "Item removed from Cart.", response: result})
+            handleSuccessResponse(res, "Item removed from Cart.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -67,7 +68,7 @@ export class CartController{
             const quantity = req.body.quantity
 
             const result = await this.cartServices.updateCart(itemId, quantity, userId)
-            res.status(200).send({message: "Quantity updated.", response: result})
+            handleSuccessResponse(res, "Cart Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -77,7 +78,7 @@ export class CartController{
         try{
             const userId = req.user?._id as string
             const result = await this.cartServices.getCartTotal(userId)
-            res.status(200).send({message: "Cart Total Calculated.", total: result})
+            handleSuccessResponse(res, "Cart Total Calculated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

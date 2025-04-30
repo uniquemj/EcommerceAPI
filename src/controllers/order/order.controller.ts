@@ -7,6 +7,7 @@ import { DeliverInfo, orderFilter, orderItemFilter } from "../../types/order.typ
 import { validate } from "../../middlewares/validation.middleware";
 import { adminOrderStatusSchema, deliveryInfoSchema, sellerOrderStatusSchema, updateReturnOrderStatusSchema } from "../../validation/order.validate";
 import { OrderItemServices } from "../../services/orderItem/orderItem.services";
+import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 
 export class OrderController{
     readonly router: Router;
@@ -21,14 +22,14 @@ export class OrderController{
         OrderController.instance = instance
 
 
-        // Customer can filter out based on "pending", "canceled" and "delivered" order status for order item list with each order
+        // Customer
         instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrderList)
         instance.router.get('/customer/:id', allowedRole('customer'), instance.getCustomerOrderDetail)
         instance.router.put('/cancel/:id', allowedRole('customer'), instance.cancelOrder)
         instance.router.post('/', allowedRole('customer'), validate(deliveryInfoSchema), instance.createOrder)
         instance.router.put('/return/init/:id', allowedRole('customer'), instance.updateOrderReturnInitialize)
         
-        // Seller can filter out based on "pending", "canceled" and "delivered" order status for order item list.
+        // Seller
         instance.router.get('/seller', allowedRole('seller'), instance.getOrderForSeller)
         instance.router.put('/seller/status/:id', allowedRole('seller'), validate(sellerOrderStatusSchema), instance.updateSellerOrderStatus)
         instance.router.get('/seller/:id', allowedRole('seller'), instance.getSellerOrderDetail)
@@ -50,7 +51,7 @@ export class OrderController{
             const query = req.query as orderItemFilter
 
             const result = await this.orderServices.getCustomerOrderList(query, userId)
-            res.status(200).send({message: "Order Fetched.", response: result})
+            handleSuccessResponse(res, "Order Fetched.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -62,7 +63,7 @@ export class OrderController{
             const userId = req.user?._id as string
 
             const result = await this.orderServices.getCustomerOrder(orderId, userId)
-            res.status(200).send({message: "Order detail fetched.", response: result})
+            handleSuccessResponse(res, "Order detail fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -74,7 +75,7 @@ export class OrderController{
             const userId = req.user?._id as string
 
             const result = await this.orderServices.createOrder(deliveryInfo, userId)
-            res.status(200).send({message: "Order Created", response: result})
+            handleSuccessResponse(res, "Order Created.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -85,7 +86,7 @@ export class OrderController{
             const sellerId = req.user?._id as string
             const query= req.query as orderItemFilter
             const result = await this.orderItemServices.getOrderForSeller(sellerId, query)
-            res.status(200).send({message: "Order Fetched for Seller.", response : result})
+            handleSuccessResponse(res, "Order Fetched for Seller.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -95,7 +96,7 @@ export class OrderController{
         try{
             const orderItemId = req.params.id
             const result = await this.orderItemServices.getOrderItemById(orderItemId)
-            res.status(200).send({message: "Order Item Detail fetched.", response: result})
+            handleSuccessResponse(res, "Order Item Detail Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -106,7 +107,7 @@ export class OrderController{
             const {order_status} = req.body
             const orderItemId = req.params.id
             const result = await this.orderItemServices.updateSellerOrderStatus(order_status, orderItemId)
-            res.status(200).send({message: "Order Status Updated", response: result})
+            handleSuccessResponse(res, "Order Status Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -117,8 +118,7 @@ export class OrderController{
             const {order_status} = req.body
             const orderItemId = req.params.id
             const result = await this.orderItemServices.updateAdminOrderStatus(order_status, orderItemId)
-
-            res.status(200).send({message: "Order Status Updated.", response: result})
+            handleSuccessResponse(res, "Order Status Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -130,7 +130,7 @@ export class OrderController{
             const userId = req.user?._id as string
 
             const result = await this.orderServices.cancelOrder(order_id, userId)
-            res.status(200).send({message: "Order Cancelled.", response: result})
+            handleSuccessResponse(res, "Order Canceled.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -140,7 +140,7 @@ export class OrderController{
         try{
             const order_id = req.params.id
             const result = await this.orderServices.completeOrder(order_id)
-            res.status(200).send({message: "Order is completed.", response: result})
+            handleSuccessResponse(res, "Order is Completed.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -150,7 +150,7 @@ export class OrderController{
         try{
             const query = req.query as orderFilter
             const result = await this.orderServices.getOrderList(query)
-            res.status(200).send({message: "Order List Fetched.", response: result})
+            handleSuccessResponse(res, "Order List Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -160,7 +160,7 @@ export class OrderController{
         try{
             const query = req.query as orderItemFilter
             const result = await this.orderItemServices.getAllOrderItem(query)
-            res.status(200).send({message: "Order Item List Fetched.",  response: result})
+            handleSuccessResponse(res, "Order Item List Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -171,7 +171,7 @@ export class OrderController{
             const orderId = req.params.orderId
             const query = req.query as orderItemFilter
             const result = await this.orderItemServices.getOrderItemList(orderId, query)
-            res.status(200).send({message: "Order Items Fetched.", response: result})
+            handleSuccessResponse(res, "Order items Fetched for Order.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -181,7 +181,7 @@ export class OrderController{
         try{
             const orderItemId = req.params.id
             const result = await this.orderItemServices.updateOrderReturnInitialize(orderItemId)
-            res.status(200).send({message: "Order Item initialized for return.",response: result})
+            handleSuccessResponse(res, "Order Item Initiated for Return.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -192,7 +192,7 @@ export class OrderController{
             const orderItemId = req.params.id
             const {order_status} = req.body
             const result = await this.orderItemServices.updateSellerReturnOrderStatus(order_status, orderItemId)
-            res.status(200).send({message: "Return Order Item Status Changed.", response: result})
+            handleSuccessResponse(res, "Return Order Item Status Updated.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

@@ -8,6 +8,7 @@ import { validate } from "../../middlewares/validation.middleware";
 import { ProductInfo } from "../../types/product.types";
 import { updateVariantSchema} from "../../validation/variant.validate";
 import { verifySeller } from "../../middlewares/sellerVerify.middeware";
+import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 
 export class ProductController{
     readonly router: Router;
@@ -32,14 +33,14 @@ export class ProductController{
         
         //Variant
         instance.router.get('/:id/variants', allowedRole('seller'), verifySeller, instance.getProductVariant)
-        instance.router.post('/:id/variants/:variantId', allowedRole('seller','admin'),verifySeller, instance.removeVariant)
+        instance.router.delete('/:id/variants/:variantId', allowedRole('seller','admin'),verifySeller, instance.removeVariant)
 
         // Remove Category
-        instance.router.post('/:id/category/:categoryId', allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
+        instance.router.delete('/:id/category/:categoryId', allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
         
         // Remove and Add Image
         instance.router.put('/:id/variants/:variantId', allowedRole('seller'), verifySeller, validate(updateVariantSchema), instance.updateProductVariant)
-        instance.router.put('/:id/variants/:variantId/images/:imageId', allowedRole('seller'),verifySeller, instance.removeImageFromProductVariant)
+        instance.router.delete('/:id/variants/:variantId/images/:imageId', allowedRole('seller'),verifySeller, instance.removeImageFromProductVariant)
 
         return instance
     }   
@@ -47,7 +48,7 @@ export class ProductController{
     getProductList = async(req: AuthRequest, res: Response) =>{
         try{
             const product = await this.productServices.getProductList()
-            res.status(200).send({message: "Product Fetched.", response: product})
+            handleSuccessResponse(res, "Product Fetched.", product)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -58,7 +59,7 @@ export class ProductController{
             const sellerId = req.user?._id as string
 
             const result = await this.productServices.getSellerProductList(sellerId)
-            res.status(200).send({message: "Seller Product List Fetched.", response: result})
+            handleSuccessResponse(res, "Seller Product List Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -69,7 +70,7 @@ export class ProductController{
             const productId = req.params.id
             const sellerId = req.user?._id as string
             const result = await this.productServices.getSellerProductById(productId, sellerId)
-            res.status(200).send({message: "Seller Product Fetched.", response: result})
+            handleSuccessResponse(res, "Seller Product Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -80,7 +81,7 @@ export class ProductController{
             const productId = req.params.id
 
             const result = await this.productServices.getProductById(productId)
-            res.status(200).send({message: "Product Fetched.", response: result})
+            handleSuccessResponse(res, "Product Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -90,7 +91,7 @@ export class ProductController{
         try{
             const productInfo = req.body as ProductInfo
             const product = await this.productServices.createProduct(productInfo, req.user!._id!)
-            res.status(200).send({message: "Product Created.", response: product})
+            handleSuccessResponse(res, "Product Created.", product)
         } catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -103,7 +104,7 @@ export class ProductController{
             const userId = req.user?._id as string
 
             const result = await this.productServices.editProduct(productId, productInfo, userId)
-            res.status(200).send({message: "Product updated.", response: result})
+            handleSuccessResponse(res, "Product updated.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -114,7 +115,7 @@ export class ProductController{
             const productId = req.params.id
 
             const result = await this.productServices.removeProduct(productId)
-            res.status(200).send({message: "Product removed.", response: result})
+            handleSuccessResponse(res, "Product removed.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -127,7 +128,7 @@ export class ProductController{
             const userId = req.user?._id as string
 
             const result = await this.productServices.removeCategoryFromProduct(productId, categoryId, userId)
-            res.status(200).send({message: "Category Removed from product.", response: result})
+            handleSuccessResponse(res, "Category Removed from product.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -141,8 +142,7 @@ export class ProductController{
             const userId = req.user?._id as string
 
             const result= await this.productServices.updateProductVariant(productId, variantId, updateInfo, userId)
-            res.status(200).send({message:"Variant Updated.", response: result})
-            
+            handleSuccessResponse(res, "Variant Updated.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -156,7 +156,7 @@ export class ProductController{
             const userId = req.user?._id as string
 
             const result = await this.productServices.removeImageFromProductVariant(productId,variantId, imageId, userId)
-            res.status(200).send({message: "Image removed.", response: result})
+            handleSuccessResponse(res, "Image Removed from variant.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode,e.message, e.errors)
         }
@@ -168,7 +168,7 @@ export class ProductController{
             const productId = req.params.id
 
             const result = await this.productServices.removeVariant(productId, variantId)
-            res.status(200).send({message: "Variant Removed.", response: result})
+            handleSuccessResponse(res, "Variant Removed.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -179,7 +179,7 @@ export class ProductController{
             const productId = req.params.id
 
             const result = await this.productServices.getProductVariant(productId)
-            res.status(200).send({message: "Variant Fetched.", response: result})
+            handleSuccessResponse(res, "Variant Fetched.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

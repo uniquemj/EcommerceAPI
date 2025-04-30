@@ -10,7 +10,10 @@ export class OrderItemRepository{
     }
 
     async getOrderItemById(orderItemId: string){
-        return await OrderItem.findById(orderItemId).populate(this.productVariantPopulate)
+        const customerPopulate = {path: "customer_id", select: "-_id fullname"}
+        const shippingPopulate = {path: "shipping_id", select: "-_id -customer_id -__v"}
+        const orderPopulate = {path: "order_id", select:" -__v -orderTotal", populate:[ customerPopulate, shippingPopulate ]}
+        return await OrderItem.findById(orderItemId).populate(this.productVariantPopulate).populate(orderPopulate)
     }
 
     async getOrderItemList(orderId: string, query: orderItemFilter){
@@ -25,8 +28,7 @@ export class OrderItemRepository{
         const customerPopulate = {path: "customer_id", select: "-_id fullname"}
         const shippingPopulate = {path: "shipping_id", select: "-_id -customer_id -__v"}
         const orderPopulate = {path: "order_id", select:" -__v -orderTotal", populate:[ customerPopulate, shippingPopulate ]}
-        
-        console.log(query)
+
         return await OrderItem.find({seller_id: userId, ...query}).populate(this.productVariantPopulate).populate(orderPopulate).select('-seller_id')
     }
 
