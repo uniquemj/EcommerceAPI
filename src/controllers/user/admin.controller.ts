@@ -32,10 +32,10 @@ export class AdminController{
         instance.router.get('/:id', verifyToken, allowedRole('admin'), instance.getAdminDetail)
 
         
-        instance.router.post('/register',verifyToken, verifySuperAdmin, allowedRole('admin'), validate(adminRegisterSchema), instance.registerAdmin)
+        // instance.router.post('/register', verifyToken, verifySuperAdmin, allowedRole('admin'), validate(adminRegisterSchema), instance.registerAdmin)
         
-        instance.router.post('/login', validate(adminLoginSchema), instance.loginAdmin)
-        instance.router.post('/logout', verifyToken, allowedRole('admin'), instance.logoutAdmin)
+        // instance.router.post('/login', validate(adminLoginSchema), instance.loginAdmin)
+        // instance.router.post('/logout', verifyToken, allowedRole('admin'), instance.logoutAdmin)
         
         instance.router.put('/:id', verifyToken, verifySuperAdmin, allowedRole('admin'), validate(updateNormalAdminInfo), instance.updateOtherAdmin)
         instance.router.put('/', verifyToken, allowedRole('admin'), validate(updateAdminInfo), instance.updateAdminProfile)
@@ -46,6 +46,7 @@ export class AdminController{
 
         return instance
     }
+    
     getAllAdmin = async(req: Request, res: Response) =>{
         try{
             const result = await this.adminServices.getAllAdmin()
@@ -78,7 +79,7 @@ export class AdminController{
     registerAdmin = async(req: Request, res: Response) =>{
         try{
             const adminInfo = req.body as AdminInfo
-            const result = await this.adminServices.createAdmin(adminInfo)
+            const result = await this.adminServices.registerUser(adminInfo)
             handleSuccessResponse(res, "Admin Created.", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -88,7 +89,7 @@ export class AdminController{
     loginAdmin = async(req: Request, res: Response) =>{
         try{
             const userCredentials = req.body as UserCredentials
-            const result = await this.adminServices.loginAdmin(userCredentials)
+            const result = await this.adminServices.loginUser(userCredentials)
             const token = result.token
             const user = result.user
             

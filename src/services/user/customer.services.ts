@@ -3,8 +3,9 @@ import { CustomerRepository } from "../../repository/user/customer.repository";
 import { CustomerInfo, CustomerProfile, UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
 import { hashPassword, comparePassword, signToken } from "../../utils/helper.utils";
+import { AuthService } from "../../types/auth.types";
 
-export class CustomerServices{
+export class CustomerServices implements AuthService{
     constructor(private readonly customerRepository: CustomerRepository){}
 
     async getCustomerList(){
@@ -31,7 +32,7 @@ export class CustomerServices{
         }
     }
     
-    async registerCustomer(userInfo: CustomerInfo){
+    async registerUser(userInfo: CustomerInfo){
         try{
             const customerExist = await this.customerRepository.getCustomerByEmail(userInfo.email)
 
@@ -68,9 +69,10 @@ export class CustomerServices{
         }
     }
 
-    async loginCustomer(userCredentials: UserCredentials){
+    async loginUser(userCredentials: UserCredentials){
         try{
             const customerExist = await this.customerRepository.getCustomerByEmail(userCredentials.email) as CustomerInfo
+            
             if(!customerExist){
                 throw createHttpError.NotFound("Customer with email doesn't exist.")
             }

@@ -1,36 +1,38 @@
 import express from 'express'
 import { CustomerController } from '../controllers/user/customer.controller'
 import { SellerController } from '../controllers/user/seller.controller'
-import { CategoryController } from '../controllers/category/category.controller'
-import { ProductController } from '../controllers/product/product.controller'
-import { CartController } from '../controllers/cart/cart.controller'
+import { CategoryController } from '../controllers/category.controller'
+import { ProductController } from '../controllers/product.controller'
+import { CartController } from '../controllers/cart.controller'
 import { verifyToken } from '../middlewares/auth.middleware'
-import { OrderController } from '../controllers/order/order.controller'
-import { ShipmentAddressController } from '../controllers/shipmentAddress/shipmentAddress.controller'
+import { OrderController } from '../controllers/order.controller'
+import { ShipmentAddressController } from '../controllers/shipmentAddress.controller'
 import { CustomerServices } from '../services/user/customer.services'
 import { CustomerRepository } from '../repository/user/customer.repository'
 import { SellerServices } from '../services/user/seller.services'
 import { SellerRepository } from '../repository/user/seller.repository'
-import { CategoryRepository } from '../repository/category/category.repository'
-import { CategoryServices } from '../services/category/category.services'
-import { ProductRepository } from '../repository/product/product.repository'
-import { ProductServices } from '../services/product/product.services'
-import { VariantRepository } from '../repository/variant/variant.repository'
-import { VariantServices } from '../services/variant/variant.services'
-import { CartRepository } from '../repository/cart/cart.repository'
-import { CartServices } from '../services/cart/cart.services'
-import { OrderRepository } from '../repository/order/order.repository'
-import { OrderServices } from '../services/order/order.services'
-import { OrderItemRepository } from '../repository/orderitem/orderitem.repository'
-import { OrderItemServices } from '../services/orderItem/orderItem.services'
-import { ShipmentAddressRepository } from '../repository/shipmentAddress/shipmentAddress.repository'
-import { ShipmentAddressServices } from '../services/shipmentAddress/shipmentAddress.services'
+import { CategoryRepository } from '../repository/category.repository'
+import { CategoryServices } from '../services/category.services'
+import { ProductRepository } from '../repository/product.repository'
+import { ProductServices } from '../services/product.services'
+import { VariantRepository } from '../repository/variant.repository'
+import { VariantServices } from '../services/variant.services'
+import { CartRepository } from '../repository/cart.repository'
+import { CartServices } from '../services/cart.services'
+import { OrderRepository } from '../repository/order.repository'
+import { OrderServices } from '../services/order.services'
+import { OrderItemRepository } from '../repository/orderitem.repository'
+import { OrderItemServices } from '../services/orderItem.services'
+import { ShipmentAddressRepository } from '../repository/shipmentAddress.repository'
+import { ShipmentAddressServices } from '../services/shipmentAddress.services'
 import { AdminRepository } from '../repository/user/admin.repository'
 import { AdminServices } from '../services/user/admin.services'
 import { AdminController } from '../controllers/user/admin.controller'
+import { AuthController } from '../controllers/auth.controller'
+import { AuthServiceFactory } from '../utils/authFactory.utils'
+import { UserType } from '../types/auth.types'
 
 const router = express.Router()
-
 
 //Category
 const cateogryRepository = new CategoryRepository()
@@ -71,7 +73,6 @@ const shipmetAddressController = ShipmentAddressController.initController(shipme
 const adminRepository = new AdminRepository()
 const adminServices = new AdminServices(adminRepository)
 const adminController = AdminController.initController(adminServices)
-const adminController1 = AdminController.initController(adminServices)
 
 const customerRepository = new CustomerRepository()
 const customerService = new CustomerServices(customerRepository)
@@ -81,10 +82,18 @@ const sellerRepository = new SellerRepository()
 const sellerService = new SellerServices(sellerRepository, productServices)
 const sellerController = SellerController.initController(sellerService)
 
+const authServiceFactory = new AuthServiceFactory(adminServices, customerService, sellerService)
+const authController = AuthController.initController(authServiceFactory)
+
 //User Route
-router.use('/auth/admin', adminController.router)
-router.use('/auth/customers', customerController.router)
-router.use('/auth/seller', sellerController.router)
+router.use('/auth', authController.router)
+
+// router.use('/auth/admin', adminController.router)
+// router.use('/auth/customer', customerController.router)
+// router.use('/auth/seller', sellerController.router)
+router.use('/admin', adminController.router)
+router.use('/customer', customerController.router)
+router.use('/seller', sellerController.router)
 
 //Product Route
 router.use('/products',verifyToken, productController.router)

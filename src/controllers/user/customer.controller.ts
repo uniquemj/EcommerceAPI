@@ -27,10 +27,10 @@ export class CustomerController{
         
         const instance = CustomerController.instance
 
-        instance.router.post('/register', validate(customerRegisterSchema), instance.registerCustomer)
+        // instance.router.post('/register', validate(customerRegisterSchema), instance.registerCustomer)
         instance.router.post('/verify/:code', instance.verifyEmail)
-        instance.router.post('/login', validate(loginSchema), instance.loginCustomer)
-        instance.router.post('/logout',verifyToken, allowedRole('customer'), instance.logoutCustomer)
+        // instance.router.post('/login', validate(loginSchema), instance.loginCustomer)
+        // instance.router.post('/logout',verifyToken, allowedRole('customer'), instance.logoutCustomer)
         
         instance.router.put('/', verifyToken, allowedRole('customer'), validate(updateCustomerProfileSchema), instance.updateCustomerProfile)
         instance.router.put('/password', verifyToken, allowedRole('customer'), validate(updatePasswordSchema), instance.updatePassword)
@@ -46,7 +46,7 @@ export class CustomerController{
     registerCustomer = async(req: Request, res: Response) =>{
         try{
             const userInfo = req.body
-            const result = await this.customerService.registerCustomer(userInfo)
+            const result = await this.customerService.registerUser(userInfo)
             handleSuccessResponse(res, "Customer Registered Successfully.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -66,7 +66,7 @@ export class CustomerController{
     loginCustomer = async(req: Request, res: Response) =>{
         try{
             const userCredentials = req.body
-            const result = await this.customerService.loginCustomer(userCredentials)
+            const result = await this.customerService.loginUser(userCredentials)
             const token = result.token
             const user = result.user
 

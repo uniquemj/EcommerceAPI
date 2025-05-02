@@ -1,9 +1,10 @@
 import { AdminRepository } from "../../repository/user/admin.repository";
+import { AuthService } from "../../types/auth.types";
 import { AdminInfo, AdminProfile, UserCredentials } from "../../types/user.types";
 import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
 import createHttpError from "../../utils/httperror.utils";
 
-export class AdminServices{
+export class AdminServices implements AuthService{
     constructor(private readonly adminRepository: AdminRepository){}
 
     async getAllAdmin(){
@@ -30,22 +31,22 @@ export class AdminServices{
         }
     }
 
-    async createAdmin(adminInfo: AdminInfo){
+    async registerUser(userInfo: AdminInfo){
         try{
-            const adminExist = await this.adminRepository.getAdminByEmail(adminInfo.email)
+            const adminExist = await this.adminRepository.getAdminByEmail(userInfo.email)
             if(adminExist){
                 throw createHttpError.BadRequest("Admin with Email exist.")
             }
-            const hashedPassword = await hashPassword(adminInfo.password)
-            adminInfo.password = hashedPassword
-            const result = await this.adminRepository.createAdmin(adminInfo)
+            const hashedPassword = await hashPassword(userInfo.password)
+            userInfo.password = hashedPassword
+            const result = await this.adminRepository.createAdmin(userInfo)
             return result
         }catch(error){
             throw error
         }
     }
 
-    async loginAdmin(userCredentials: UserCredentials){
+    async loginUser(userCredentials: UserCredentials){
         try{
             const adminExist = await this.adminRepository.getAdminByEmail(userCredentials.email)
 

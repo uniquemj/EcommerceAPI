@@ -27,10 +27,10 @@ export class SellerController{
         }
         const instance = SellerController.instance;
 
-        instance.router.post('/register', validate(sellerRegisterSchema), instance.registerSeller)
+        // instance.router.post('/register', validate(sellerRegisterSchema), instance.registerSeller)
         instance.router.post('/verify/:code', instance.verifyEmail)
-        instance.router.post('/login',validate(loginSchema), instance.loginSeller)
-        instance.router.post('/logout', verifyToken, allowedRole('seller'), instance.logoutSeller)
+        // instance.router.post('/login',validate(loginSchema), instance.loginSeller)
+        // instance.router.post('/logout', verifyToken, allowedRole('seller'), instance.logoutSeller)
 
         instance.router.get('/profile', verifyToken, allowedRole('seller'), instance.getSellerProfile)
         instance.router.post('/profile', verifyToken, allowedRole('seller'), validate(addBusinessInfoSchema), instance.addBusinessInfo)
@@ -39,7 +39,7 @@ export class SellerController{
 
         instance.router.get('/', verifyToken, allowedRole('admin'), instance.getSellerList)
         instance.router.get('/:id', verifyToken, allowedRole('admin'), instance.getSellerById)
-        instance.router.post('/verify-seller/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.verifySeller)
+        instance.router.post('/verify-seller/:id', verifyToken, allowedRole('admin'), instance.verifySeller)
         instance.router.delete('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.deleteSeller)
         
         return instance
@@ -48,7 +48,7 @@ export class SellerController{
     registerSeller = async(req: Request, res: Response) =>{
         try{
             const sellerInfo = req.body
-            const result = await this.sellerServices.registerSeller(sellerInfo)
+            const result = await this.sellerServices.registerUser(sellerInfo)
             handleSuccessResponse(res, "Seller Registered Successfully", result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -89,9 +89,9 @@ export class SellerController{
     loginSeller = async(req: Request, res: Response) =>{
         try{
             const sellerCredentials = req.body
-            const result = await this.sellerServices.loginSeller(sellerCredentials)
+            const result = await this.sellerServices.loginUser(sellerCredentials)
             const token = result.token
-            const user =  result.seller
+            const user =  result.user
 
             res.cookie(COOKIE.USER_TOKEN, token,{
                 httpOnly: true,

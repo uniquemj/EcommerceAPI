@@ -17,7 +17,7 @@ export class SellerRepository{
     }
 
     async registerSeller(sellerInfo: SellerInfo){
-        const newSeller = (await Seller.create(sellerInfo))
+        const newSeller = await Seller.create(sellerInfo)
         const seller = await Seller.findById(newSeller._id).select('-password')
         return seller
     }
@@ -31,7 +31,7 @@ export class SellerRepository{
     async loginSeller(sellerCredentials: UserCredentials){
         const seller = await Seller.findOne({email: sellerCredentials.email}).select('-password -legal_document') as SellerInfo
         const token = signToken({_id: seller?._id, email: seller?.email, role: seller?.role, is_email_verified: seller?.is_email_verified, is_verified: seller.is_verified})
-        return {token, seller}
+        return {token, user: seller}
     }
 
     async updateSellerInfo(sellerInfo: SellerProfile, sellerId: string){

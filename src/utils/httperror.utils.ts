@@ -11,22 +11,22 @@ class HttpError extends Error{
 }
 
 const createHttpError = {
-    BadRequest: (message: string, errors: any = []) => {
+    BadRequest: <T>(message: string, errors: T[] = []) => {
         return new HttpError(400, message, errors)
     },
-    Unauthorized: (message: string, errors: any = [])=>{
+    Unauthorized: <T>(message: string, errors: T[] = [])=>{
         return new HttpError(401, message, errors)
     },
-    Forbidden: (message: string, errors: any =[])=>{
+    Forbidden: <T>(message: string, errors: T[] = [])=>{
         return new HttpError(403, message, errors)
     },
-    NotFound: (message: string, errors: any=[])=>{
+    NotFound: <T>(message: string, errors: T[] = [])=>{
         return new HttpError(404, message, errors)
     },
-    InternalServerError: (message: string, errors:any=[])=>{
+    InternalServerError: <T>(message: string, errors:T[] = [])=>{
         return new HttpError(500, message, errors)
     },
-    Custom:(statuscode: number, message: string, errors: any=[])=>{
+    Custom: <T>(statuscode: number, message: string, errors: T[]=[])=>{
         return new HttpError(statuscode, message, errors)
     }
 }

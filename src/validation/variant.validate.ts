@@ -1,5 +1,5 @@
 import {z} from 'zod'
-import { DangerousGoods, WarrantyType } from '../model/variant/variant.model'
+import { DangerousGoods, WarrantyType } from '../model/variant.model'
 import { imageSchema } from './image.validate'
 
 export const variantSchema = z.object({

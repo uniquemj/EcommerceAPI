@@ -1,5 +1,5 @@
 import { ImageInfo } from "./image.types"
-import { DangerousGoods, WarrantyType } from "../model/variant/variant.model"
+import { DangerousGoods, WarrantyType } from "../model/variant.model"
 
 
 export interface VariantInfo{

@@ -4,7 +4,7 @@ import { SellerRepository } from "../../repository/user/seller.repository";
 import { SellerInfo,SellerProfile,UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
 import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
-import { ProductServices } from "../product/product.services";
+import { ProductServices } from "../product.services";
 
 export class SellerServices{
     
@@ -33,7 +33,7 @@ export class SellerServices{
             throw error
         }
     }
-    async registerSeller(sellerInfo: SellerInfo){
+    async registerUser(sellerInfo: SellerInfo){
         try{
             const sellerExist = await this.sellerRepository.getSeller(sellerInfo.email)
             if(sellerExist){
@@ -82,7 +82,7 @@ export class SellerServices{
         }
     }
 
-    async loginSeller(sellerCredentials: UserCredentials){
+    async loginUser(sellerCredentials: UserCredentials){
         try{
             const sellerExist = await this.sellerRepository.getSeller(sellerCredentials.email) as unknown as SellerInfo
             if(!sellerExist){
