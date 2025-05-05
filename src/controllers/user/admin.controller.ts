@@ -76,44 +76,44 @@ export class AdminController{
         }
     }
 
-    registerAdmin = async(req: Request, res: Response) =>{
-        try{
-            const adminInfo = req.body as AdminInfo
-            const result = await this.adminServices.registerUser(adminInfo)
-            handleSuccessResponse(res, "Admin Created.", result)
-        }catch(e:any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    // registerAdmin = async(req: Request, res: Response) =>{
+    //     try{
+    //         const adminInfo = req.body as AdminInfo
+    //         const result = await this.adminServices.registerUser(adminInfo)
+    //         handleSuccessResponse(res, "Admin Created.", result)
+    //     }catch(e:any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
     
-    loginAdmin = async(req: Request, res: Response) =>{
-        try{
-            const userCredentials = req.body as UserCredentials
-            const result = await this.adminServices.loginUser(userCredentials)
-            const token = result.token
-            const user = result.user
+    // loginAdmin = async(req: Request, res: Response) =>{
+    //     try{
+    //         const userCredentials = req.body as UserCredentials
+    //         const result = await this.adminServices.loginUser(userCredentials)
+    //         const token = result.token
+    //         const user = result.user
             
-            res.cookie(COOKIE.USER_TOKEN,token,{
-                httpOnly: true,
-                sameSite: 'strict',
-                secure: true,
-                maxAge: 24*60*60*1000
-            })
+    //         res.cookie(COOKIE.USER_TOKEN,token,{
+    //             httpOnly: true,
+    //             sameSite: 'strict',
+    //             secure: true,
+    //             maxAge: 24*60*60*1000
+    //         })
             
-            handleSuccessResponse(res, "Admin Logged In.", {token: token, user: user})
-        }catch(e:any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    //         handleSuccessResponse(res, "Admin Logged In.", {token: token, user: user})
+    //     }catch(e:any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
     
-    logoutAdmin = async(req: AuthRequest, res: Response) =>{
-        try{
-            res.clearCookie('USER_TOKEN')
-            handleSuccessResponse(res, "Admin Logged out.", [])
-        }catch(e:any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    // logoutAdmin = async(req: AuthRequest, res: Response) =>{
+    //     try{
+    //         res.clearCookie('USER_TOKEN')
+    //         handleSuccessResponse(res, "Admin Logged out.", [])
+    //     }catch(e:any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
 
 
     updateOtherAdmin = async(req: Request, res: Response) =>{

@@ -45,15 +45,15 @@ export class SellerController{
         return instance
     }
 
-    registerSeller = async(req: Request, res: Response) =>{
-        try{
-            const sellerInfo = req.body
-            const result = await this.sellerServices.registerUser(sellerInfo)
-            handleSuccessResponse(res, "Seller Registered Successfully", result)
-        }catch(e:any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    // registerSeller = async(req: Request, res: Response) =>{
+    //     try{
+    //         const sellerInfo = req.body
+    //         const result = await this.sellerServices.registerUser(sellerInfo)
+    //         handleSuccessResponse(res, "Seller Registered Successfully", result)
+    //     }catch(e:any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
 
     verifyEmail = async(req: Request, res: Response) =>{
         try{
@@ -86,33 +86,33 @@ export class SellerController{
         }
     }
 
-    loginSeller = async(req: Request, res: Response) =>{
-        try{
-            const sellerCredentials = req.body
-            const result = await this.sellerServices.loginUser(sellerCredentials)
-            const token = result.token
-            const user =  result.user
+    // loginSeller = async(req: Request, res: Response) =>{
+    //     try{
+    //         const sellerCredentials = req.body
+    //         const result = await this.sellerServices.loginUser(sellerCredentials)
+    //         const token = result.token
+    //         const user =  result.user
 
-            res.cookie(COOKIE.USER_TOKEN, token,{
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
-                maxAge: 24*60*60*1000,
-            })
-            handleSuccessResponse(res, "Seller Logged In.",{token: token, user: user})
-        }catch(e: any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    //         res.cookie(COOKIE.USER_TOKEN, token,{
+    //             httpOnly: true,
+    //             secure: true,
+    //             sameSite: 'strict',
+    //             maxAge: 24*60*60*1000,
+    //         })
+    //         handleSuccessResponse(res, "Seller Logged In.",{token: token, user: user})
+    //     }catch(e: any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
 
-    logoutSeller = async(req: AuthRequest, res: Response) =>{
-        try{
-            res.clearCookie('USER_TOKEN')
-            handleSuccessResponse(res, "Seller Logged out.",[])
-        }catch(e:any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    // logoutSeller = async(req: AuthRequest, res: Response) =>{
+    //     try{
+    //         res.clearCookie('USER_TOKEN')
+    //         handleSuccessResponse(res, "Seller Logged out.",[])
+    //     }catch(e:any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
 
     addBusinessInfo = async(req: AuthRequest, res: Response) =>{
         try{

@@ -29,8 +29,8 @@ import { AdminRepository } from '../repository/user/admin.repository'
 import { AdminServices } from '../services/user/admin.services'
 import { AdminController } from '../controllers/user/admin.controller'
 import { AuthController } from '../controllers/auth.controller'
-import { AuthServiceFactory } from '../utils/authFactory.utils'
-import { UserType } from '../types/auth.types'
+import { AuthServiceFactory } from '../controllers/authFactory'
+
 
 const router = express.Router()
 

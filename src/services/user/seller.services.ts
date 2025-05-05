@@ -5,8 +5,9 @@ import { SellerInfo,SellerProfile,UserCredentials } from "../../types/user.types
 import createHttpError from "../../utils/httperror.utils";
 import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
 import { ProductServices } from "../product.services";
+import { AuthService } from "../../types/auth.types";
 
-export class SellerServices{
+export class SellerServices implements AuthService{
     
     constructor(private readonly sellerRepository: SellerRepository, private readonly productServices: ProductServices){}
 

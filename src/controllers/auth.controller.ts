@@ -3,7 +3,7 @@ import { AuthRequest, UserType } from "../types/auth.types";
 import { handleSuccessResponse } from "../utils/httpresponse.utils";
 import createHttpError from "../utils/httperror.utils";
 import { UserCredentials } from "../types/user.types";
-import { AuthServiceFactory } from "../utils/authFactory.utils";
+import { AuthServiceFactory } from "./authFactory";
 import { COOKIE } from "../constant/cookie";
 import { middlewareDispatcher } from "../middlewares/dispatcher.middleware";
 
@@ -35,9 +35,9 @@ export class AuthController{
             const userType = req.params.userType as UserType
 
             const service = this.authServiceFactory.getService(userType)
+
             const result = await service.registerUser(userInfo)
-            handleSuccessResponse(res, "Admin Created.", result)
-            console.log("Running")
+            handleSuccessResponse(res, `${userType.toUpperCase()} Registered.`, result)
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
@@ -60,7 +60,7 @@ export class AuthController{
                 maxAge: 24*60*60*1000
             })
             
-            handleSuccessResponse(res, "Admin Logged In.", {token: token, user: user})
+            handleSuccessResponse(res, `${userType.toUpperCase()} Logged In.`, {token: token, user: user})
         }catch(e:any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

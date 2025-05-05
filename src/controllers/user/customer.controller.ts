@@ -43,15 +43,15 @@ export class CustomerController{
         return instance
     }
 
-    registerCustomer = async(req: Request, res: Response) =>{
-        try{
-            const userInfo = req.body
-            const result = await this.customerService.registerUser(userInfo)
-            handleSuccessResponse(res, "Customer Registered Successfully.", result)
-        }catch(e: any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    // registerCustomer = async(req: Request, res: Response) =>{
+    //     try{
+    //         const userInfo = req.body
+    //         const result = await this.customerService.registerUser(userInfo)
+    //         handleSuccessResponse(res, "Customer Registered Successfully.", result)
+    //     }catch(e: any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
 
     verifyEmail = async(req: Request, res: Response)=>{
         try{
@@ -63,34 +63,34 @@ export class CustomerController{
         }
     }
 
-    loginCustomer = async(req: Request, res: Response) =>{
-        try{
-            const userCredentials = req.body
-            const result = await this.customerService.loginUser(userCredentials)
-            const token = result.token
-            const user = result.user
+    // loginCustomer = async(req: Request, res: Response) =>{
+    //     try{
+    //         const userCredentials = req.body
+    //         const result = await this.customerService.loginUser(userCredentials)
+    //         const token = result.token
+    //         const user = result.user
 
-            res.cookie(COOKIE.USER_TOKEN, token,{
-                httpOnly: true,
-                secure: true,
-                sameSite: 'strict',
-                maxAge: 24*60*60*1000
-            })
+    //         res.cookie(COOKIE.USER_TOKEN, token,{
+    //             httpOnly: true,
+    //             secure: true,
+    //             sameSite: 'strict',
+    //             maxAge: 24*60*60*1000
+    //         })
 
-            handleSuccessResponse(res, "Customer Logged In.", {token: token, user: user})
-        }catch(e:any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    //         handleSuccessResponse(res, "Customer Logged In.", {token: token, user: user})
+    //     }catch(e:any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
 
-    logoutCustomer = async(req: Request, res: Response) =>{
-        try{
-            res.clearCookie('USER_TOKEN')
-            handleSuccessResponse(res, "Customer Logged out.", [])
-        }catch(e:any){
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    // logoutCustomer = async(req: Request, res: Response) =>{
+    //     try{
+    //         res.clearCookie('USER_TOKEN')
+    //         handleSuccessResponse(res, "Customer Logged out.", [])
+    //     }catch(e:any){
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
 
     getCustomerProfile = async(req: AuthRequest, res: Response) =>{
         try{

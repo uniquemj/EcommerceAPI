@@ -132,7 +132,7 @@ export class OrderServices{
 
             const orderItems = await this.orderItemServices.getOrderItemList(order_id,{})
 
-            const itemStatus = orderItems.some((item: { order_status: string; }) => item.order_status =='pending')
+            const itemStatus = orderItems.some((item) => item.order_status =='pending')
 
             if(!itemStatus){
                 throw createHttpError.BadRequest("Order can't be cancelled.")
@@ -157,7 +157,7 @@ export class OrderServices{
             }
             const orderItems = await this.orderItemServices.getOrderItemList(order_id,{})
 
-            const itemStatus = orderItems.every((item: { order_status: string; })=>item.order_status =='delivered')
+            const itemStatus = orderItems.every((item)=>item.order_status =='delivered')
             
             if(!itemStatus){
                 throw createHttpError.BadRequest("Order can't be set to complete as order are still need to be delivered.")
