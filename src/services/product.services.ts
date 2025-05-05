@@ -1,7 +1,7 @@
 import { ProductRepository } from "../repository/product.repository";
 import { CategoryInfo } from "../types/category.types";
 import { ImageInfo } from "../types/image.types";
-import { ProductInfo } from "../types/product.types";
+import { ProductAvailable, ProductFilter, ProductInfo } from "../types/product.types";
 import { VariantInfo } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
 import { uploadImages } from "../utils/uploadImage.utils";
@@ -11,6 +11,18 @@ import { CategoryServices } from "./category.services";
 export class ProductServices{
 
     constructor(private readonly productRepository: ProductRepository, private readonly categoryServices: CategoryServices, private readonly variantServices: VariantServices){}
+
+    async getAllProducts(query: ProductFilter){
+        try{
+            const products = await this.productRepository.getAllProducts(query)
+            if(products.length == 0){
+                throw createHttpError.NotFound("Product list is Empty.")
+            }
+            return products
+        }catch(error){
+            throw error
+        }
+    }
 
     async getProductList(){
         try{
@@ -37,9 +49,9 @@ export class ProductServices{
         }
     }
 
-    async getSellerProductList(sellerId: string){
+    async getSellerProductList(sellerId: string, query: ProductFilter){
         try{
-            const productExist = await this.productRepository.getSellerProductList(sellerId)
+            const productExist = await this.productRepository.getSellerProductList(sellerId, query)
 
             if(productExist.length == 0){
                 throw createHttpError.NotFound("Seller Product List Empty.")
@@ -64,7 +76,7 @@ export class ProductServices{
 
     async createProduct(productInfo: ProductInfo, userId: string){
         try{
-            const {name, category, variants, productDescripton, productHighlights} = productInfo
+            const {name, category, variants, productDescripton, productHighlights, productAvailability} = productInfo
 
             const categoryExist = await this.categoryServices.getCategoryById(category as string) as unknown as CategoryInfo
 
@@ -77,13 +89,14 @@ export class ProductServices{
                 variants: variantList,
                 productDescripton: productDescripton ?? "",
                 productHighlights: productHighlights ?? "",
+                productAvailability: productAvailability ?? ProductAvailable.Available
             }
             
             const product = await this.productRepository.createProduct(productDetail) as unknown as ProductInfo
 
             if(variants?.length as number > 0){
                 variantList = await this.variantServices.createVariantFromVariantList(product._id as string, variants as VariantInfo[])
-                const result = await this.productRepository.editProduct(product._id as string, {defaultVariant: variantList[0]._id,variants: variantList}, userId)
+                const result = await this.productRepository.editProduct(product._id as string, {defaultVariant: variantList[0]._id,variants: variantList})
                 return result
             }
             return product
@@ -118,7 +131,25 @@ export class ProductServices{
                 }
             }
             
-            const result = await this.productRepository.editProduct(productId, updateProductInfo as unknown as ProductInfo, userId)
+            const result = await this.productRepository.editProduct(productId, updateProductInfo as unknown as ProductInfo)
+            return result
+        }catch(error){
+            throw error
+        }
+    }
+
+    async deleteProduct(productId: string){
+        try{
+            const productExist = await this.productRepository.getProductById(productId)
+            if(!productExist){
+                throw createHttpError.NotFound("Product with Id not found.")
+            }
+
+            productExist.variants.forEach(async(variant)=>{
+                await this.variantServices.deleteVariant(variant._id as string )
+            })
+
+            const result = await this.productRepository.removeProduct(productId)
             return result
         }catch(error){
             throw error
@@ -132,11 +163,7 @@ export class ProductServices{
                 throw createHttpError.NotFound("Product with Id not found.")
             }
 
-            productExist.variants.forEach(async(variant)=>{
-                await this.variantServices.deleteVariant(variant._id as string )
-            })
-
-            const result = await this.productRepository.removeProduct(productId)
+            const result = await this.productRepository.editProduct(productId, {productAvailability: ProductAvailable.Removed})
             return result
         }catch(error){
             throw error

@@ -7,10 +7,22 @@ export class ShipmentAddressServices{
     
     constructor(private readonly shipmentAddressRepository: ShipmentAddressRepository){}
 
-    async getShipmentAddressListOfCustomer(customer_id: string){
+    async getShipmentAddressList(customer_id: string){
         try{
-            const shipmentAddresses  = await this.shipmentAddressRepository.getShipmentAddressListOfCustomer(customer_id)
+            const shipmentAddresses  = await this.shipmentAddressRepository.getShipmentAddressList(customer_id)
             return shipmentAddresses
+        }catch(error){
+            throw error
+        }
+    }
+
+    async getShipmentAddressById(shipping_id: string){
+        try{
+            const addressExist = await this.shipmentAddressRepository.getShipmentAddressById(shipping_id)
+            if(!addressExist){
+                throw createHttpError.NotFound("Shipping Address with Id not found.")
+            }
+            return addressExist
         }catch(error){
             throw error
         }
@@ -39,7 +51,7 @@ export class ShipmentAddressServices{
 
     async updateShipmentAddress(addressId: string, updateAddressInfo: ShipmentInfo, customer_id: string){
         try{
-            const addressExist = await this.shipmentAddressRepository.getShipmentAddressOfCustomer(addressId, customer_id)
+            const addressExist = await this.shipmentAddressRepository.getShipmentAddressById(addressId)
             if(!addressExist){
                 throw createHttpError.NotFound("Address of Id doesn't exist.")
             }
@@ -52,7 +64,7 @@ export class ShipmentAddressServices{
 
     async deleteShipmentAddress(addressId: string, customer_id: string){
         try{
-            const addressExist = await this.shipmentAddressRepository.getShipmentAddressOfCustomer(addressId, customer_id)
+            const addressExist = await this.shipmentAddressRepository.getShipmentAddressById(addressId)
             if(!addressExist){
                 throw createHttpError.NotFound("Address of Id doesn't exist.")
             }

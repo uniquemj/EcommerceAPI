@@ -6,26 +6,31 @@ import { UserCredentials } from "../types/user.types";
 import { AuthServiceFactory } from "./authFactory";
 import { COOKIE } from "../constant/cookie";
 import { middlewareDispatcher } from "../middlewares/dispatcher.middleware";
+import Logger from "../utils/logger.utils";
+import winston from 'winston';
 
 
 
 export class AuthController{
     readonly router: Router
     private static instance: AuthController;
+    private readonly logger: winston.Logger;
 
-    private constructor(private readonly authServiceFactory:AuthServiceFactory){
+    private constructor(private readonly authServiceFactory:AuthServiceFactory, logger: Logger){
         this.router = Router()
+        this.logger = logger.logger()
     }
 
-    static initController(authServiceFactory: AuthServiceFactory){
+    static initController(authServiceFactory: AuthServiceFactory, logger: Logger){
         if(!AuthController.instance){
-            AuthController.instance = new AuthController(authServiceFactory)
+            AuthController.instance = new AuthController(authServiceFactory, logger)
         }
         const instance = AuthController.instance
 
         instance.router.use('/:userType/register', middlewareDispatcher, instance.registerUser)
         instance.router.use('/:userType/login', middlewareDispatcher, instance.loginUser)
         instance.router.use('/:userType/logout', middlewareDispatcher, instance.logoutUser)
+
         return instance
     }
 
@@ -39,6 +44,8 @@ export class AuthController{
             const result = await service.registerUser(userInfo)
             handleSuccessResponse(res, `${userType.toUpperCase()} Registered.`, result)
         }catch(e:any){
+            this.logger.info(`${e.message}`)
+            this.logger.error("Error while register.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -62,6 +69,7 @@ export class AuthController{
             
             handleSuccessResponse(res, `${userType.toUpperCase()} Logged In.`, {token: token, user: user})
         }catch(e:any){
+            this.logger.error("Error while log in.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -72,6 +80,7 @@ export class AuthController{
             res.clearCookie('USER_TOKEN')
             handleSuccessResponse(res, `${userType.toUpperCase()} Logged out.`,[])
         }catch(e:any){
+            this.logger.error("Error while log out.",{object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

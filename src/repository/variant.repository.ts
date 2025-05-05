@@ -3,10 +3,11 @@ import { ImageInfo } from "../types/image.types";
 import { VariantInfo } from "../types/variants.types";
 
 export class VariantRepository{
+
     async createVariant(variantInfo: VariantInfo){
         return await Variant.create(variantInfo)
     }
-
+    
     async getVariant(variantId: string){
         return await Variant.findById(variantId).populate({path: "product", select: "_id name seller"})
     }

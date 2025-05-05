@@ -6,6 +6,7 @@ import createHttpError from "../../utils/httperror.utils";
 import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
 import { ProductServices } from "../product.services";
 import { AuthService } from "../../types/auth.types";
+import { ProductAvailable } from "../../types/product.types";
 
 export class SellerServices implements AuthService{
     
@@ -149,10 +150,10 @@ export class SellerServices implements AuthService{
             }
 
             const result = await this.sellerRepository.deleteSeller(sellerId)
-            const sellerProductList = await this.productServices.getSellerProductList(sellerId)
+            const sellerProductList = await this.productServices.getSellerProductList(sellerId, {})
 
             sellerProductList.forEach(async(product)=>{
-                await this.productServices.removeProduct(product._id as string)
+                await this.productServices.editProduct(product._id as unknown as string, {productAvailability: ProductAvailable.Removed}, sellerId)
             })
 
             return result

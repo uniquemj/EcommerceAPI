@@ -10,27 +10,27 @@ import { verifyToken } from "../../middlewares/auth.middleware";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { verifySuperAdmin } from "../../middlewares/admin.middleware";
 import { handleSuccessResponse } from "../../utils/httpresponse.utils";
-
+import Logger from "../../utils/logger.utils";
+import winston from 'winston';
 
 export class SellerController{
     
     readonly router: Router;
     private static instance: SellerController;
+    private readonly logger: winston.Logger;
     
-    private constructor(private readonly sellerServices: SellerServices){
+    private constructor(private readonly sellerServices: SellerServices, logger: Logger){
         this.router = Router();
+        this.logger = logger.logger()
     }
 
-    static initController(sellerServices: SellerServices){
+    static initController(sellerServices: SellerServices, logger: Logger){
         if(!SellerController.instance){
-            SellerController.instance = new SellerController(sellerServices);
+            SellerController.instance = new SellerController(sellerServices, logger);
         }
         const instance = SellerController.instance;
 
-        // instance.router.post('/register', validate(sellerRegisterSchema), instance.registerSeller)
         instance.router.post('/verify/:code', instance.verifyEmail)
-        // instance.router.post('/login',validate(loginSchema), instance.loginSeller)
-        // instance.router.post('/logout', verifyToken, allowedRole('seller'), instance.logoutSeller)
 
         instance.router.get('/profile', verifyToken, allowedRole('seller'), instance.getSellerProfile)
         instance.router.post('/profile', verifyToken, allowedRole('seller'), validate(addBusinessInfoSchema), instance.addBusinessInfo)
@@ -45,22 +45,13 @@ export class SellerController{
         return instance
     }
 
-    // registerSeller = async(req: Request, res: Response) =>{
-    //     try{
-    //         const sellerInfo = req.body
-    //         const result = await this.sellerServices.registerUser(sellerInfo)
-    //         handleSuccessResponse(res, "Seller Registered Successfully", result)
-    //     }catch(e:any){
-    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-    //     }
-    // }
-
     verifyEmail = async(req: Request, res: Response) =>{
         try{
             const {code} = req.params
             const result = await this.sellerServices.verifyEmail(code)
             handleSuccessResponse(res, "Seller Email Verified.", result)
         }catch(e: any){
+            this.logger.error("Error while verifying Email.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -71,6 +62,7 @@ export class SellerController{
             const result = await this.sellerServices.verifySeller(sellerId)
             handleSuccessResponse(res, "Seller Verified.", result)
         }catch(e:any){
+            this.logger.error("Error while verifying Seller.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -82,37 +74,10 @@ export class SellerController{
 
             handleSuccessResponse(res, "Seller Profile Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while getting Seller Profile.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
-
-    // loginSeller = async(req: Request, res: Response) =>{
-    //     try{
-    //         const sellerCredentials = req.body
-    //         const result = await this.sellerServices.loginUser(sellerCredentials)
-    //         const token = result.token
-    //         const user =  result.user
-
-    //         res.cookie(COOKIE.USER_TOKEN, token,{
-    //             httpOnly: true,
-    //             secure: true,
-    //             sameSite: 'strict',
-    //             maxAge: 24*60*60*1000,
-    //         })
-    //         handleSuccessResponse(res, "Seller Logged In.",{token: token, user: user})
-    //     }catch(e: any){
-    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-    //     }
-    // }
-
-    // logoutSeller = async(req: AuthRequest, res: Response) =>{
-    //     try{
-    //         res.clearCookie('USER_TOKEN')
-    //         handleSuccessResponse(res, "Seller Logged out.",[])
-    //     }catch(e:any){
-    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-    //     }
-    // }
 
     addBusinessInfo = async(req: AuthRequest, res: Response) =>{
         try{
@@ -121,10 +86,10 @@ export class SellerController{
             const result = await this.sellerServices.updateSellerInfo(businessInfo, sellerEmail)
             handleSuccessResponse(res, "Business Info Added.", result)
         }catch(e:any){
+            this.logger.error("Error while adding Business Info.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statuscode, e.message, e.errors)
         }
     }
-
 
     updateSellerInfo = async(req: AuthRequest, res: Response) =>{
         try{
@@ -133,6 +98,7 @@ export class SellerController{
             const result = await this.sellerServices.updateSellerInfo(sellerInfo, sellerEmail)
             handleSuccessResponse(res, "Seller Profile Updated.", result)
         }catch(e:any){
+            this.logger.error("Error while updating Seller Info.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -144,6 +110,7 @@ export class SellerController{
             const result = await this.sellerServices.updatePassword(old_password, new_password, sellerEmail)
             handleSuccessResponse(res, "Seller Password Updated.", result)
         }catch(e:any){
+            this.logger.error("Error while updating Password.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -153,6 +120,7 @@ export class SellerController{
             const result = await this.sellerServices.getSellerList()
             handleSuccessResponse(res, "Seller List Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching seller list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -163,6 +131,7 @@ export class SellerController{
             const result = await this.sellerServices.getSellerById(sellerId)
             handleSuccessResponse(res, "Seller Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching seller by id.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -173,6 +142,7 @@ export class SellerController{
             const result = await this.sellerServices.deleteSeller(sellerId)
             handleSuccessResponse(res, "Seller Deleted.", result)
         }catch(e:any){
+            this.logger.error("Error while deleting seller.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

@@ -5,33 +5,39 @@ import { allowedRole } from "../middlewares/role.middleware";
 import { AuthRequest } from "../types/auth.types";
 import { productSchema, updateProductSchema } from "../validation/product.validate";
 import { validate } from "../middlewares/validation.middleware";
-import { ProductInfo } from "../types/product.types";
+import { ProductFilter, ProductInfo } from "../types/product.types";
 import { updateVariantSchema} from "../validation/variant.validate";
 import { verifySeller } from "../middlewares/sellerVerify.middeware";
 import { handleSuccessResponse } from "../utils/httpresponse.utils";
+import Logger from "../utils/logger.utils";
+import winston from 'winston';
 
 export class ProductController{
     readonly router: Router;
     private static instance: ProductController;
-    
-    private constructor(private readonly productServices: ProductServices){
+    private readonly logger: winston.Logger;
+
+    private constructor(private readonly productServices: ProductServices, logger: Logger){
         this.router = Router()
+        this.logger = logger.logger()
     }
 
-    static initController(productServices: ProductServices){
+    static initController(productServices: ProductServices, logger: Logger){
         if(!ProductController.instance){
-            ProductController.instance = new ProductController(productServices)
+            ProductController.instance = new ProductController(productServices, logger)
         }
         const instance = ProductController.instance
 
-        instance.router.get('/', allowedRole('customer','admin'), instance.getProductList)
+        instance.router.get('/all', allowedRole('admin'), instance.getAllProduct)
+        instance.router.get('/', allowedRole('customer'), instance.getProductList)
         instance.router.get('/seller',allowedRole('seller'), verifySeller,instance.getSellerProductList)
         instance.router.get('/seller/:id',allowedRole('seller'), verifySeller, instance.getSellerProductById)
         instance.router.get('/:id', allowedRole('customer', 'admin'), instance.getProductById)
 
         instance.router.post('/', allowedRole('seller'), verifySeller, validate(productSchema), instance.createProduct)
         instance.router.put('/:id', allowedRole('seller'), verifySeller, validate(updateProductSchema), instance.editProduct)
-        instance.router.delete('/:id', allowedRole('seller', 'admin'), verifySeller, instance.removeProduct)
+        instance.router.delete('/:id', allowedRole('seller'), verifySeller, instance.removeProduct)
+        instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
         
         //Variant
         instance.router.get('/:id/variants', allowedRole('seller'), verifySeller, instance.getProductVariant)
@@ -47,11 +53,25 @@ export class ProductController{
         return instance
     }   
 
+    getAllProduct = async(req: AuthRequest, res: Response) =>{
+        try{
+            const query = req.query as ProductFilter
+            const product = await this.productServices.getAllProducts(query)
+            handleSuccessResponse(res, "Product Fetched.", product)
+        }catch(e: any){
+            this.logger.error("Error while fetching Product list.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+
     getProductList = async(req: AuthRequest, res: Response) =>{
         try{
+            
             const product = await this.productServices.getProductList()
             handleSuccessResponse(res, "Product Fetched.", product)
         }catch(e: any){
+            this.logger.error("Error while fetching Product list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -59,10 +79,11 @@ export class ProductController{
     getSellerProductList = async(req: AuthRequest, res: Response) =>{
         try{
             const sellerId = req.user?._id as string
-
-            const result = await this.productServices.getSellerProductList(sellerId)
+            const query = req.query as ProductFilter
+            const result = await this.productServices.getSellerProductList(sellerId, query)
             handleSuccessResponse(res, "Seller Product List Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching Seller product list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -74,6 +95,7 @@ export class ProductController{
             const result = await this.productServices.getSellerProductById(productId, sellerId)
             handleSuccessResponse(res, "Seller Product Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching Product detail for seller.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -85,6 +107,7 @@ export class ProductController{
             const result = await this.productServices.getProductById(productId)
             handleSuccessResponse(res, "Product Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching product by id.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -95,6 +118,7 @@ export class ProductController{
             const product = await this.productServices.createProduct(productInfo, req.user!._id!)
             handleSuccessResponse(res, "Product Created.", product)
         } catch(e: any){
+            this.logger.error("Error while creating product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -108,10 +132,23 @@ export class ProductController{
             const result = await this.productServices.editProduct(productId, productInfo, userId)
             handleSuccessResponse(res, "Product updated.", result)
         }catch(e: any){
+            this.logger.error("Error while updating product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
 
+    deleteProduct = async(req: AuthRequest, res: Response) =>{
+        try{
+            const productId = req.params.id
+
+            const result = await this.productServices.deleteProduct(productId)
+            handleSuccessResponse(res, "Product deleted.", result)
+        }catch(e:any){
+            this.logger.error("Error while deleting Product.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+    
     removeProduct = async(req: AuthRequest, res: Response) =>{
         try{
             const productId = req.params.id
@@ -119,6 +156,7 @@ export class ProductController{
             const result = await this.productServices.removeProduct(productId)
             handleSuccessResponse(res, "Product removed.", result)
         }catch(e:any){
+            this.logger.error("Error while removing Product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -132,6 +170,7 @@ export class ProductController{
             const result = await this.productServices.removeCategoryFromProduct(productId, categoryId, userId)
             handleSuccessResponse(res, "Category Removed from product.", result)
         }catch(e: any){
+            this.logger.error("Error while removing category from product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -146,6 +185,7 @@ export class ProductController{
             const result= await this.productServices.updateProductVariant(productId, variantId, updateInfo, userId)
             handleSuccessResponse(res, "Variant Updated.", result)
         }catch(e: any){
+            this.logger.error("Error while updating Product Variant.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -160,6 +200,7 @@ export class ProductController{
             const result = await this.productServices.removeImageFromProductVariant(productId,variantId, imageId, userId)
             handleSuccessResponse(res, "Image Removed from variant.", result)
         }catch(e:any){
+            this.logger.error("Error while removing Image from product variant.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode,e.message, e.errors)
         }
     }
@@ -172,6 +213,7 @@ export class ProductController{
             const result = await this.productServices.removeVariant(productId, variantId)
             handleSuccessResponse(res, "Variant Removed.", result)
         }catch(e: any){
+            this.logger.error("Error while removing variant from product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -183,6 +225,7 @@ export class ProductController{
             const result = await this.productServices.getProductVariant(productId)
             handleSuccessResponse(res, "Variant Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching variant for product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

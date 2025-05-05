@@ -7,23 +7,27 @@ import { categorySchema } from '../validation/category.validate';
 import { AuthRequest } from '../types/auth.types';
 import { CategoryInfo } from '../types/category.types';
 import { handleSuccessResponse } from '../utils/httpresponse.utils';
+import Logger from '../utils/logger.utils';
+import winston from 'winston';
 
 export class CategoryController{
     readonly router: Router;
     private static instance: CategoryController;
-    
+    private readonly logger: winston.Logger;
 
-    private constructor(private readonly categoryServices: CategoryServices){
+    private constructor(private readonly categoryServices: CategoryServices, logger: Logger){
         this.router = Router()
+        this.logger = logger.logger()
     }
 
-    static initController(categoryServices: CategoryServices){
+    static initController(categoryServices: CategoryServices, logger: Logger){
         if(!CategoryController.instance){
-            CategoryController.instance = new CategoryController(categoryServices)
+            CategoryController.instance = new CategoryController(categoryServices, logger)
         }
         const instance = CategoryController.instance
 
         instance.router.get('/', allowedRole('customer','seller', 'admin'),instance.getCategoryList)
+        instance.router.get('/:id', allowedRole('admin'), instance.getCategoryById)
         instance.router.post('/', allowedRole('admin'),validate(categorySchema), instance.createCategory)
         instance.router.put('/:id', allowedRole('admin'), instance.updateCategory)
         instance.router.delete('/:id', allowedRole('admin'), instance.removeCategory)
@@ -33,8 +37,20 @@ export class CategoryController{
     getCategoryList = async(req: AuthRequest, res: Response) =>{
         try{
             const category = await this.categoryServices.getCategoryList()
-            handleSuccessResponse(res, "Category Fetched.", category)
+            handleSuccessResponse(res, "Category List Fetched.", category)
         }catch(e: any){
+            this.logger.error("Error while fetching Category list.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getCategoryById = async(req: AuthRequest, res: Response) =>{
+        try{
+            const categoryId = req.params.id
+            const category = await this.categoryServices.getCategoryById(categoryId)
+            handleSuccessResponse(res, "Category Fetched.", category)
+        }catch(e:any){
+            this.logger.error("Error while fetching category by id.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -45,6 +61,7 @@ export class CategoryController{
             const category = await this.categoryServices.createCategory(categoryInfo)
             handleSuccessResponse(res, "Category Created.", category)
         }catch(e: any){
+            this.logger.error("Error while creating category.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message,e.errors)
         }
     }
@@ -56,15 +73,18 @@ export class CategoryController{
             const category = await this.categoryServices.updateCategory(id, title)
             handleSuccessResponse(res, "Category Updated.", category)
         }catch(e: any){
+            this.logger.error("Error while updating Category.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
+
     removeCategory = async(req: AuthRequest, res: Response) =>{
         try{
             const {id} = req.params
             const result = await this.categoryServices.removeCategory(id)
             handleSuccessResponse(res, "Category Removed.", result)
         }catch(e: any){
+            this.logger.error("Error while removing category.",{object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

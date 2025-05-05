@@ -7,12 +7,12 @@ export class ShipmentAddressRepository{
         return await ShipmentAddress.create(shipmentInfo)
     }
 
-    async getShipmentAddressListOfCustomer(customerId: string){
+    async getShipmentAddressList(customerId: string){
         return await ShipmentAddress.find({customer_id: customerId})
     }
 
-    async getShipmentAddressOfCustomer(addressId: string, customerId: string){
-        return await ShipmentAddress.findOne({_id: addressId, customer_id: customerId})
+    async getShipmentAddressById(addressId: string){
+        return await ShipmentAddress.findOne({_id: addressId})
     }
 
     async updateShipmentAddress(addressId: string, updateAddressInfo: ShipmentInfo){

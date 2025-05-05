@@ -10,27 +10,28 @@ import { updateCustomerProfileSchema } from "../../validation/user.validate";
 import { allowedRole } from "../../middlewares/role.middleware";
 import { verifySuperAdmin } from "../../middlewares/admin.middleware";
 import { handleSuccessResponse } from "../../utils/httpresponse.utils";
+import Logger from "../../utils/logger.utils";
+import wiston from 'winston'
 
 export class CustomerController{
     
     readonly router: Router;
     private static instance: CustomerController;
+    private readonly logger: wiston.Logger
 
-    private constructor(private readonly customerService: CustomerServices){
+    private constructor(private readonly customerService: CustomerServices, logger: Logger){
         this.router = Router()
+        this.logger = logger.logger()
     }
 
-    static initController(customerService: CustomerServices){
+    static initController(customerService: CustomerServices, logger: Logger){
         if(!CustomerController.instance){
-            CustomerController.instance = new CustomerController(customerService)
+            CustomerController.instance = new CustomerController(customerService, logger)
         }
         
         const instance = CustomerController.instance
 
-        // instance.router.post('/register', validate(customerRegisterSchema), instance.registerCustomer)
         instance.router.post('/verify/:code', instance.verifyEmail)
-        // instance.router.post('/login', validate(loginSchema), instance.loginCustomer)
-        // instance.router.post('/logout',verifyToken, allowedRole('customer'), instance.logoutCustomer)
         
         instance.router.put('/', verifyToken, allowedRole('customer'), validate(updateCustomerProfileSchema), instance.updateCustomerProfile)
         instance.router.put('/password', verifyToken, allowedRole('customer'), validate(updatePasswordSchema), instance.updatePassword)
@@ -43,54 +44,16 @@ export class CustomerController{
         return instance
     }
 
-    // registerCustomer = async(req: Request, res: Response) =>{
-    //     try{
-    //         const userInfo = req.body
-    //         const result = await this.customerService.registerUser(userInfo)
-    //         handleSuccessResponse(res, "Customer Registered Successfully.", result)
-    //     }catch(e: any){
-    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-    //     }
-    // }
-
     verifyEmail = async(req: Request, res: Response)=>{
         try{
             const {code} = req.params
             const result = await this.customerService.verifyEmail(code)
             handleSuccessResponse(res, "Customer Email verified.", result)
         }catch(e: any){
+            this.logger.error("Error while verifying Email.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
-
-    // loginCustomer = async(req: Request, res: Response) =>{
-    //     try{
-    //         const userCredentials = req.body
-    //         const result = await this.customerService.loginUser(userCredentials)
-    //         const token = result.token
-    //         const user = result.user
-
-    //         res.cookie(COOKIE.USER_TOKEN, token,{
-    //             httpOnly: true,
-    //             secure: true,
-    //             sameSite: 'strict',
-    //             maxAge: 24*60*60*1000
-    //         })
-
-    //         handleSuccessResponse(res, "Customer Logged In.", {token: token, user: user})
-    //     }catch(e:any){
-    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-    //     }
-    // }
-
-    // logoutCustomer = async(req: Request, res: Response) =>{
-    //     try{
-    //         res.clearCookie('USER_TOKEN')
-    //         handleSuccessResponse(res, "Customer Logged out.", [])
-    //     }catch(e:any){
-    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-    //     }
-    // }
 
     getCustomerProfile = async(req: AuthRequest, res: Response) =>{
         try{
@@ -98,6 +61,7 @@ export class CustomerController{
             const result = await this.customerService.getCustomerById(customerId)
             handleSuccessResponse(res, "Cusotmer Profile Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching customer profile.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -110,6 +74,7 @@ export class CustomerController{
             const result = await this.customerService.updateCustomerInfo(customerEmail, updateProfileInfo)
             handleSuccessResponse(res, "Customer Profile Updated.",result)
         }catch(e:any){
+            this.logger.error("Error while updating customer profile.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -121,6 +86,7 @@ export class CustomerController{
             const result = await this.customerService.updatePassword(email, old_password, new_password)
             handleSuccessResponse(res, "Customer Password updated.", result)
         }catch(e:any){
+            this.logger.error("Error while updating password.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -129,8 +95,9 @@ export class CustomerController{
         try{
             const result = await this.customerService.getCustomerList()
             handleSuccessResponse(res, "Customer List Fetched.", result)
-        }catch(error){
-            throw error
+        }catch(e:any){
+            this.logger.error("Error while fetching customer list.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
 
@@ -139,8 +106,9 @@ export class CustomerController{
             const customerId = req.params.id
             const result = await this.customerService.getCustomerById(customerId)
             handleSuccessResponse(res, "Customer Fetched.", result)
-        }catch(error){
-            throw error
+        }catch(e: any){
+            this.logger.error("Error while fetching customer by id.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
 
@@ -150,6 +118,7 @@ export class CustomerController{
             const result = await this.customerService.deleteCustomer(customerId)
             handleSuccessResponse(res, "Customer Deleted.", result)
         }catch(e:any){
+            this.logger.error("Error while deleting customer.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

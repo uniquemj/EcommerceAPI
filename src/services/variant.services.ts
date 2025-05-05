@@ -58,6 +58,10 @@ export class VariantServices{
 
     async updateVariant(variantId: string, updateVariantInfo: VariantInfo){
         try{    
+            const variantExist = await this.variantRepository.getVariant(variantId)
+            if(!variantExist){
+                throw createHttpError.NotFound("Variant with Id not found.")
+            }
             const result = await this.variantRepository.updateVariant(variantId, updateVariantInfo)
             return result
         }catch(error){

@@ -5,6 +5,7 @@ import apiRoute from './routes/index'
 import errorHandler from './middlewares/errorhandler.middleware'
 import cookieParser from 'cookie-parser'
 import { v2 as cloudinary } from 'cloudinary'
+import { Logger } from './utils/logger.utils'
 
 const app = express()
 
@@ -23,12 +24,14 @@ cloudinary.config({
     secure: true
 })
 
+const logger = Logger.getInstance().logger()
+
 app.listen(PORT, async()=>{
-    console.log(`Server running at: ${PORT}.`)
+    logger.info(`Server running at: ${PORT}`)
     try{
         await mongoose.connect(MONGODB_URL)
-        console.log(`Connected to Database. . .`)
-    }catch(error){
-        console.log(`Error: Connection to Database Failed. . .`)
+        logger.info(`Connected to Database...`)
+    }catch(error:unknown){
+        logger.error(new Error(error as string))
     }
 })

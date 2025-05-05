@@ -10,19 +10,24 @@ import { verifyToken } from "../../middlewares/auth.middleware";
 import { AuthRequest } from "../../types/auth.types";
 import { verifySuperAdmin } from "../../middlewares/admin.middleware";
 import { handleSuccessResponse } from "../../utils/httpresponse.utils";
+import Logger from "../../utils/logger.utils";
+
+import winston from 'winston'
 
 export class AdminController{
     readonly router: Router;
     private static instance: AdminController;
+    private readonly logger: winston.Logger;
 
-    private constructor(private readonly adminServices: AdminServices){
+    private constructor(private readonly adminServices: AdminServices, logger: Logger){
         this.router = Router()
+        this.logger = logger.logger()
     }
 
     
-    static initController(adminServices: AdminServices){
+    static initController(adminServices: AdminServices, logger: Logger){
         if(!AdminController.instance){
-            AdminController.instance = new AdminController(adminServices)
+            AdminController.instance = new AdminController(adminServices, logger)
         }
 
         const instance = AdminController.instance
@@ -52,6 +57,7 @@ export class AdminController{
             const result = await this.adminServices.getAllAdmin()
             handleSuccessResponse(res, "Admin List Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching Admin List.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }   
@@ -62,6 +68,7 @@ export class AdminController{
             const result = await this.adminServices.getAdminDetail(adminId)
             handleSuccessResponse(res, "Admin Detail Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching Admin Detail.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -70,8 +77,9 @@ export class AdminController{
         try{
             const adminId = req.user?._id as string
             const result = await this.adminServices.getAdminDetail(adminId)
-            handleSuccessResponse(res, "Admin Detail Fetched.", result)
+            handleSuccessResponse(res, "Admin Profile Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching Admin Profile.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -123,6 +131,7 @@ export class AdminController{
             const result = await this.adminServices.updateAdmin(updateAdminInfo, adminId)
             handleSuccessResponse(res, "Admin Profile Updated.", result)
         }catch(e:any){
+            this.logger.error("Error while updating other Admin Profile.")
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -134,6 +143,7 @@ export class AdminController{
             const result = await this.adminServices.updateAdmin(updateAdminInfo, adminId)
             handleSuccessResponse(res, "Admin Profile Updated.", result)
         }catch(e:any){
+            this.logger.error("Error while updating Admin Profile.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -145,6 +155,7 @@ export class AdminController{
             const result = await this.adminServices.deleteAdmin(adminId, userId)
             handleSuccessResponse(res, "Admin Removed.", result)
         }catch(e:any){
+            this.logger.error("Error while removing Admin.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -156,6 +167,7 @@ export class AdminController{
             const result = await this.adminServices.updatePassword(old_password, new_password, userEmail)
             handleSuccessResponse(res, "Password Updated.", result)
         }catch(e:any){
+            this.logger.error("Error while changing password.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

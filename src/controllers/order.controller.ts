@@ -8,19 +8,24 @@ import { validate } from "../middlewares/validation.middleware";
 import { adminOrderStatusSchema, deliveryInfoSchema, sellerOrderStatusSchema, updateReturnOrderStatusSchema } from "../validation/order.validate";
 import { OrderItemServices } from "../services/orderItem.services";
 import { handleSuccessResponse } from "../utils/httpresponse.utils";
+import Logger from "../utils/logger.utils";
+import winston from 'winston'
 
 export class OrderController{
     readonly router: Router;
     private static instance: OrderController;
 
-    private constructor(private readonly orderServices:OrderServices, private readonly orderItemServices: OrderItemServices){
-        this.router = Router()
+    private readonly logger: winston.Logger;
+
+    private constructor(private readonly orderServices:OrderServices, private readonly orderItemServices: OrderItemServices, logger: Logger){
+        this.router = Router();
+        this.logger = logger.logger()
     }
 
-    static initController(orderServices: OrderServices, orderItemServices: OrderItemServices){
+    static initController(orderServices: OrderServices, orderItemServices: OrderItemServices, logger: Logger){
 
         if(!OrderController.instance){
-            OrderController.instance = new OrderController(orderServices, orderItemServices)
+            OrderController.instance = new OrderController(orderServices, orderItemServices, logger)
         }
         const instance = OrderController.instance
 
@@ -55,6 +60,7 @@ export class OrderController{
             const result = await this.orderServices.getCustomerOrderList(query, userId)
             handleSuccessResponse(res, "Order Fetched.", result)
         }catch(e: any){
+            this.logger.error("Error while getting Order list for Customer.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -67,6 +73,7 @@ export class OrderController{
             const result = await this.orderServices.getCustomerOrder(orderId, userId)
             handleSuccessResponse(res, "Order detail fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching Order Detail For Customer.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -79,6 +86,7 @@ export class OrderController{
             const result = await this.orderServices.createOrder(deliveryInfo, userId)
             handleSuccessResponse(res, "Order Created.", result)
         }catch(e: any){
+            this.logger.error("Error while creating Order.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -88,8 +96,9 @@ export class OrderController{
             const sellerId = req.user?._id as string
             const query= req.query as orderItemFilter
             const result = await this.orderItemServices.getOrderForSeller(sellerId, query)
-            handleSuccessResponse(res, "Order Fetched for Seller.", result)
+            handleSuccessResponse(res, "Received Order Item Fetched for Seller.", result)
         }catch(e: any){
+            this.logger.error("Error while fetching received order items for seller.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -100,6 +109,7 @@ export class OrderController{
             const result = await this.orderItemServices.getOrderItemById(orderItemId)
             handleSuccessResponse(res, "Order Item Detail Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching order item detail for seller.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -111,6 +121,7 @@ export class OrderController{
             const result = await this.orderItemServices.updateSellerOrderStatus(order_status, orderItemId)
             handleSuccessResponse(res, "Order Status Updated.", result)
         }catch(e:any){
+            this.logger.error("Error while updating order item status by seller.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -120,8 +131,9 @@ export class OrderController{
             const {order_status} = req.body
             const orderItemId = req.params.id
             const result = await this.orderItemServices.updateAdminOrderStatus(order_status, orderItemId)
-            handleSuccessResponse(res, "Order Status Updated.", result)
+            handleSuccessResponse(res, "Order Item Status Updated.", result)
         }catch(e:any){
+            this.logger.error("Error while updating order item status by admin.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -134,6 +146,7 @@ export class OrderController{
             const result = await this.orderServices.cancelOrder(order_id, userId)
             handleSuccessResponse(res, "Order Canceled.", result)
         }catch(e:any){
+            this.logger.error("Error while marking order as canceled.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -144,6 +157,7 @@ export class OrderController{
             const result = await this.orderServices.completeOrder(order_id)
             handleSuccessResponse(res, "Order is Completed.", result)
         }catch(e:any){
+            this.logger.error("Error while marking order as completed.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -154,6 +168,7 @@ export class OrderController{
             const result = await this.orderServices.getOrderList(query)
             handleSuccessResponse(res, "Order List Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching order list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -164,6 +179,7 @@ export class OrderController{
             const result = await this.orderItemServices.getAllOrderItem(query)
             handleSuccessResponse(res, "Order Item List Fetched.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching Order Item List.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -175,6 +191,7 @@ export class OrderController{
             const result = await this.orderItemServices.getOrderItemList(orderId, query)
             handleSuccessResponse(res, "Order items Fetched for Order.", result)
         }catch(e:any){
+            this.logger.error("Error while fetching Order Items for Order.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -185,6 +202,7 @@ export class OrderController{
             const result = await this.orderItemServices.updateOrderReturnInitialize(orderItemId)
             handleSuccessResponse(res, "Order Item Initiated for Return.", result)
         }catch(e:any){
+            this.logger.error("Error while initializing order item return request.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -196,6 +214,7 @@ export class OrderController{
             const result = await this.orderItemServices.updateSellerReturnOrderStatus(order_status, orderItemId)
             handleSuccessResponse(res, "Return Order Item Status Updated.", result)
         }catch(e:any){
+            this.logger.error("Error while updating order item return status.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

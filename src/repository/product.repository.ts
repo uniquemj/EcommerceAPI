@@ -1,18 +1,22 @@
 import Product from "../model/product.model";
-import { ProductInfo } from "../types/product.types";
+import { ProductAvailable, ProductFilter, ProductInfo } from "../types/product.types";
 
 export class ProductRepository{
 
+    async getAllProducts(query: ProductFilter){
+        return await Product.find({...query}).populate('category', '-__v').populate({path: 'variants', select: '-__v', match: {'availability': true}}).populate('seller', '_id, store_name')
+    }
+
     async getProductList(){
-        return await Product.find({}).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
+        return await Product.find({productAvailability: ProductAvailable.Available}).populate('category', '-__v').populate({path: 'variants', select: '-__v', match: {'availability': true}}).populate('seller', '_id, store_name')
     }
 
     async getProductById(id: string){
         return await Product.findById(id).populate('category', '-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
     
-    async getSellerProductList(sellerId: string){
-        return await Product.find({seller: sellerId}).populate('category','-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
+    async getSellerProductList(sellerId: string, query: ProductFilter){
+        return await Product.find({seller: sellerId,productAvailability: {$ne: ProductAvailable.Removed}, ...query}).populate('category','-__v').populate('variants', '-__v').populate('seller', '_id, store_name')
     }
 
     async getSellerProductById(id: string, userId: string){
@@ -25,8 +29,8 @@ export class ProductRepository{
         return product
     }
 
-    async editProduct(productId: string, productInfo: ProductInfo, userId: string){
-        return await Product.findOneAndUpdate({seller: userId, _id: productId}, productInfo, {new: true})
+    async editProduct(productId: string, productInfo: ProductInfo){
+        return await Product.findOneAndUpdate({_id: productId}, productInfo, {new: true})
     }
 
     async removeProduct(productId: string){
