@@ -33,6 +33,9 @@ import { AuthServiceFactory } from '../controllers/authFactory'
 import Logger from '../utils/logger.utils'
 import { EmailServices } from '../services/email.services'
 import { NotificationServices } from '../services/notification.services'
+import { AuditTrailRepository } from '../repository/audit.repository'
+import { AuditTrailServices } from '../services/audit.services'
+import { AuditTrailController } from '../controllers/audit.controller'
 
 
 const router = express.Router()
@@ -93,11 +96,14 @@ const shipmentRepository = new ShipmentAddressRepository()
 const shipmentServices = new ShipmentAddressServices(shipmentRepository)
 const shipmetAddressController = ShipmentAddressController.initController(shipmentServices, logger)
 
-
-
-
+// AuthContoller and AuthFactor
 const authServiceFactory = new AuthServiceFactory(adminServices, customerService, sellerService)
 const authController = AuthController.initController(authServiceFactory, logger)
+
+// Audit Trail
+const auditTrailRepository = new AuditTrailRepository()
+const auditTrailServices = new AuditTrailServices(auditTrailRepository)
+const auditTrailController = AuditTrailController.initController(auditTrailServices)
 
 //User Route
 router.use('/auth', authController.router)
@@ -121,4 +127,6 @@ router.use('/orders', verifyToken, orderController.router)
 //Shipment Address Route
 router.use('/shipment', verifyToken, shipmetAddressController.router)
 
+// Audit Trail Log
+router.use('/audit-log', verifyToken, auditTrailController.router)
 export default router

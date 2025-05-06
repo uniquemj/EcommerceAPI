@@ -120,7 +120,7 @@ export class CartServices{
         }
     }
 
-    getCartTotal = async(userId: string) =>{
+    getCartTotal = async(userId: string):Promise<number> =>{
         try{
             const cartExist = await this.cartRepository.getCartByUserId(userId)
             if(!cartExist){

@@ -6,14 +6,22 @@ import errorHandler from './middlewares/errorhandler.middleware'
 import cookieParser from 'cookie-parser'
 import { v2 as cloudinary } from 'cloudinary'
 import { Logger } from './utils/logger.utils'
+import { AuditTrailRepository } from './repository/audit.repository'
+import { AuditTrailServices } from './services/audit.services'
+import { createAuditTrailMiddleware} from './middlewares/auditTrail.middleware'
 
 const app = express()
+const logger = Logger.getInstance().logger()
+const auditTrailRepository = new AuditTrailRepository()
+const auditTrailServices = new AuditTrailServices(auditTrailRepository)
 
 app.use(express.json())
 app.use(urlencoded({extended: true}))
 app.use(cookieParser())
+app.use(createAuditTrailMiddleware(logger, auditTrailServices))
 
 app.use('/api', apiRoute)
+
 app.use(errorHandler)
 
 const PORT = process.env.PORT || 8000
@@ -24,7 +32,6 @@ cloudinary.config({
     secure: true
 })
 
-const logger = Logger.getInstance().logger()
 
 app.listen(PORT, async()=>{
     logger.info(`Server running at: ${PORT}`)
