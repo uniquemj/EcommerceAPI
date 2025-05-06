@@ -31,12 +31,14 @@ import { AdminController } from '../controllers/user/admin.controller'
 import { AuthController } from '../controllers/auth.controller'
 import { AuthServiceFactory } from '../controllers/authFactory'
 import Logger from '../utils/logger.utils'
+import { EmailServices } from '../services/email.services'
+import { NotificationServices } from '../services/notification.services'
 
 
 const router = express.Router()
-//
-const logger = Logger.getInstance()
 
+const logger = Logger.getInstance()
+const emailService = EmailServices.getInstance()
 
 //Category
 const cateogryRepository = new CategoryRepository()
@@ -53,25 +55,6 @@ const productRepository = new ProductRepository()
 const productServices = new ProductServices(productRepository, categoryServices, variantServices)
 const productController = ProductController.initController(productServices, logger)
 
-// Cart
-const cartRepository = new CartRepository()
-const cartServices = new CartServices(cartRepository, variantServices)
-const cartController = CartController.initController(cartServices, logger)
-
-//Order item
-const orderItemRepository = new OrderItemRepository()
-const orderItemServices = new OrderItemServices(orderItemRepository, variantServices)
-
-// Orderr
-const orderRepository = new OrderRepository()
-const orderServices = new OrderServices(orderRepository, cartServices, orderItemServices, variantServices, productServices)
-const orderController = OrderController.initController(orderServices, orderItemServices, logger)
-
-// Shipment Address
-const shipmentRepository = new ShipmentAddressRepository()
-const shipmentServices = new ShipmentAddressServices(shipmentRepository)
-const shipmetAddressController = ShipmentAddressController.initController(shipmentServices, logger)
-
 
 //User
 const adminRepository = new AdminRepository()
@@ -86,15 +69,39 @@ const sellerRepository = new SellerRepository()
 const sellerService = new SellerServices(sellerRepository, productServices)
 const sellerController = SellerController.initController(sellerService, logger)
 
+// Cart
+const cartRepository = new CartRepository()
+const cartServices = new CartServices(cartRepository, variantServices)
+const cartController = CartController.initController(cartServices, logger)
+
+//Order item
+const orderItemRepository = new OrderItemRepository()
+const orderItemServices = new OrderItemServices(orderItemRepository, variantServices)
+
+
+
+// Notification 
+const notificationServices = new NotificationServices(emailService, variantServices, productServices, customerService)
+
+// Orderr
+const orderRepository = new OrderRepository()
+const orderServices = new OrderServices(orderRepository, cartServices, orderItemServices, variantServices, productServices, notificationServices)
+const orderController = OrderController.initController(orderServices, orderItemServices, logger)
+
+// Shipment Address
+const shipmentRepository = new ShipmentAddressRepository()
+const shipmentServices = new ShipmentAddressServices(shipmentRepository)
+const shipmetAddressController = ShipmentAddressController.initController(shipmentServices, logger)
+
+
+
+
 const authServiceFactory = new AuthServiceFactory(adminServices, customerService, sellerService)
 const authController = AuthController.initController(authServiceFactory, logger)
 
 //User Route
 router.use('/auth', authController.router)
 
-// router.use('/auth/admin', adminController.router)
-// router.use('/auth/customer', customerController.router)
-// router.use('/auth/seller', sellerController.router)
 router.use('/admin', adminController.router)
 router.use('/customer', customerController.router)
 router.use('/seller', sellerController.router)

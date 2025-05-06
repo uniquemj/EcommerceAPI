@@ -18,7 +18,7 @@ const adminSchema: Schema<AdminDocument> = new Schema({
     email: {type: String, required: true, unique: true},
     password: {type: String, required: true, minlength:5},
     role: {type: String, enum: Object.values(UserRole), default: UserRole.ADMIN},
-    isSuperAdmin: {type: Boolean, default: false}
+    isSuperAdmin: {type: Boolean, default: false},
 })
 
 const Admin: Model<AdminDocument> = model('admin', adminSchema)

@@ -53,6 +53,7 @@ export interface PaymentInfo{
 }
 
 export interface OrderInfo{
+    _id?:string,
     customer_id?: string,
     shipping_id?: string,
 

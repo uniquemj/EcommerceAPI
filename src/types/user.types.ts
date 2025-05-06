@@ -40,7 +40,7 @@ export interface CustomerProfile{
     fullname?: string,
     password?: string,
     phone_number?: string,
-    date_of_birth?: string
+    date_of_birth?: string,
 }
 
 export interface SellerProfile{
@@ -50,7 +50,7 @@ export interface SellerProfile{
     city?: string,
     country?: string,
     phone_number?: string,
-    password?:string
+    password?:string,
 }
 
 export interface AdminProfile{

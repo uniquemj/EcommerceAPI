@@ -20,7 +20,7 @@ interface VariantDocument extends Document{
     price: number,
     size: string,
     stock: number,
-    availability: boolean
+    availability: boolean,
     packageWeight: number,
     packageLength: string,
     dangerousGoods: DangerousGoods,

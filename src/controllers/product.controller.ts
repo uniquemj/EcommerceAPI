@@ -5,7 +5,7 @@ import { allowedRole } from "../middlewares/role.middleware";
 import { AuthRequest } from "../types/auth.types";
 import { productSchema, updateProductSchema } from "../validation/product.validate";
 import { validate } from "../middlewares/validation.middleware";
-import { ProductFilter, ProductInfo } from "../types/product.types";
+import { ArchieveStatus, ProductFilter, ProductInfo } from "../types/product.types";
 import { updateVariantSchema} from "../validation/variant.validate";
 import { verifySeller } from "../middlewares/sellerVerify.middeware";
 import { handleSuccessResponse } from "../utils/httpresponse.utils";
@@ -36,8 +36,10 @@ export class ProductController{
 
         instance.router.post('/', allowedRole('seller'), verifySeller, validate(productSchema), instance.createProduct)
         instance.router.put('/:id', allowedRole('seller'), verifySeller, validate(updateProductSchema), instance.editProduct)
-        instance.router.delete('/:id', allowedRole('seller'), verifySeller, instance.removeProduct)
-        instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
+        instance.router.delete('/:id', allowedRole('seller', 'admin'), verifySeller, instance.removeProduct)
+        instance.router.put('/:id/archieve', allowedRole('seller'), verifySeller, instance.archieveProduct)
+        instance.router.put('/:id/unarchieve', allowedRole('seller'), verifySeller, instance.unarchieveProduct)
+        // instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
         
         //Variant
         instance.router.get('/:id/variants', allowedRole('seller'), verifySeller, instance.getProductVariant)
@@ -127,9 +129,8 @@ export class ProductController{
         try{
             const productId = req.params.id
             const productInfo = req.body
-            const userId = req.user?._id as string
 
-            const result = await this.productServices.editProduct(productId, productInfo, userId)
+            const result = await this.productServices.editProduct(productId, productInfo)
             handleSuccessResponse(res, "Product updated.", result)
         }catch(e: any){
             this.logger.error("Error while updating product.", {object: e, error: new Error()})
@@ -137,17 +138,17 @@ export class ProductController{
         }
     }
 
-    deleteProduct = async(req: AuthRequest, res: Response) =>{
-        try{
-            const productId = req.params.id
+    // deleteProduct = async(req: AuthRequest, res: Response) =>{
+    //     try{
+    //         const productId = req.params.id
 
-            const result = await this.productServices.deleteProduct(productId)
-            handleSuccessResponse(res, "Product deleted.", result)
-        }catch(e:any){
-            this.logger.error("Error while deleting Product.", {object: e, error: new Error()})
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
+    //         const result = await this.productServices.deleteProduct(productId)
+    //         handleSuccessResponse(res, "Product deleted.", result)
+    //     }catch(e:any){
+    //         this.logger.error("Error while deleting Product.", {object: e, error: new Error()})
+    //         throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+    //     }
+    // }
     
     removeProduct = async(req: AuthRequest, res: Response) =>{
         try{
@@ -226,6 +227,28 @@ export class ProductController{
             handleSuccessResponse(res, "Variant Fetched.", result)
         }catch(e:any){
             this.logger.error("Error while fetching variant for product.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    archieveProduct = async(req: AuthRequest, res: Response) =>{
+        try{    
+            const productId = req.params.id
+            const result = await this.productServices.updateArchieveStatus(ArchieveStatus.Archieve, productId)
+            handleSuccessResponse(res, "Archieve Status Updated.", result)
+        }catch(e:any){
+            this.logger.error("Error while updating archieve status of product.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    unarchieveProduct = async(req: AuthRequest, res: Response) =>{
+        try{
+            const productId = req.params.id
+            const result = await this.productServices.updateArchieveStatus(ArchieveStatus.UnArchieve, productId)
+            handleSuccessResponse(res, "Archieve Status Updated.", result)
+        }catch(e:any){
+            this.logger.error("Error while unarchieving product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

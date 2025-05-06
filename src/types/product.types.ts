@@ -1,11 +1,9 @@
-import { ImageInfo } from "./image.types"
 import { CategoryInfo } from "./category.types"
 import { VariantInfo } from "./variants.types"
 
-export enum ProductAvailable{
-    Available = 'available',
-    NotAvaialble = 'not-available',
-    Removed = 'removed'
+export enum ArchieveStatus{
+    Archieve = "archieve",
+    UnArchieve = "unarchieve"
 }
 
 export interface ProductInfo{
@@ -17,9 +15,10 @@ export interface ProductInfo{
     variants?: VariantInfo[],
     productDescripton?: string,
     productHighlights?: string,
-    productAvailability?: ProductAvailable
+    isActive?:boolean,
+    archieveStatus?: string
 }
 
 export interface ProductFilter{
-    productAvailability?: ProductAvailable
+    archieveStatus?: string
 }

@@ -2,6 +2,7 @@ import { CartRepository } from "../repository/cart.repository";
 import { CartInfo, CartItem } from "../types/cart.types";
 import { VariantInfo } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
+import { EmailServices } from "./email.services";
 import { VariantServices } from "./variant.services";
 
 export class CartServices{

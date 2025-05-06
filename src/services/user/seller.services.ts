@@ -3,10 +3,10 @@ import bcrypt from 'bcryptjs';
 import { SellerRepository } from "../../repository/user/seller.repository";
 import { SellerInfo,SellerProfile,UserCredentials } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
-import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
+import { comparePassword, hashPassword} from "../../utils/helper.utils";
 import { ProductServices } from "../product.services";
 import { AuthService } from "../../types/auth.types";
-import { ProductAvailable } from "../../types/product.types";
+
 
 export class SellerServices implements AuthService{
     
@@ -153,7 +153,7 @@ export class SellerServices implements AuthService{
             const sellerProductList = await this.productServices.getSellerProductList(sellerId, {})
 
             sellerProductList.forEach(async(product)=>{
-                await this.productServices.editProduct(product._id as unknown as string, {productAvailability: ProductAvailable.Removed}, sellerId)
+                await this.productServices.editProduct(product._id as unknown as string, {isActive: false})
             })
 
             return result

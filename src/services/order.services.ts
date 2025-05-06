@@ -4,6 +4,7 @@ import { CartItem } from "../types/cart.types";
 import { DeliverInfo, orderFilter, orderItemFilter } from "../types/order.types";
 import createHttpError from "../utils/httperror.utils";
 import { CartServices } from "./cart.services";
+import { NotificationServices } from "./notification.services";
 import { OrderItemServices } from "./orderItem.services";
 import { ProductServices } from "./product.services";
 import { VariantServices } from "./variant.services";
@@ -14,7 +15,8 @@ export class OrderServices{
         private readonly cartServices: CartServices,
         private readonly orderItemServices: OrderItemServices, 
         private readonly variantServices: VariantServices,
-        private readonly productServices: ProductServices
+        private readonly productServices: ProductServices,
+        private readonly notificationServices: NotificationServices
     ){}
 
     getOrderList = async(query: orderFilter) =>{
@@ -90,14 +92,17 @@ export class OrderServices{
                 orderTotal: orderTotal
             }
             
+            
             const order = await this.orderRepository.createOrder(orderInfo)
+            
+            await this.notificationServices.sendOrderNotification(order._id as string, userId, orderTotal, cartItems)
 
             cartItems.forEach(async(item)=>{
                 const orderItem = {
                     productVariant: item.productVariant,
                     quantity: item.quantity
                 }
-                const product_id = await this.variantServices.getVariantSeller(item.productVariant)
+                const product_id = await this.variantServices.getVariantProduct(item.productVariant)
                 await this.variantServices.updateStock(item.productVariant, -item.quantity)
                 const product = await this.productServices.getProductById(product_id as unknown as string)
                 
@@ -109,7 +114,7 @@ export class OrderServices{
 
                 await this.orderItemServices.createOrderItem(orderItemInfo)
             })
-
+            
             await this.cartServices.resetCart(userId)
             return order
         }catch(error){
@@ -140,6 +145,7 @@ export class OrderServices{
 
             orderItems.forEach(async(item)=>{
                 await this.orderItemServices.updateSellerOrderStatus("canceled", item._id as string)
+                await this.variantServices.updateStock(item.item.productVariant, item.item.quantity)
             })
 
             const result = await this.orderRepository.updateOrder(order_id, {isCanceled: true, cancelAt: Date.now() as unknown as Date})

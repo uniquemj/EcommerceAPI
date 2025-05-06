@@ -10,7 +10,7 @@ export class VariantServices{
 
     constructor(private readonly variantRepository: VariantRepository){}
 
-    getVariantSeller = async(variantId: string) =>{
+    getVariantProduct = async(variantId: string) =>{
         try{
             const variant = await this.variantRepository.getVariant(variantId)
             return variant?.product

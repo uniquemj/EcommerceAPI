@@ -1,7 +1,7 @@
 import { Schema, Document, Model, model } from "mongoose";
 import { CategoryInfo } from "../types/category.types";
 import { VariantInfo } from "../types/variants.types";
-import { ProductAvailable } from "../types/product.types";
+import { ArchieveStatus } from "../types/product.types";
 
 interface ProductDocument extends Document{
     seller: Schema.Types.ObjectId,
@@ -13,7 +13,8 @@ interface ProductDocument extends Document{
     productDescripton: string,
     productHighlights: string,
 
-    productAvailability: ProductAvailable
+    isActive: boolean,
+    archieveStatus: ArchieveStatus
 }
 
 const productSchema: Schema<ProductDocument> = new Schema({
@@ -25,7 +26,8 @@ const productSchema: Schema<ProductDocument> = new Schema({
     productDescripton: {type: String},
     productHighlights: {type: String},
 
-    productAvailability: {type: String, enum: Object.values(ProductAvailable), default: ProductAvailable.Available}
+    isActive: {type: Boolean, default: true},
+    archieveStatus: {type: String, enum: Object.values(ArchieveStatus), default: ArchieveStatus.UnArchieve}
 })
 
 const Product: Model<ProductDocument> = model('product', productSchema)

@@ -44,7 +44,6 @@ export class AuthController{
             const result = await service.registerUser(userInfo)
             handleSuccessResponse(res, `${userType.toUpperCase()} Registered.`, result)
         }catch(e:any){
-            this.logger.info(`${e.message}`)
             this.logger.error("Error while register.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

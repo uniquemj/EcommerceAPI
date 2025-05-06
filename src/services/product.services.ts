@@ -1,7 +1,7 @@
 import { ProductRepository } from "../repository/product.repository";
 import { CategoryInfo } from "../types/category.types";
 import { ImageInfo } from "../types/image.types";
-import { ProductAvailable, ProductFilter, ProductInfo } from "../types/product.types";
+import { ProductFilter, ProductInfo } from "../types/product.types";
 import { VariantInfo } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
 import { uploadImages } from "../utils/uploadImage.utils";
@@ -76,7 +76,7 @@ export class ProductServices{
 
     async createProduct(productInfo: ProductInfo, userId: string){
         try{
-            const {name, category, variants, productDescripton, productHighlights, productAvailability} = productInfo
+            const {name, category, variants, productDescripton, productHighlights} = productInfo
 
             const categoryExist = await this.categoryServices.getCategoryById(category as string) as unknown as CategoryInfo
 
@@ -89,7 +89,6 @@ export class ProductServices{
                 variants: variantList,
                 productDescripton: productDescripton ?? "",
                 productHighlights: productHighlights ?? "",
-                productAvailability: productAvailability ?? ProductAvailable.Available
             }
             
             const product = await this.productRepository.createProduct(productDetail) as unknown as ProductInfo
@@ -105,9 +104,9 @@ export class ProductServices{
         }
     }
 
-    async editProduct(productId: string, productInfo: ProductInfo, userId: string){
+    async editProduct(productId: string, productInfo: ProductInfo){
         try{
-            const productExist = await this.productRepository.getSellerProductById(productId, userId)
+            const productExist = await this.productRepository.getProductById(productId)
             if(!productExist){
                 throw createHttpError.NotFound("Product with Id not found.")
             }
@@ -138,23 +137,23 @@ export class ProductServices{
         }
     }
 
-    async deleteProduct(productId: string){
-        try{
-            const productExist = await this.productRepository.getProductById(productId)
-            if(!productExist){
-                throw createHttpError.NotFound("Product with Id not found.")
-            }
+    // async deleteProduct(productId: string){
+    //     try{
+    //         const productExist = await this.productRepository.getProductById(productId)
+    //         if(!productExist){
+    //             throw createHttpError.NotFound("Product with Id not found.")
+    //         }
 
-            productExist.variants.forEach(async(variant)=>{
-                await this.variantServices.deleteVariant(variant._id as string )
-            })
+    //         productExist.variants.forEach(async(variant)=>{
+    //             await this.variantServices.deleteVariant(variant._id as string )
+    //         })
 
-            const result = await this.productRepository.removeProduct(productId)
-            return result
-        }catch(error){
-            throw error
-        }
-    }
+    //         const result = await this.productRepository.removeProduct(productId)
+    //         return result
+    //     }catch(error){
+    //         throw error
+    //     }
+    // }
 
     async removeProduct(productId: string){
         try{
@@ -163,7 +162,7 @@ export class ProductServices{
                 throw createHttpError.NotFound("Product with Id not found.")
             }
 
-            const result = await this.productRepository.editProduct(productId, {productAvailability: ProductAvailable.Removed})
+            const result = await this.productRepository.editProduct(productId, {isActive: false})
             return result
         }catch(error){
             throw error
@@ -257,6 +256,21 @@ export class ProductServices{
             const variants = await this.variantServices.getVariantByProduct(productId)
             return variants
 
+        }catch(error){
+            throw error
+        }
+    }
+
+    async updateArchieveStatus(status: string, productId: string){
+        try{
+            const productExist = await this.productRepository.getProductById(productId)
+
+            if(!productExist){
+                throw createHttpError.NotFound("Product with Id not found.")
+            }
+
+            const result = await this.productRepository.editProduct(productId, {archieveStatus: status})
+            return result
         }catch(error){
             throw error
         }
