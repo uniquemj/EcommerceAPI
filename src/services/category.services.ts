@@ -1,11 +1,12 @@
 import { CategoryRepository } from "../repository/category.repository";
 import { CategoryInfo, CategoryInputInfo } from "../types/category.types";
 import { paginationField } from "../types/pagination.types";
+import { CategoryRepositoryInterface } from "../types/repository.types";
 import createHttpError from "../utils/httperror.utils";
 
 export class CategoryServices {
 
-    constructor(private readonly categoryRepository: CategoryRepository) { }
+    constructor(private readonly categoryRepository: CategoryRepositoryInterface) { }
 
     getCategoryList = async (pagination: paginationField) => {
         const category = await this.categoryRepository.getCategoryList(pagination)

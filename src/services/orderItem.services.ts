@@ -2,12 +2,13 @@ import { OrderItemRepository } from "../repository/orderitem.repository";
 import { orderItemFilter } from "../types/order.types";
 import { OrderItemInfo, OrderItemInputInfo } from "../types/orderitem.types";
 import { paginationField } from "../types/pagination.types";
+import { OrderItemRepositoryInterface } from "../types/repository.types";
 import createHttpError from "../utils/httperror.utils";
 import { VariantServices } from "./variant.services";
 
 
 export class OrderItemServices {
-    constructor(private readonly orderItemRepository: OrderItemRepository, private readonly variantServices: VariantServices) { }
+    constructor(private readonly orderItemRepository: OrderItemRepositoryInterface, private readonly variantServices: VariantServices) { }
 
     createOrderItem = async (orderItemInfo: Partial<OrderItemInputInfo>)=> {
         const result = this.orderItemRepository.createOrderItem(orderItemInfo)

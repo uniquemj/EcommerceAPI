@@ -1,12 +1,13 @@
 import { CartRepository } from "../repository/cart.repository";
 import { CartInfo, CartInputInfo, CartInputItem, CartItem } from "../types/cart.types";
+import { CartRepositoryInterface } from "../types/repository.types";
 import { VariantInfo } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
 import { VariantServices } from "./variant.services";
 
 export class CartServices {
 
-    constructor(private readonly cartRepository: CartRepository,
+    constructor(private readonly cartRepository: CartRepositoryInterface,
         private readonly variantServices: VariantServices) { }
 
     getCartByUserId = async (userId: string) => {

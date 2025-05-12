@@ -5,9 +5,10 @@ import createHttpError from "../../utils/httperror.utils";
 import { hashPassword, comparePassword, signToken } from "../../utils/helper.utils";
 import { AuthService } from "../../types/auth.types";
 import { paginationField } from "../../types/pagination.types";
+import { CustomerRepositoryInterface } from "../../types/repository.types";
 
 export class CustomerServices implements AuthService {
-    constructor(private readonly customerRepository: CustomerRepository) { }
+    constructor(private readonly customerRepository: CustomerRepositoryInterface) { }
 
     async getCustomerList(pagination: paginationField) {
         const customers = await this.customerRepository.getCustomerList(pagination)

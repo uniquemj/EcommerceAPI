@@ -21,3 +21,7 @@ export interface ShipmentInputInfo{
     city: string,
     address: string
 }
+
+export interface shipmentCountFilter{
+    customer_id?: string
+}

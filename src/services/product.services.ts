@@ -1,16 +1,17 @@
 import { ProductRepository } from "../repository/product.repository";
 import { CategoryInfo } from "../types/category.types";
 import { ImageInfo } from "../types/image.types";
-import { ArchieveStatus, ProductFilter, ProductInfo, ProductInputInfo } from "../types/product.types";
+import { ArchieveStatus, ProductFilter, ProductInfo, ProductInputInfo, searchFilter } from "../types/product.types";
 import { VariantInfo, VariantInput } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
 import { VariantServices } from "./variant.services";
 import { CategoryServices } from "./category.services";
 import { paginationField } from "../types/pagination.types";
+import { ProductRepositoryInterface } from "../types/repository.types";
 
 export class ProductServices {
 
-    constructor(private readonly productRepository: ProductRepository, private readonly categoryServices: CategoryServices, private readonly variantServices: VariantServices) { }
+    constructor(private readonly productRepository: ProductRepositoryInterface, private readonly categoryServices: CategoryServices, private readonly variantServices: VariantServices) { }
 
     async getAllProducts(pagination: paginationField, query: ProductFilter) {
         const products = await this.productRepository.getAllProducts(pagination, query)
@@ -60,6 +61,11 @@ export class ProductServices {
         return productExist
     }
 
+
+    async searchProduct(searchFilter: searchFilter){
+        const filteredProduct = await this.productRepository.searchProduct(searchFilter)
+        return {count: filteredProduct.total, products: filteredProduct.products}
+    }
     async createProduct(productInfo: ProductInfo, userId: string) {
 
         const { name, category, variants, productDescripton, productHighlights } = productInfo

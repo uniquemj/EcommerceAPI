@@ -8,11 +8,12 @@ import { ProductServices } from "../product.services";
 import { AuthService } from "../../types/auth.types";
 import { CloudServices } from "../cloud.services";
 import { paginationField } from "../../types/pagination.types";
+import { SellerRepositoryInterface } from "../../types/repository.types";
 
 
 export class SellerServices implements AuthService {
 
-    constructor(private readonly sellerRepository: SellerRepository, private readonly productServices: ProductServices) { }
+    constructor(private readonly sellerRepository: SellerRepositoryInterface, private readonly productServices: ProductServices) { }
 
     async getSellerById(id: string) {
         const sellerExist = await this.sellerRepository.getSellerById(id)

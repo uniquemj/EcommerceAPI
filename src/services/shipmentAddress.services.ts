@@ -1,16 +1,18 @@
 import { ShipmentAddressRepository } from "../repository/shipmentAddress.repository";
 import { paginationField } from "../types/pagination.types";
+import { ShipmentAddressRepositoryInterface } from "../types/repository.types";
 import { ShipmentInfo, ShipmentInputInfo } from "../types/shipment.types";
 import createHttpError from "../utils/httperror.utils";
 
 
 export class ShipmentAddressServices {
 
-    constructor(private readonly shipmentAddressRepository: ShipmentAddressRepository) { }
+    constructor(private readonly shipmentAddressRepository: ShipmentAddressRepositoryInterface) { }
 
     async getShipmentAddressList(customer_id: string, pagination: paginationField) {
         const shipmentAddresses = await this.shipmentAddressRepository.getShipmentAddressList(customer_id, pagination)
-        return shipmentAddresses
+        const count = await this.shipmentAddressRepository.getShipmentCount({customer_id: customer_id})
+        return {count, shipmentAddresses}
     }
 
     async getShipmentAddressById(shipping_id: string) {

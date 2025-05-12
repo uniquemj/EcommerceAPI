@@ -3,6 +3,7 @@ import { OrderRepository } from "../repository/order.repository";
 import { CartInputItem, CartItem } from "../types/cart.types";
 import { DeliverInfo, orderFilter, orderItemFilter } from "../types/order.types";
 import { paginationField } from "../types/pagination.types";
+import { OrderRepositoryInterface } from "../types/repository.types";
 import createHttpError from "../utils/httperror.utils";
 import { CartServices } from "./cart.services";
 import { NotificationServices } from "./notification.services";
@@ -12,7 +13,7 @@ import { VariantServices } from "./variant.services";
 
 export class OrderServices {
 
-    constructor(private readonly orderRepository: OrderRepository,
+    constructor(private readonly orderRepository: OrderRepositoryInterface,
         private readonly cartServices: CartServices,
         private readonly orderItemServices: OrderItemServices,
         private readonly variantServices: VariantServices,
@@ -26,7 +27,7 @@ export class OrderServices {
             throw createHttpError.NotFound("Order List is Empty.")
         }
         const count = await this.orderRepository.getOrderCounts({})
-        return {count, orders}
+        return { count, orders }
     }
 
     getCustomerOrderList = async (query: orderItemFilter, pagination: paginationField, userId: string) => {
@@ -36,7 +37,7 @@ export class OrderServices {
             throw createHttpError.NotFound("Order for User not found.")
         }
         const orders = await Promise.all(orderExist.map(async (order) => {
-            const orderItems = await this.orderItemServices.getOrderItemList(order._id as string , query)
+            const orderItems = await this.orderItemServices.getOrderItemList(order._id as string, query)
 
             const orderDetail = {
                 order: order,
@@ -44,8 +45,8 @@ export class OrderServices {
             }
             return orderDetail
         }))
-        const count = await this.orderRepository.getOrderCounts({customer_id: userId})
-        return {count: count,orders}
+        const count = await this.orderRepository.getOrderCounts({ customer_id: userId })
+        return { count: count, orders }
     }
 
     getCustomerOrder = async (orderId: string, userId: string) => {
@@ -83,25 +84,26 @@ export class OrderServices {
 
 
         const order = await this.orderRepository.createOrder(orderInfo)
+        if (order) {
+            await this.notificationServices.sendOrderNotification(order._id as string, userId, orderTotal, cartItems)
 
-        await this.notificationServices.sendOrderNotification(order._id as string, userId, orderTotal, cartItems)
+            cartItems.forEach(async (item) => {
+                const orderItem = {
+                    productVariant: item.productVariant,
+                    quantity: item.quantity
+                }
+                const product_id = await this.variantServices.getVariantProduct(item.productVariant)
+                await this.variantServices.updateStock(item.productVariant, -item.quantity)
+                const product = await this.productServices.getProductById(product_id as unknown as string)
 
-        cartItems.forEach(async (item) => {
-            const orderItem = {
-                productVariant: item.productVariant,
-                quantity: item.quantity
-            }
-            const product_id = await this.variantServices.getVariantProduct(item.productVariant)
-            await this.variantServices.updateStock(item.productVariant, -item.quantity)
-            const product = await this.productServices.getProductById(product_id as unknown as string)
-            
-            const orderItemInfo = {
-                order_id: order._id as unknown as string,
-                item: orderItem,
-                seller_id: product.seller
-            }
-            await this.orderItemServices.createOrderItem(orderItemInfo)
-        })
+                const orderItemInfo = {
+                    order_id: order._id as unknown as string,
+                    item: orderItem,
+                    seller_id: product.seller
+                }
+                await this.orderItemServices.createOrderItem(orderItemInfo)
+            })
+        }
 
         await this.cartServices.resetCart(userId)
         return order

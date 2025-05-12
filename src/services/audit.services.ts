@@ -1,9 +1,10 @@
 import { AuditTrailRepository } from "../repository/audit.repository";
 import { AuditTrailInfo } from "../types/audit.types";
 import { paginationField } from "../types/pagination.types";
+import { AuditTrailRepositoryInterface } from "../types/repository.types";
 
 export class AuditTrailServices{
-    constructor(private readonly auditTrailRepository: AuditTrailRepository){}
+    constructor(private readonly auditTrailRepository: AuditTrailRepositoryInterface){}
 
     getAllAuditTrails = async(pagination: paginationField) =>{
         const result = await this.auditTrailRepository.findAll(pagination)

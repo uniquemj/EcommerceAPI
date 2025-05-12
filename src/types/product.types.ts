@@ -40,3 +40,12 @@ export interface CountFilter extends ProductFilter{
     seller?: string,
     isActive?:boolean
 }
+
+export interface searchFilter{
+    keyword?:string,//name, description, store_name
+    category?: string,
+    minPrice?: number,
+    maxPrice?:number,
+    page?: number,
+    limit?:number
+}

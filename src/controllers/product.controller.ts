@@ -31,6 +31,7 @@ export class ProductController{
 
         instance.router.get('/all', allowedRole('admin'), instance.getAllProduct)
         instance.router.get('/', allowedRole('customer'), instance.getProductList)
+        instance.router.get('/search', instance.searchProducts)
         instance.router.get('/seller',allowedRole('seller'), verifySeller,instance.getSellerProductList)
         instance.router.get('/seller/:id',allowedRole('seller'), verifySeller, instance.getSellerProductById)
         instance.router.get('/:id', allowedRole('customer', 'admin'), instance.getProductById)
@@ -68,13 +69,30 @@ export class ProductController{
             delete query.page
             delete query.limit
             const product = await this.productServices.getAllProducts({page: parseInt(page as string), limit: parseInt(limit as string)}, query)
-            handleSuccessResponse(res, "Product Fetched.", product, 200)
+            handleSuccessResponse(res, "Product Fetched.", product)
         }catch(e: any){
             this.logger.error("Error while fetching Product list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
 
+    searchProducts = async(req: AuthRequest, res: Response) =>{
+        try{
+            const searchFilter = {
+                keyword: req.query.keyword as string,
+                category: req.query.category as string,
+                minPrice: req.query.minPrice ? Number(req.query.minPrice):undefined,
+                maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+                page: req.query.page ? parseInt(req.query.page as string): 1,
+                limit: req.query.limit? parseInt(req.query.limit as string): 10
+            }
+            const product = await this.productServices.searchProduct(searchFilter)
+            handleSuccessResponse(res, "Search Product Fetched.", product)
+        }catch(e:any){
+            this.logger.error("Error while searching products.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
 
     getProductList = async(req: AuthRequest, res: Response) =>{
         try{
