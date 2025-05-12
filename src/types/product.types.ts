@@ -35,3 +35,8 @@ export interface ProductInputInfo{
 export interface ProductFilter{
     archieveStatus?: string
 }
+
+export interface CountFilter extends ProductFilter{
+    seller?: string,
+    isActive?:boolean
+}

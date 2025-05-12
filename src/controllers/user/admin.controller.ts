@@ -54,7 +54,9 @@ export class AdminController{
     
     getAllAdmin = async(req: Request, res: Response) =>{
         try{
-            const result = await this.adminServices.getAllAdmin()
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const result = await this.adminServices.getAllAdmin({page: parseInt(page as string), limit: parseInt(limit as string)})
             handleSuccessResponse(res, "Admin List Fetched.", result)
         }catch(e:any){
             this.logger.error("Error while fetching Admin List.", {object: e, error: new Error()})

@@ -55,9 +55,14 @@ export class OrderController{
     getCustomerOrderList = async(req: AuthRequest, res: Response) =>{
         try{
             const userId = req.user?._id as string
-            const query = req.query as orderItemFilter
+            const query = req.query
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
 
-            const result = await this.orderServices.getCustomerOrderList(query, userId)
+            delete req.query.page
+            delete req.query.limit
+
+            const result = await this.orderServices.getCustomerOrderList(query, {page: parseInt(page as string), limit: parseInt(limit as string)}, userId)
             handleSuccessResponse(res, "Order Fetched.", result)
         }catch(e: any){
             this.logger.error("Error while getting Order list for Customer.", {object: e, error: new Error()})
@@ -94,8 +99,14 @@ export class OrderController{
     getOrderForSeller = async(req: AuthRequest, res: Response) =>{
         try{
             const sellerId = req.user?._id as string
-            const query= req.query as orderItemFilter
-            const result = await this.orderItemServices.getOrderForSeller(sellerId, query)
+            const query= req.query
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+
+            delete req.query.page
+            delete req.query.limit
+
+            const result = await this.orderItemServices.getOrderForSeller(sellerId,{page: parseInt(page as string), limit: parseInt(page as string)}, query)
             handleSuccessResponse(res, "Received Order Item Fetched for Seller.", result)
         }catch(e: any){
             this.logger.error("Error while fetching received order items for seller.", {object: e, error: new Error()})
@@ -164,8 +175,14 @@ export class OrderController{
 
     getOrderList = async(req: AuthRequest, res: Response) =>{
         try{
-            const query = req.query as orderFilter
-            const result = await this.orderServices.getOrderList(query)
+            const query = req.query
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+
+            delete req.query.page
+            delete req.query.limit
+
+            const result = await this.orderServices.getOrderList({page: parseInt(page as string), limit: parseInt(limit as string)},query)
             handleSuccessResponse(res, "Order List Fetched.", result)
         }catch(e:any){
             this.logger.error("Error while fetching order list.", {object: e, error: new Error()})

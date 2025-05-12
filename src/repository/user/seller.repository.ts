@@ -1,4 +1,5 @@
 import Seller from "../../model/user/seller.model";
+import { paginationField } from "../../types/pagination.types";
 import { SellerRepositoryInterface } from "../../types/repository.types";
 import { SearchUserField, SellerInfo, SellerProfile, UserCredentials, VerifyField} from "../../types/user.types";
 import { signToken } from '../../utils/helper.utils';
@@ -6,8 +7,15 @@ import { signToken } from '../../utils/helper.utils';
 
 export class SellerRepository implements SellerRepositoryInterface{
 
-    async getSellerList(): Promise<SellerInfo[]>{
-        return await Seller.find({}).select('-password -__v')
+    async getSellerList(pagination: paginationField): Promise<SellerInfo[]>{
+        return await Seller.find({})
+        .skip((pagination.page - 1) * pagination.limit)
+        .limit(pagination.limit)
+        .select('-password -__v')
+    }
+
+    async getSellerCount(): Promise<number>{
+        return await Seller.countDocuments()
     }
     async getSellerById(id: string): Promise<SellerInfo | null>{
         return await Seller.findById(id).select('-password')

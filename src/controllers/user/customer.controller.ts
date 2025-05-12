@@ -93,7 +93,9 @@ export class CustomerController{
     
     getCustomerList = async(req:AuthRequest, res: Response) =>{
         try{
-            const result = await this.customerService.getCustomerList()
+            const page = req.query.page || 1
+            const limit = req.query.page || 10
+            const result = await this.customerService.getCustomerList({page: parseInt(page as string), limit: parseInt(limit as string)})
             handleSuccessResponse(res, "Customer List Fetched.", result)
         }catch(e:any){
             this.logger.error("Error while fetching customer list.", {object: e, error: new Error()})

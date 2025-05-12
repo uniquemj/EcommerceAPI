@@ -1,18 +1,28 @@
 import Order from "../model/order.model";
-import { orderFilter, OrderInfo, OrderInputInfo } from "../types/order.types";
+import { OrderCountFilter, orderFilter, OrderInfo, OrderInputInfo } from "../types/order.types";
+import { paginationField } from "../types/pagination.types";
 import { OrderRepositoryInterface } from "../types/repository.types";
 
 export class OrderRepository implements OrderRepositoryInterface{
 
-    async getOrderList(query: orderFilter):Promise<OrderInfo[]>{
+    async getOrderList(pagination: paginationField, query: orderFilter):Promise<OrderInfo[]>{
         return await Order.find({...query})
+        .skip((pagination.page - 1) * pagination.limit)
+        .limit(pagination.limit)
     }
-    async getCustomerOrderList(userId: string): Promise<OrderInfo[]|[]>{
-        return await Order.find({customer_id: userId}).select('-__v')
+    async getCustomerOrderList(userId: string, pagination: paginationField): Promise<OrderInfo[]|[]>{
+        return await Order.find({customer_id: userId})
+        .skip((pagination.page - 1) * pagination.limit)
+        .limit(pagination.limit)
+        .select('-__v')
     }
 
-    async getCustomerOrder(orderId: string, userId: string): Promise<OrderInfo[]|[]>{
-        return await Order.find({_id: orderId, customer_id: userId})
+    async getOrderCounts(countFilter: OrderCountFilter): Promise<number>{
+        return await Order.countDocuments({...countFilter})
+    }
+
+    async getCustomerOrder(orderId: string, userId: string): Promise<OrderInfo | null>{
+        return await Order.findOne({_id: orderId, customer_id: userId})
     }
     
     async getOrderById(orderId: string): Promise<OrderInfo | null>{

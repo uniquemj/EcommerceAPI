@@ -1,17 +1,19 @@
 import { CategoryRepository } from "../repository/category.repository";
 import { CategoryInfo, CategoryInputInfo } from "../types/category.types";
+import { paginationField } from "../types/pagination.types";
 import createHttpError from "../utils/httperror.utils";
 
 export class CategoryServices {
 
     constructor(private readonly categoryRepository: CategoryRepository) { }
 
-    getCategoryList = async () => {
-        const category = await this.categoryRepository.getCategoryList()
+    getCategoryList = async (pagination: paginationField) => {
+        const category = await this.categoryRepository.getCategoryList(pagination)
         if (category && category.length == 0) {
             throw createHttpError.NotFound("Category List is Empty.")
         }
-        return category
+        const count = await this.categoryRepository.getCategoryCount()
+        return {count, category}
     }
 
     getCategoryByTitle = async (title: string) => {

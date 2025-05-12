@@ -62,9 +62,13 @@ export class ProductController{
 
     getAllProduct = async(req: AuthRequest, res: Response) =>{
         try{
-            const query = req.query as ProductFilter
-            const product = await this.productServices.getAllProducts(query)
-            handleSuccessResponse(res, "Product Fetched.", product)
+            const query = req.query
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            delete query.page
+            delete query.limit
+            const product = await this.productServices.getAllProducts({page: parseInt(page as string), limit: parseInt(limit as string)}, query)
+            handleSuccessResponse(res, "Product Fetched.", product, 200)
         }catch(e: any){
             this.logger.error("Error while fetching Product list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -74,9 +78,11 @@ export class ProductController{
 
     getProductList = async(req: AuthRequest, res: Response) =>{
         try{
-            
-            const product = await this.productServices.getProductList()
-            handleSuccessResponse(res, "Product Fetched.", product)
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const product = await this.productServices.getProductList({ page: parseInt(page as string), limit: parseInt(limit as string)})
+
+            handleSuccessResponse(res, "Product Fetched.", product, 200)
         }catch(e: any){
             this.logger.error("Error while fetching Product list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -86,8 +92,12 @@ export class ProductController{
     getSellerProductList = async(req: AuthRequest, res: Response) =>{
         try{
             const sellerId = req.user?._id as string
-            const query = req.query as ProductFilter
-            const result = await this.productServices.getSellerProductList(sellerId, query)
+            const query = req.query
+            const page = req.query.page || 1 
+            const limit = req.query.limit || 10
+            delete query.page
+            delete query.limit
+            const result = await this.productServices.getSellerProductList(sellerId, {page: parseInt(page as string), limit: parseInt(limit as string)}, query)
             handleSuccessResponse(res, "Seller Product List Fetched.", result)
         }catch(e:any){
             this.logger.error("Error while fetching Seller product list.", {object: e, error: new Error()})

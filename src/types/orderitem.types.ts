@@ -16,3 +16,8 @@ export interface OrderItemInputInfo{
     seller_id: Schema.Types.ObjectId,
     order_status: string,
 }
+
+export interface OrderItemCountFilter{
+    order_id?: string,
+    seller_id?:string
+}

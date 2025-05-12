@@ -2,6 +2,7 @@
 import { OrderRepository } from "../repository/order.repository";
 import { CartInputItem, CartItem } from "../types/cart.types";
 import { DeliverInfo, orderFilter, orderItemFilter } from "../types/order.types";
+import { paginationField } from "../types/pagination.types";
 import createHttpError from "../utils/httperror.utils";
 import { CartServices } from "./cart.services";
 import { NotificationServices } from "./notification.services";
@@ -19,16 +20,17 @@ export class OrderServices {
         private readonly notificationServices: NotificationServices
     ) { }
 
-    getOrderList = async (query: orderFilter) => {
-        const orders = await this.orderRepository.getOrderList(query)
+    getOrderList = async (pagination: paginationField, query: orderFilter) => {
+        const orders = await this.orderRepository.getOrderList(pagination, query)
         if (orders.length == 0) {
             throw createHttpError.NotFound("Order List is Empty.")
         }
-        return orders
+        const count = await this.orderRepository.getOrderCounts({})
+        return {count, orders}
     }
 
-    getCustomerOrderList = async (query: orderItemFilter, userId: string) => {
-        const orderExist = await this.orderRepository.getCustomerOrderList(userId)
+    getCustomerOrderList = async (query: orderItemFilter, pagination: paginationField, userId: string) => {
+        const orderExist = await this.orderRepository.getCustomerOrderList(userId, pagination)
 
         if (!orderExist) {
             throw createHttpError.NotFound("Order for User not found.")
@@ -42,8 +44,8 @@ export class OrderServices {
             }
             return orderDetail
         }))
-
-        return orders
+        const count = await this.orderRepository.getOrderCounts({customer_id: userId})
+        return {count: count,orders}
     }
 
     getCustomerOrder = async (orderId: string, userId: string) => {
@@ -119,13 +121,13 @@ export class OrderServices {
 
         const orderItems = await this.orderItemServices.getOrderItemList(order_id, {})
 
-        const itemStatus = orderItems.some((item) => item.order_status == 'pending')
+        const itemStatus = orderItems.orderItems.some((item) => item.order_status == 'pending')
 
         if (!itemStatus) {
             throw createHttpError.BadRequest("Order can't be cancelled.")
         }
 
-        orderItems.forEach(async (item) => {
+        orderItems.orderItems.forEach(async (item) => {
             await this.orderItemServices.updateSellerOrderStatus("canceled", item._id)
             await this.variantServices.updateStock(item.item.productVariant as unknown as string, item.item.quantity)
         })
@@ -141,7 +143,7 @@ export class OrderServices {
         }
         const orderItems = await this.orderItemServices.getOrderItemList(order_id, {})
 
-        const itemStatus = orderItems.every((item) => item.order_status == 'delivered')
+        const itemStatus = orderItems.orderItems.every((item) => item.order_status == 'delivered')
 
         if (!itemStatus) {
             throw createHttpError.BadRequest("Order can't be set to complete as order are still need to be delivered.")

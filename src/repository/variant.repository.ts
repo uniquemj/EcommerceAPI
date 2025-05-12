@@ -10,12 +10,13 @@ export class VariantRepository implements VariantRepositoryInterface{
     }
     
     async getVariant(variantId: string): Promise<VariantInfo | null>{
-        console.log(variantId)
-        return await Variant.findById(variantId).populate({path: "product", select: "_id name seller"})
+        return await Variant.findById(variantId)
+        .populate({path: "product", select: "_id name seller"})
     }
 
     async getVariantByProduct(productId: string): Promise<VariantInfo[]>{
-        return await Variant.find({product: productId}).populate('product', '_id name seller')
+        return await Variant.find({product: productId})
+        .populate('product', '_id name seller')
     }
 
     async updateVariant(variantId: string, updateInfo: VariantInput): Promise<VariantInfo|null>{

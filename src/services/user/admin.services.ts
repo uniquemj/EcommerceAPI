@@ -1,5 +1,6 @@
 import { AdminRepository } from "../../repository/user/admin.repository";
 import { AuthService } from "../../types/auth.types";
+import { paginationField } from "../../types/pagination.types";
 import { AdminInfo, AdminProfile, UserCredentials } from "../../types/user.types";
 import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
 import createHttpError from "../../utils/httperror.utils";
@@ -7,12 +8,13 @@ import createHttpError from "../../utils/httperror.utils";
 export class AdminServices implements AuthService {
     constructor(private readonly adminRepository: AdminRepository) { }
 
-    async getAllAdmin() {
-        const result = await this.adminRepository.getAllAdmin()
+    async getAllAdmin(pagination: paginationField) {
+        const result = await this.adminRepository.getAllAdmin(pagination)
         if (result.length == 0) {
             throw createHttpError.NotFound("Admin List Empty")
         }
-        return result
+        const count = await this.adminRepository.getAdminCount()
+        return {count: count, admins: result}
     }
 
     async getAdminDetail(id: string) {

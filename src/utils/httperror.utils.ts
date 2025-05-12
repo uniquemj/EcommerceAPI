@@ -26,6 +26,9 @@ const createHttpError = {
     InternalServerError: <T>(message: string, errors:T[] = [])=>{
         return new HttpError(500, message, errors)
     },
+    BadGateway: <T>(message: string, errors: T[] = []) =>{
+        return new HttpError(502, message, errors)
+    },
     Custom: <T>(statuscode: number, message: string, errors: T[]=[])=>{
         return new HttpError(statuscode, message, errors)
     }

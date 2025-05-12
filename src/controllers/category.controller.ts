@@ -36,7 +36,9 @@ export class CategoryController{
 
     getCategoryList = async(req: AuthRequest, res: Response) =>{
         try{
-            const category = await this.categoryServices.getCategoryList()
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const category = await this.categoryServices.getCategoryList({page: parseInt(page as string), limit: parseInt(limit as string)})
             handleSuccessResponse(res, "Category List Fetched.", category)
         }catch(e: any){
             this.logger.error("Error while fetching Category list.", {object: e, error: new Error()})

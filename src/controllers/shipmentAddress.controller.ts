@@ -39,7 +39,10 @@ export class ShipmentAddressController{
     getShipmentAddressList = async(req: AuthRequest, res: Response) =>{
         try{
             const userId = req.user?._id as string
-            const result = await this.shipmentAddressServices.getShipmentAddressList(userId)
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+        
+            const result = await this.shipmentAddressServices.getShipmentAddressList(userId, {page: parseInt(page as string), limit: parseInt(limit as string)})
             handleSuccessResponse(res, "Shipment Address Fetched.", result)
         }catch(e: any){
             this.logger.error("Error while fetching shipment address list.")

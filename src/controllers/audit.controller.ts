@@ -28,7 +28,9 @@ export class AuditTrailController{
 
     getAllAuditTrail = async(req: AuthRequest, res: Response) =>{
         try{
-            const result = await this.auditTrailServices.getAllAuditTrails()
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const result = await this.auditTrailServices.getAllAuditTrails({page: parseInt(page as string), limit: parseInt(limit as string)})
             handleSuccessResponse(res, "Audit Trails List fetched.", result)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

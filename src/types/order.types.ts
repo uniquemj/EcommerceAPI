@@ -94,3 +94,7 @@ export interface orderFilter{
 export interface orderItemFilter{
     order_status?:string
 }
+
+export interface OrderCountFilter{
+    customer_id?:string
+}

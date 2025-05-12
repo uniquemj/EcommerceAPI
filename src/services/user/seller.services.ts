@@ -7,6 +7,7 @@ import { comparePassword, hashPassword } from "../../utils/helper.utils";
 import { ProductServices } from "../product.services";
 import { AuthService } from "../../types/auth.types";
 import { CloudServices } from "../cloud.services";
+import { paginationField } from "../../types/pagination.types";
 
 
 export class SellerServices implements AuthService {
@@ -21,13 +22,15 @@ export class SellerServices implements AuthService {
         return sellerExist
     }
 
-    async getSellerList() {
-        const sellers = await this.sellerRepository.getSellerList()
+    async getSellerList(pagination: paginationField) {
+        const sellers = await this.sellerRepository.getSellerList(pagination)
         if (sellers.length == 0) {
             throw createHttpError.NotFound("Seller List is Empty.")
         }
-        return sellers
+        const count = await this.sellerRepository.getSellerCount()
+        return {count, sellers}
     }
+
     async registerUser(sellerInfo: SellerInfo) {
         const sellerExist = await this.sellerRepository.getSeller(sellerInfo.email)
         if (sellerExist) {
@@ -144,9 +147,9 @@ export class SellerServices implements AuthService {
         }
 
         const result = await this.sellerRepository.deleteSeller(sellerId)
-        const sellerProductList = await this.productServices.getSellerProductList(sellerId, {})
+        const sellerProductList = await this.productServices.getSellerProductList(sellerId,{page: 0, limit: 0},{})
 
-        sellerProductList.forEach(async (product) => {
+        sellerProductList.product.forEach(async (product) => {
             await this.productServices.editProduct(product._id, { isActive: false })
         })
 

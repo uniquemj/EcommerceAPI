@@ -12,7 +12,8 @@ export class CartRepository implements CartRepositoryInterface{
     }
 
     async getCartByUserId(userId: string):Promise<CartInfo | null>{
-        return await Cart.findOne({customer: userId}).populate({path: 'items', populate: {path: 'productVariant', select: 'price color stock images', populate: {path: 'product', select: 'seller name'}}})
+        return await Cart.findOne({customer: userId})
+        .populate({path: 'items', populate: {path: 'productVariant', select: 'price color stock images', populate: {path: 'product', select: 'seller name'}}})
     }
 
     async addItemToCart(itemId: CartInputItem, userId: string): Promise<CartInfo | null>{

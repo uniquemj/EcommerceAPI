@@ -4,16 +4,18 @@ import { CustomerInfo, CustomerProfile, UserCredentials } from "../../types/user
 import createHttpError from "../../utils/httperror.utils";
 import { hashPassword, comparePassword, signToken } from "../../utils/helper.utils";
 import { AuthService } from "../../types/auth.types";
+import { paginationField } from "../../types/pagination.types";
 
 export class CustomerServices implements AuthService {
     constructor(private readonly customerRepository: CustomerRepository) { }
 
-    async getCustomerList() {
-        const customers = await this.customerRepository.getCustomerList()
+    async getCustomerList(pagination: paginationField) {
+        const customers = await this.customerRepository.getCustomerList(pagination)
         if (customers.length == 0) {
             throw createHttpError.NotFound("Customer List is empty.")
         }
-        return customers
+        const count = await this.customerRepository.getCustomerCount()
+        return {count: count, customer:customers}
     }
 
     async getCustomerById(id: string) {

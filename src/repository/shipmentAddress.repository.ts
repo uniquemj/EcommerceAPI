@@ -1,4 +1,5 @@
 import ShipmentAddress from "../model/shippingAddress.model";
+import { paginationField } from "../types/pagination.types";
 import { ShipmentAddressRepositoryInterface } from "../types/repository.types";
 import { ShipmentInfo, ShipmentInputInfo } from "../types/shipment.types";
 
@@ -8,8 +9,14 @@ export class ShipmentAddressRepository implements ShipmentAddressRepositoryInter
         return await ShipmentAddress.create(shipmentInfo)
     }
 
-    async getShipmentAddressList(customerId: string): Promise<ShipmentInfo[]>{
+    async getShipmentCount(): Promise<number>{
+        return await ShipmentAddress.countDocuments()
+    }
+
+    async getShipmentAddressList(customerId: string, pagination: paginationField): Promise<ShipmentInfo[]>{
         return await ShipmentAddress.find({customer_id: customerId})
+        .skip((pagination.page - 1) * pagination.limit)
+        .limit(pagination.limit)
     }
 
     async getShipmentAddressById(addressId: string): Promise<ShipmentInfo|null>{

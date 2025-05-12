@@ -2,12 +2,21 @@ import Admin from "../../model/user/admin.model";
 import { AdminInfo, AdminProfile, UserCredentials } from "../../types/user.types";
 import { signToken } from "../../utils/helper.utils";
 import { AdminRepositoryInterface } from "../../types/repository.types";
+import { paginationField } from "../../types/pagination.types";
 
 export class AdminRepository implements AdminRepositoryInterface{
-    async getAllAdmin(): Promise<AdminInfo[]>{
-        return await Admin.find({}).select('-password')
+    async getAllAdmin(pagination: paginationField): Promise<AdminInfo[]>{
+        return await Admin.find({})
+        .skip((pagination.page - 1) * pagination.limit)
+        .limit(pagination.limit)
+        .select('-password')
+
     }
 
+    async getAdminCount(): Promise<number>{
+        return await Admin.countDocuments()
+    }
+    
     async getAdminById(id: string): Promise<AdminInfo|null>{
         return await Admin.findById(id).select('-password')
     }

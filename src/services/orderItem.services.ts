@@ -1,6 +1,7 @@
 import { OrderItemRepository } from "../repository/orderitem.repository";
 import { orderItemFilter } from "../types/order.types";
 import { OrderItemInfo, OrderItemInputInfo } from "../types/orderitem.types";
+import { paginationField } from "../types/pagination.types";
 import createHttpError from "../utils/httperror.utils";
 import { VariantServices } from "./variant.services";
 
@@ -18,7 +19,8 @@ export class OrderItemServices {
         if (orderItems.length == 0) {
             throw createHttpError.NotFound("Order Items list is empty.")
         }
-        return orderItems
+        const count = await this.orderItemRepository.getOrderItemCount({})
+        return {count: count, orderItems}
     }
 
     getOrderItemById = async (orderId: string) => {
@@ -31,15 +33,17 @@ export class OrderItemServices {
 
     getOrderItemList = async (orderId: string, query: orderItemFilter) => {
         const orderItems = await this.orderItemRepository.getOrderItemList(orderId, query)
-        return orderItems
+        const count = await this.orderItemRepository.getOrderItemCount({order_id: orderId})
+        return {count: count, orderItems}
     }
 
-    getOrderForSeller = async (userId: string, query: orderItemFilter) => {
-        const orderItems = await this.orderItemRepository.getOrderForSeller(userId, query)
+    getOrderForSeller = async (userId: string, pagination: paginationField, query: orderItemFilter) => {
+        const orderItems = await this.orderItemRepository.getOrderForSeller(userId, pagination, query)
         if (orderItems.length == 0) {
             throw createHttpError.NotFound("No order received.")
         }
-        return orderItems
+        const count = await this.orderItemRepository.getOrderItemCount({seller_id: userId})
+        return {count: count, orderItems}
     }
 
     updateSellerOrderStatus = async (order_status: string, orderItemId: string) => {

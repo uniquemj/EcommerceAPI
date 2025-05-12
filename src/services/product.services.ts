@@ -1,31 +1,35 @@
 import { ProductRepository } from "../repository/product.repository";
 import { CategoryInfo } from "../types/category.types";
 import { ImageInfo } from "../types/image.types";
-import { ProductFilter, ProductInfo, ProductInputInfo } from "../types/product.types";
+import { ArchieveStatus, ProductFilter, ProductInfo, ProductInputInfo } from "../types/product.types";
 import { VariantInfo, VariantInput } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
-import { uploadImages } from "../utils/uploadImage.utils";
 import { VariantServices } from "./variant.services";
 import { CategoryServices } from "./category.services";
+import { paginationField } from "../types/pagination.types";
 
 export class ProductServices {
 
     constructor(private readonly productRepository: ProductRepository, private readonly categoryServices: CategoryServices, private readonly variantServices: VariantServices) { }
 
-    async getAllProducts(query: ProductFilter) {
-        const products = await this.productRepository.getAllProducts(query)
+    async getAllProducts(pagination: paginationField, query: ProductFilter) {
+        const products = await this.productRepository.getAllProducts(pagination, query)
+        const productCount = await this.productRepository.getProductCounts({...query})
         if (products.length == 0) {
             throw createHttpError.NotFound("Product list is Empty.")
         }
-        return products
+        return {count: productCount, product: products}
     }
 
-    async getProductList() {
-        const products = await this.productRepository.getProductList()
+    
+
+    async getProductList(pagination: paginationField) {
+        const products = await this.productRepository.getProductList(pagination)
+        const productCount = await this.productRepository.getProductCounts({archieveStatus: ArchieveStatus.UnArchieve})
         if (products.length == 0) {
             throw createHttpError.NotFound("Product list is Empty.")
         }
-        return products
+        return {count: productCount, product: products}
     }
 
     async getProductById(productId: string) {
@@ -37,13 +41,15 @@ export class ProductServices {
         return product
     }
 
-    async getSellerProductList(sellerId: string, query: ProductFilter) {
-        const productExist = await this.productRepository.getSellerProductList(sellerId, query)
+    async getSellerProductList(sellerId: string, pagination: paginationField, query: ProductFilter) {
+        const productExist = await this.productRepository.getSellerProductList(sellerId, pagination, query)
 
         if (productExist.length == 0) {
             throw createHttpError.NotFound("Seller Product List Empty.")
         }
-        return productExist
+
+        const productCount = await this.productRepository.getProductCounts({seller: sellerId, ...query})
+        return {count: productCount, product: productExist}
     }
 
     async getSellerProductById(productId: string, sellerID: string) {

@@ -124,7 +124,9 @@ export class SellerController{
 
     getSellerList = async(req: AuthRequest, res: Response) =>{
         try{
-            const result = await this.sellerServices.getSellerList()
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const result = await this.sellerServices.getSellerList({page: parseInt(page as string), limit: parseInt(limit as string)})
             handleSuccessResponse(res, "Seller List Fetched.", result)
         }catch(e:any){
             this.logger.error("Error while fetching seller list.", {object: e, error: new Error()})
