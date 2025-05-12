@@ -3,6 +3,7 @@ import { CartItem } from '../types/cart.types';
 import { OrderStatus } from '../types/order.types';
 
 interface OrderItemDocument extends Document{
+    _id: string,
     order_id: Schema.Types.ObjectId,
     item: CartItem,
     

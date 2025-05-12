@@ -1,6 +1,7 @@
 import {Schema, Model, model, Document} from 'mongoose';
 
 interface AuditTrailDocument extends Document{
+    _id: string,
     url: string,
     activity: string,
     userId: string,

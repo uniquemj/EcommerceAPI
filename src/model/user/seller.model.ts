@@ -3,6 +3,7 @@ import { User, UserRole } from "../../types/user.types";
 import { ImageInfo } from "../../types/image.types";
 
 interface SellerDocument extends User, Document{
+    _id: string,
     store_name: string,
     legal_document: [ImageInfo],
     address: string,

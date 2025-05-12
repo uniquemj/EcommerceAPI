@@ -1,6 +1,7 @@
 import {Schema, Model, model, Document} from 'mongoose'
 
 interface ShipmentAddressDocument extends Document{
+    _id: string,
     customer_id: Schema.Types.ObjectId
     full_name: string,
     email: string,

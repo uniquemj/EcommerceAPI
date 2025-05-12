@@ -1,9 +1,9 @@
-import { timeStamp } from "console";
 import AuditTrail from "../model/audit.model";
 import { AuditTrailInfo } from "../types/audit.types";
+import { AuditTrailRepositoryInterface } from "../types/repository.types";
 
 
-export class AuditTrailRepository{
+export class AuditTrailRepository implements AuditTrailRepositoryInterface{
     async findAll(): Promise<AuditTrailInfo[]>{
         return await AuditTrail.find({}).sort('-createdAt')
     }

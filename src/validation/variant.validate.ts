@@ -34,3 +34,12 @@ export const updateVariantSchema = z.object({
 .refine((data)=>Object.keys(data).length > 0, {
     message: "At least one field must be provided to update. Available fields: color, size, images, price, stock, availability, packageWeight, packageLength, dangerousGood, warrantyType, warrantyPeriod, warrantyPolicy",
 })
+
+
+export const stockValidateSchema = z.object({
+    stock: z.number().min(1)
+}).strict()
+
+export const availabilityValidateSchema = z.object({
+    availability: z.boolean()
+}).strict()

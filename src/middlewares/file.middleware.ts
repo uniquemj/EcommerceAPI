@@ -3,6 +3,9 @@ import { FileFilterCallback } from 'multer'
 import fs from 'fs'
 import path from 'path'
 
+const date = new Date()
+const FullDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+
 const storage = multer.diskStorage({
     destination:(req, file, cb) =>{
         if(file.fieldname == 'productImages'){
@@ -13,10 +16,14 @@ const storage = multer.diskStorage({
             const path = './uploads/variants'
             fs.mkdirSync(path, {recursive: true})
             cb(null, path)
+        } else if(file.fieldname == 'legal_document'){
+            const path = `./uploads/legal_document/${FullDate}`
+            fs.mkdirSync(path, {recursive: true})
+            cb(null, path)
         }
     },
     filename: (req, file, cb) =>{
-        cb(null, file.fieldname + '-' + Date.now()+path.extname(file.originalname))
+        cb(null, file.fieldname + '-' + date.getDate()+path.extname(file.originalname))
     }
 })
 

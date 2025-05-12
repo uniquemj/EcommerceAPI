@@ -3,7 +3,7 @@ import { CustomerServices } from "./user/customer.services";
 import { SellerServices } from "./user/seller.services";
 
 import { OrderItemSummary} from "../types/email.types";
-import { CartItem } from "../types/cart.types";
+import { CartInputItem, CartItem } from "../types/cart.types";
 import { VariantServices } from "./variant.services";
 import { ProductServices } from "./product.services";
 
@@ -13,7 +13,7 @@ export class NotificationServices{
         private readonly productServices: ProductServices, 
         private readonly customerServices: CustomerServices){}
 
-    sendOrderNotification = async(orderId: string, customerId: string, orderTotal: number, orderItems: CartItem[]) =>{
+    sendOrderNotification = async(orderId: string, customerId: string, orderTotal: number, orderItems: CartInputItem[]) =>{
         try{
 
             const customer = await this.customerServices.getCustomerById(customerId)
@@ -29,7 +29,7 @@ export class NotificationServices{
         }
     }
 
-    getOrderSummary = async(orderId: string, customerId: string, orderTotal: number, orderItems: CartItem[]): Promise<string>=>{
+    getOrderSummary = async(orderId: string, customerId: string, orderTotal: number, orderItems: CartInputItem[]): Promise<string>=>{
 
         let productDetail: OrderItemSummary[] = await Promise.all(orderItems.map(async(item)=>{
             const product_id = await this.variantServices.getVariantProduct(item.productVariant)

@@ -57,7 +57,7 @@ export class CategoryController{
 
     createCategory = async(req: AuthRequest, res: Response) =>{
         try{
-            const categoryInfo = req.body as CategoryInfo
+            const categoryInfo = req.body
             const category = await this.categoryServices.createCategory(categoryInfo)
             handleSuccessResponse(res, "Category Created.", category)
         }catch(e: any){

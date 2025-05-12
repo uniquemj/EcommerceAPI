@@ -14,7 +14,7 @@ const methodMappers: Record<string, string> = {
 export const createAuditTrailMiddleware = (logger: winston.Logger, auditTrailServices: AuditTrailServices) =>{
     return (req: AuthRequest, res: Response, next: NextFunction)=>{
         try{
-            const exclude_path = ['/api/auth', '/api/docs', '/api/audit-log']
+            const exclude_path = ['/api/auth', '/api/docs', '/api/audit-log', '/api/admin/password', '/api/customer/password', '/api/seller/password']
             if(exclude_path.some(path => req.originalUrl.startsWith(path))){
                 return next()
             }

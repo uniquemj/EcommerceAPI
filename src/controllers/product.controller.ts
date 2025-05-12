@@ -6,25 +6,26 @@ import { AuthRequest } from "../types/auth.types";
 import { productSchema, updateProductSchema } from "../validation/product.validate";
 import { validate } from "../middlewares/validation.middleware";
 import { ArchieveStatus, ProductFilter, ProductInfo } from "../types/product.types";
-import { updateVariantSchema} from "../validation/variant.validate";
+import { availabilityValidateSchema, stockValidateSchema, updateVariantSchema} from "../validation/variant.validate";
 import { verifySeller } from "../middlewares/sellerVerify.middeware";
 import { handleSuccessResponse } from "../utils/httpresponse.utils";
 import Logger from "../utils/logger.utils";
 import winston from 'winston';
+import { VariantServices } from "../services/variant.services";
 
 export class ProductController{
     readonly router: Router;
     private static instance: ProductController;
     private readonly logger: winston.Logger;
 
-    private constructor(private readonly productServices: ProductServices, logger: Logger){
+    private constructor(private readonly productServices: ProductServices, private readonly variantServices: VariantServices, logger: Logger){
         this.router = Router()
         this.logger = logger.logger()
     }
 
-    static initController(productServices: ProductServices, logger: Logger){
+    static initController(productServices: ProductServices, variantServices: VariantServices,logger: Logger){
         if(!ProductController.instance){
-            ProductController.instance = new ProductController(productServices, logger)
+            ProductController.instance = new ProductController(productServices, variantServices, logger)
         }
         const instance = ProductController.instance
 
@@ -37,20 +38,24 @@ export class ProductController{
         instance.router.post('/', allowedRole('seller'), verifySeller, validate(productSchema), instance.createProduct)
         instance.router.put('/:id', allowedRole('seller'), verifySeller, validate(updateProductSchema), instance.editProduct)
         instance.router.delete('/:id', allowedRole('seller', 'admin'), verifySeller, instance.removeProduct)
-        instance.router.put('/:id/archieve', allowedRole('seller'), verifySeller, instance.archieveProduct)
-        instance.router.put('/:id/unarchieve', allowedRole('seller'), verifySeller, instance.unarchieveProduct)
         // instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
         
         //Variant
         instance.router.get('/:id/variants', allowedRole('seller'), verifySeller, instance.getProductVariant)
         instance.router.delete('/:id/variants/:variantId', allowedRole('seller','admin'),verifySeller, instance.removeVariant)
-
+        
         // Remove Category
         instance.router.delete('/:id/category/:categoryId', allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
         
         // Remove and Add Image
         instance.router.put('/:id/variants/:variantId', allowedRole('seller'), verifySeller, validate(updateVariantSchema), instance.updateProductVariant)
         instance.router.delete('/:id/variants/:variantId/images/:imageId', allowedRole('seller'),verifySeller, instance.removeImageFromProductVariant)
+        
+        // Inventory
+        instance.router.put('/:id/archieve', allowedRole('seller'), verifySeller, instance.archieveProduct)
+        instance.router.put('/:id/unarchieve', allowedRole('seller'), verifySeller, instance.unarchieveProduct)
+        instance.router.put('/:id/variants/:variantId/stock', allowedRole('seller'), verifySeller, validate(stockValidateSchema), instance.updateVariantStock)
+        instance.router.put('/:id/variants/:variantId/availability', allowedRole('seller'), verifySeller, validate(availabilityValidateSchema), instance.updateVariantAvailability)
 
         return instance
     }   
@@ -116,7 +121,7 @@ export class ProductController{
 
     createProduct = async(req: AuthRequest, res: Response) =>{
         try{
-            const productInfo = req.body as ProductInfo
+            const productInfo = req.body
             const product = await this.productServices.createProduct(productInfo, req.user!._id!)
             handleSuccessResponse(res, "Product Created.", product)
         } catch(e: any){
@@ -230,6 +235,32 @@ export class ProductController{
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
+
+    updateVariantStock = async(req: AuthRequest, res: Response) =>{
+        try{
+            const variantId = req.params.variantId
+            const {stock} = req.body
+            const result = await this.variantServices.updateStock(variantId, stock)
+            handleSuccessResponse(res, "Variant Stock Updated.", result)
+        }catch(e: any){
+            this.logger.error("Error while updating stock.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    updateVariantAvailability = async(req: AuthRequest, res: Response) =>{
+        try{
+            const variantId = req.params.variantId
+
+            const{availability} = req.body
+            const result = await this.variantServices.updateVariantAvailability(variantId, availability)
+            handleSuccessResponse(res, "Variant Availability Updated.", result)
+        }catch(e:any){
+            this.logger.error("Error while updating availability of variant.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
 
     archieveProduct = async(req: AuthRequest, res: Response) =>{
         try{    

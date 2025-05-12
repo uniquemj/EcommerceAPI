@@ -1,3 +1,4 @@
+import { Schema } from "mongoose";
 import { CartItem } from "./cart.types";
 
 export enum PaymentMethod{
@@ -52,20 +53,37 @@ export interface PaymentInfo{
     payment_status?: PaymentStatus
 }
 
+
 export interface OrderInfo{
-    _id?:string,
-    customer_id?: string,
-    shipping_id?: string,
+    _id: string,
+    customer_id: Schema.Types.ObjectId,
+    shipping_id: Schema.Types.ObjectId,
+
+    payment_method: PaymentMethod,
+    payment_status: PaymentStatus,
+
+    isCanceled:boolean,
+    cancelAt:Date,
+    isCompleted: boolean,
+    
+    orderTotal: number,
+    order_timeStamp: Date,
+}
+
+export interface OrderInputInfo{
+    _id?:string, 
+    
+    customer_id: string,
+    shipping_id: string,
 
     payment_method?: PaymentMethod,
     payment_status?: PaymentStatus,
 
     isCanceled?:boolean,
-    cancelAt?:Date,
     isCompleted?: boolean,
     
+    cancelAt?: Date,
     orderTotal?: number,
-    order_timeStamp?: Date,
 }
 
 export interface orderFilter{

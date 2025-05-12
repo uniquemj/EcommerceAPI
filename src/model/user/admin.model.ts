@@ -3,6 +3,7 @@ import { UserRole } from '../../types/user.types'
 
 
 interface AdminDocument extends Document{
+    _id: string,
     fullname: string,
     username: string,
     email: string,

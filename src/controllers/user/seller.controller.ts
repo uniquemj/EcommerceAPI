@@ -12,6 +12,9 @@ import { verifySuperAdmin } from "../../middlewares/admin.middleware";
 import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 import Logger from "../../utils/logger.utils";
 import winston from 'winston';
+import { BusinessFile } from "../../types/file.types";
+import upload from "../../middlewares/file.middleware";
+import { VerificationImages } from "../../constant/uploadFields";
 
 export class SellerController{
     
@@ -33,7 +36,7 @@ export class SellerController{
         instance.router.post('/verify/:code', instance.verifyEmail)
 
         instance.router.get('/profile', verifyToken, allowedRole('seller'), instance.getSellerProfile)
-        instance.router.post('/profile', verifyToken, allowedRole('seller'), validate(addBusinessInfoSchema), instance.addBusinessInfo)
+        instance.router.post('/profile', verifyToken, allowedRole('seller'), upload.fields(VerificationImages), validate(addBusinessInfoSchema), instance.addBusinessInfo)
         instance.router.put('/profile', verifyToken, allowedRole('seller'), validate(updateBusinessInfoSchema), instance.updateSellerInfo)
         instance.router.put('/password', verifyToken, allowedRole('seller'), validate(updatePasswordSchema), instance.updatePassword)
 
@@ -83,7 +86,11 @@ export class SellerController{
         try{
             const businessInfo = req.body as SellerProfile
             const sellerEmail = req.user?.email as string
-            const result = await this.sellerServices.updateSellerInfo(businessInfo, sellerEmail)
+
+            const files = req.files as BusinessFile
+            const legalFiles = files.legal_document as Express.Multer.File[]
+            console.log("from controller")
+            const result = await this.sellerServices.updateBusinessInfo(businessInfo, legalFiles, sellerEmail)
             handleSuccessResponse(res, "Business Info Added.", result)
         }catch(e:any){
             this.logger.error("Error while adding Business Info.", {object: e, error: new Error()})

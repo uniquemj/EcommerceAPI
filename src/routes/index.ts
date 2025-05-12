@@ -56,7 +56,7 @@ const variantServices = new VariantServices(variantRepository)
 //Product
 const productRepository = new ProductRepository()
 const productServices = new ProductServices(productRepository, categoryServices, variantServices)
-const productController = ProductController.initController(productServices, logger)
+const productController = ProductController.initController(productServices, variantServices, logger)
 
 
 //User

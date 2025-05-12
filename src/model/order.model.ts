@@ -4,6 +4,7 @@ import { PaymentMethod, PaymentStatus } from '../types/order.types'
 
 
 interface OrderDocument extends Document{
+    _id: string,
     customer_id: Schema.Types.ObjectId,
     shipping_id: Schema.Types.ObjectId,
 

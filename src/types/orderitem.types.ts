@@ -1,9 +1,18 @@
-import { CartItem } from "./cart.types";
+import { Schema } from "mongoose";
+import { CartInputItem, CartItem } from "./cart.types";
 
 
 export interface OrderItemInfo{
-    order_id?: string,
-    item?: CartItem,
-    seller_id?: string,
-    order_status?: string,
+    _id: string
+    order_id: Schema.Types.ObjectId,
+    item: CartItem,
+    seller_id: Schema.Types.ObjectId,
+    order_status: string,
+}
+
+export interface OrderItemInputInfo{
+    order_id: string,
+    item: CartInputItem,
+    seller_id: Schema.Types.ObjectId,
+    order_status: string,
 }

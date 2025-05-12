@@ -53,7 +53,7 @@ export const updateAdminPasswordSchema = z.object({
 }).strict()
 
 export const addBusinessInfoSchema = z.object({
-    legal_document: imageSchema.array(),
+    legal_document: z.array(z.instanceof(File)).length(2, {message: "Exactly 2 file are required"}).optional(),
     address: z.string().trim(),
     city: z.string().trim(),
     country: z.string().trim(),

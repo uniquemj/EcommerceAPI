@@ -1,11 +1,22 @@
-import { Schema } from "mongoose"
+import { Schema, Types } from "mongoose"
 
 export interface CartItem{
-    productVariant: string,
+    productVariant: Schema.Types.ObjectId,
     quantity: number
 }
 
 export interface CartInfo{
-    customer: string,
+    _id: string,
+    customer: Schema.Types.ObjectId,
     items: CartItem[]
+}
+
+export interface CartInputInfo{
+    customer: string,
+    items: CartInputItem[]
+}
+
+export interface CartInputItem{
+    productVariant: string, 
+    quantity: number
 }

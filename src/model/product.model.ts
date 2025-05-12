@@ -4,6 +4,7 @@ import { VariantInfo } from "../types/variants.types";
 import { ArchieveStatus } from "../types/product.types";
 
 interface ProductDocument extends Document{
+    _id: string, 
     seller: Schema.Types.ObjectId,
     name: string,
     defaultVariant: Schema.Types.ObjectId,

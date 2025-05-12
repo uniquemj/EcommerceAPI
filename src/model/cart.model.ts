@@ -6,6 +6,7 @@ interface CartItem{
 }
 
 interface CartDocument extends Document{
+    _id: string,
     customer: Schema.Types.ObjectId,
     items: CartItem[]
 }

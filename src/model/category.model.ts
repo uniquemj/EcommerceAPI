@@ -2,6 +2,7 @@ import { Schema, Document, Model, model } from "mongoose";
 
 
 interface CategoryDocument extends Document{
+    _id: string,
     title: string,
     parent_category: Schema.Types.ObjectId
 }

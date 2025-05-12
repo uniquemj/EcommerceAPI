@@ -14,6 +14,7 @@ export enum WarrantyType{
 }
 
 interface VariantDocument extends Document{
+    _id: string,
     product: Schema.Types.ObjectId
     images: ImageInfo[],
     color: string,
