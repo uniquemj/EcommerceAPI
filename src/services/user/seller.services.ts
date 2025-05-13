@@ -9,11 +9,14 @@ import { AuthService } from "../../types/auth.types";
 import { CloudServices } from "../cloud.services";
 import { paginationField } from "../../types/pagination.types";
 import { SellerRepositoryInterface } from "../../types/repository.types";
+import { inject, injectable } from "tsyringe";
+import { FileType } from "../../types/file.types";
 
 
+@injectable()
 export class SellerServices implements AuthService {
 
-    constructor(private readonly sellerRepository: SellerRepositoryInterface, private readonly productServices: ProductServices) { }
+    constructor(@inject('SellerRepositoryInterface') private readonly sellerRepository: SellerRepositoryInterface, @inject(ProductServices) private readonly productServices: ProductServices, @inject(CloudServices) private readonly cloudServices: CloudServices) { }
 
     async getSellerById(id: string) {
         const sellerExist = await this.sellerRepository.getSellerById(id)
@@ -105,8 +108,8 @@ export class SellerServices implements AuthService {
         
         const imageUrls = await Promise.all(
             legalFiles.map(async(image) =>{
-                const secure_url = await CloudServices.uploadImage(image.path)
-                return {url: secure_url}
+                const result = await this.cloudServices.uploadImage(image, 'legal_documents', FileType.LegalDocument)
+                return result._id
             }) || []
         )
         

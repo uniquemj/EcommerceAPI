@@ -1,8 +1,10 @@
+import { injectable } from "tsyringe";
 import Variant from "../model/variant.model";
 import { ImageInfo } from "../types/image.types";
 import { VariantRepositoryInterface } from "../types/repository.types";
 import { VariantInfo, VariantInput } from "../types/variants.types";
 
+@injectable()
 export class VariantRepository implements VariantRepositoryInterface{
 
     async createVariant(variantInfo:Partial<VariantInput>): Promise<VariantInfo>{

@@ -1,13 +1,14 @@
+import { injectable } from "tsyringe";
 import Customer from "../../model/user/customer.model";
 import { paginationField } from "../../types/pagination.types";
 import { CustomerRepositoryInterface } from "../../types/repository.types";
 import { CustomerInfo, CustomerProfile, SearchUserField, UserCredentials, VerifyField} from "../../types/user.types";
 import { signToken } from "../../utils/helper.utils";
 
+@injectable()
 export class CustomerRepository implements CustomerRepositoryInterface{
 
     async getCustomerList(pagination: paginationField): Promise<CustomerInfo[]>{
-        console.log(await Customer.find().skip((pagination.page-1)*pagination.limit).limit(pagination.limit))
         return await Customer.find({})
         .skip((pagination.page - 1) * pagination.limit)
         .limit(pagination.limit)

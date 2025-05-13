@@ -69,7 +69,14 @@ export class ProductController{
             delete query.page
             delete query.limit
             const product = await this.productServices.getAllProducts({page: parseInt(page as string), limit: parseInt(limit as string)}, query)
-            handleSuccessResponse(res, "Product Fetched.", product)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: product.count,
+                total_pages: Math.ceil(product.count / parseInt(limit as string)),
+            }
+            handleSuccessResponse(res, "Product Fetched.", product.product, 200, paginationData)
         }catch(e: any){
             this.logger.error("Error while fetching Product list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -100,7 +107,14 @@ export class ProductController{
             const limit = req.query.limit || 10
             const product = await this.productServices.getProductList({ page: parseInt(page as string), limit: parseInt(limit as string)})
 
-            handleSuccessResponse(res, "Product Fetched.", product, 200)
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: product.count,
+                total_pages: Math.ceil(product.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Product Fetched.", product.product, 200, paginationData)
         }catch(e: any){
             this.logger.error("Error while fetching Product list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -116,7 +130,15 @@ export class ProductController{
             delete query.page
             delete query.limit
             const result = await this.productServices.getSellerProductList(sellerId, {page: parseInt(page as string), limit: parseInt(limit as string)}, query)
-            handleSuccessResponse(res, "Seller Product List Fetched.", result)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Seller Product List Fetched.", result.product, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching Seller product list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

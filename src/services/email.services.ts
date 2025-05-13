@@ -1,5 +1,6 @@
 import nodemailer from 'nodemailer'
 import { TransportOptionsWithUnknownProps } from '../types/email.types'
+import { injectable } from 'tsyringe'
 
 
 const EMAIL = process.env.EMAIL
@@ -8,11 +9,12 @@ const clientId = process.env.OAUTH_CLIENTID
 const clientSecret = process.env.OAUTH_CLIENT_SECRET
 const refreshToken = process.env.OAUTH_REFRESH_TOKEN
 
+@injectable()
 export class EmailServices{
     private transporter: nodemailer.Transporter;
     private static instance: EmailServices;
 
-    private constructor(){
+    constructor(){
         this.transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {

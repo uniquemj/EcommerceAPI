@@ -1,9 +1,11 @@
+import { injectable } from "tsyringe";
 import OrderItem from "../model/orderitem.model";
 import { orderItemFilter } from "../types/order.types";
 import { OrderItemCountFilter, OrderItemInfo, OrderItemInputInfo } from "../types/orderitem.types";
 import { paginationField } from "../types/pagination.types";
 import { OrderItemRepositoryInterface } from "../types/repository.types";
 
+@injectable()
 export class OrderItemRepository implements OrderItemRepositoryInterface{
     private productVariantPopulate = {path: "item", populate: {path: "productVariant", select: '-__v', populate: {path: "product", select: "_id name"}}}
 
@@ -26,9 +28,11 @@ export class OrderItemRepository implements OrderItemRepositoryInterface{
         .select('-__v')
     }
 
-    async getAllOrderItems(query: orderItemFilter): Promise<OrderItemInfo[] | []>{
+    async getAllOrderItems(pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[] | []>{
         return await OrderItem.find({...query})
         .populate(this.productVariantPopulate)
+        .skip((pagination.page - 1) * pagination.limit)
+        .limit(pagination.limit)
         .select('-__v')
     }
 

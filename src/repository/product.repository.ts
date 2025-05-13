@@ -1,9 +1,11 @@
 
+import { injectable } from "tsyringe";
 import Product from "../model/product.model";
 import { paginationField } from "../types/pagination.types";
 import { ArchieveStatus, CountFilter, ProductFilter, ProductInfo, ProductInputInfo, searchFilter } from "../types/product.types";
 import { ProductRepositoryInterface } from "../types/repository.types";
 
+@injectable()
 export class ProductRepository implements ProductRepositoryInterface {
     private categoryPopulate = { path: "category", select: '-__v', populate: { path: "parent_category" } }
     private defaultVariantPopulate = { path: "defaultVariant" }

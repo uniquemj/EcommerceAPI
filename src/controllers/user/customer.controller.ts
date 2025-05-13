@@ -96,7 +96,15 @@ export class CustomerController{
             const page = req.query.page || 1
             const limit = req.query.page || 10
             const result = await this.customerService.getCustomerList({page: parseInt(page as string), limit: parseInt(limit as string)})
-            handleSuccessResponse(res, "Customer List Fetched.", result)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Customer List Fetched.", result.customer, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching customer list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

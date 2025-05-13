@@ -89,7 +89,7 @@ export class SellerController{
 
             const files = req.files as BusinessFile
             const legalFiles = files.legal_document as Express.Multer.File[]
-            console.log("from controller")
+            console.log(legalFiles)
             const result = await this.sellerServices.updateBusinessInfo(businessInfo, legalFiles, sellerEmail)
             handleSuccessResponse(res, "Business Info Added.", result)
         }catch(e:any){
@@ -127,7 +127,15 @@ export class SellerController{
             const page = req.query.page || 1
             const limit = req.query.limit || 10
             const result = await this.sellerServices.getSellerList({page: parseInt(page as string), limit: parseInt(limit as string)})
-            handleSuccessResponse(res, "Seller List Fetched.", result)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Seller List Fetched.", result.sellers, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching seller list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

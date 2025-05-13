@@ -1,9 +1,11 @@
+import { injectable } from "tsyringe";
 import Category from "../model/category.model";
 import {CategoryInfo, CategoryInputInfo } from "../types/category.types";
 import { paginationField } from "../types/pagination.types";
 import { CategoryRepositoryInterface } from "../types/repository.types";
 
 
+@injectable()
 export class CategoryRepository implements CategoryRepositoryInterface{
 
     async getCategoryList(pagination: paginationField): Promise<CategoryInfo[]>{

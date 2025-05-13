@@ -1,3 +1,4 @@
+import { inject, injectable } from "tsyringe";
 import { OrderItemRepository } from "../repository/orderitem.repository";
 import { orderItemFilter } from "../types/order.types";
 import { OrderItemInfo, OrderItemInputInfo } from "../types/orderitem.types";
@@ -6,17 +7,17 @@ import { OrderItemRepositoryInterface } from "../types/repository.types";
 import createHttpError from "../utils/httperror.utils";
 import { VariantServices } from "./variant.services";
 
-
+@injectable()
 export class OrderItemServices {
-    constructor(private readonly orderItemRepository: OrderItemRepositoryInterface, private readonly variantServices: VariantServices) { }
+    constructor(@inject('OrderItemRepositoryInterface') private readonly orderItemRepository: OrderItemRepositoryInterface, @inject(VariantServices) private readonly variantServices: VariantServices) { }
 
     createOrderItem = async (orderItemInfo: Partial<OrderItemInputInfo>)=> {
         const result = this.orderItemRepository.createOrderItem(orderItemInfo)
         return result
     }
 
-    getAllOrderItem = async (query: orderItemFilter) => {
-        const orderItems = await this.orderItemRepository.getAllOrderItems(query)
+    getAllOrderItem = async (pagination:paginationField, query: orderItemFilter) => {
+        const orderItems = await this.orderItemRepository.getAllOrderItems(pagination, query)
         if (orderItems.length == 0) {
             throw createHttpError.NotFound("Order Items list is empty.")
         }

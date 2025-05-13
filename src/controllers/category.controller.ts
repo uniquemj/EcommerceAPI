@@ -39,7 +39,15 @@ export class CategoryController{
             const page = req.query.page || 1
             const limit = req.query.limit || 10
             const category = await this.categoryServices.getCategoryList({page: parseInt(page as string), limit: parseInt(limit as string)})
-            handleSuccessResponse(res, "Category List Fetched.", category)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: category.count,
+                total_pages: Math.ceil(category.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Category List Fetched.", category, 200, paginationData)
         }catch(e: any){
             this.logger.error("Error while fetching Category list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

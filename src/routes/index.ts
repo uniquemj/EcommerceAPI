@@ -8,14 +8,9 @@ import { verifyToken } from '../middlewares/auth.middleware'
 import { OrderController } from '../controllers/order.controller'
 import { ShipmentAddressController } from '../controllers/shipmentAddress.controller'
 import { CustomerServices } from '../services/user/customer.services'
-import { CustomerRepository } from '../repository/user/customer.repository'
 import { SellerServices } from '../services/user/seller.services'
-import { SellerRepository } from '../repository/user/seller.repository'
-import { CategoryRepository } from '../repository/category.repository'
 import { CategoryServices } from '../services/category.services'
-import { ProductRepository } from '../repository/product.repository'
 import { ProductServices } from '../services/product.services'
-import { VariantRepository } from '../repository/variant.repository'
 import { VariantServices } from '../services/variant.services'
 import { CartRepository } from '../repository/cart.repository'
 import { CartServices } from '../services/cart.services'
@@ -36,7 +31,7 @@ import { NotificationServices } from '../services/notification.services'
 import { AuditTrailRepository } from '../repository/audit.repository'
 import { AuditTrailServices } from '../services/audit.services'
 import { AuditTrailController } from '../controllers/audit.controller'
-
+import {container} from '../constant/container.dependencies'
 
 const router = express.Router()
 
@@ -44,65 +39,50 @@ const logger = Logger.getInstance()
 const emailService = EmailServices.getInstance()
 
 //Category
-const cateogryRepository = new CategoryRepository()
-const categoryServices = new CategoryServices(cateogryRepository)
+const categoryServices = container.resolve(CategoryServices)
 const categoryController = CategoryController.initController(categoryServices, logger)
 
 
 //Variant
-const variantRepository = new VariantRepository()
-const variantServices = new VariantServices(variantRepository)
+const variantServices = container.resolve(VariantServices)
 
 //Product
-const productRepository = new ProductRepository()
-const productServices = new ProductServices(productRepository, categoryServices, variantServices)
+const productServices = container.resolve(ProductServices)
 const productController = ProductController.initController(productServices, variantServices, logger)
 
 
 //User
-const adminRepository = new AdminRepository()
-const adminServices = new AdminServices(adminRepository)
+const adminServices = container.resolve(AdminServices)
 const adminController = AdminController.initController(adminServices, logger)
 
-const customerRepository = new CustomerRepository()
-const customerService = new CustomerServices(customerRepository)
+const customerService = container.resolve(CustomerServices)
 const customerController = CustomerController.initController(customerService, logger)
 
-const sellerRepository = new SellerRepository()
-const sellerService = new SellerServices(sellerRepository, productServices)
+const sellerService = container.resolve(SellerServices)
 const sellerController = SellerController.initController(sellerService, logger)
 
 // Cart
-const cartRepository = new CartRepository()
-const cartServices = new CartServices(cartRepository, variantServices)
+const cartServices = container.resolve(CartServices)
 const cartController = CartController.initController(cartServices, logger)
 
 //Order item
-const orderItemRepository = new OrderItemRepository()
-const orderItemServices = new OrderItemServices(orderItemRepository, variantServices)
+const orderItemServices = container.resolve(OrderItemServices)
 
-
-
-// Notification 
-const notificationServices = new NotificationServices(emailService, variantServices, productServices, customerService)
 
 // Orderr
-const orderRepository = new OrderRepository()
-const orderServices = new OrderServices(orderRepository, cartServices, orderItemServices, variantServices, productServices, notificationServices)
+const orderServices = container.resolve(OrderServices)
 const orderController = OrderController.initController(orderServices, orderItemServices, logger)
 
 // Shipment Address
-const shipmentRepository = new ShipmentAddressRepository()
-const shipmentServices = new ShipmentAddressServices(shipmentRepository)
+const shipmentServices = container.resolve(ShipmentAddressServices)
 const shipmetAddressController = ShipmentAddressController.initController(shipmentServices, logger)
 
 // AuthContoller and AuthFactor
-const authServiceFactory = new AuthServiceFactory(adminServices, customerService, sellerService)
+const authServiceFactory = container.resolve(AuthServiceFactory)
 const authController = AuthController.initController(authServiceFactory, logger)
 
 // Audit Trail
-const auditTrailRepository = new AuditTrailRepository()
-const auditTrailServices = new AuditTrailServices(auditTrailRepository)
+const auditTrailServices = container.resolve(AuditTrailServices)
 const auditTrailController = AuditTrailController.initController(auditTrailServices)
 
 //User Route
@@ -129,4 +109,5 @@ router.use('/shipment', verifyToken, shipmetAddressController.router)
 
 // Audit Trail Log
 router.use('/audit-log', verifyToken, auditTrailController.router)
+
 export default router

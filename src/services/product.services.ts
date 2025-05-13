@@ -8,10 +8,13 @@ import { VariantServices } from "./variant.services";
 import { CategoryServices } from "./category.services";
 import { paginationField } from "../types/pagination.types";
 import { ProductRepositoryInterface } from "../types/repository.types";
+import { inject, injectable } from "tsyringe";
 
+
+@injectable()
 export class ProductServices {
 
-    constructor(private readonly productRepository: ProductRepositoryInterface, private readonly categoryServices: CategoryServices, private readonly variantServices: VariantServices) { }
+    constructor(@inject('ProductRepositoryInterface') private readonly productRepository: ProductRepositoryInterface, @inject(CategoryServices) private readonly categoryServices: CategoryServices, @inject(VariantServices) private readonly variantServices: VariantServices) { }
 
     async getAllProducts(pagination: paginationField, query: ProductFilter) {
         const products = await this.productRepository.getAllProducts(pagination, query)
@@ -66,6 +69,7 @@ export class ProductServices {
         const filteredProduct = await this.productRepository.searchProduct(searchFilter)
         return {count: filteredProduct.total, products: filteredProduct.products}
     }
+    
     async createProduct(productInfo: ProductInfo, userId: string) {
 
         const { name, category, variants, productDescripton, productHighlights } = productInfo

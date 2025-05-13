@@ -6,12 +6,14 @@ import { OrderItemSummary} from "../types/email.types";
 import { CartInputItem, CartItem } from "../types/cart.types";
 import { VariantServices } from "./variant.services";
 import { ProductServices } from "./product.services";
+import { inject, injectable } from "tsyringe";
 
+@injectable()
 export class NotificationServices{
-    constructor(private readonly emailServices: EmailServices, 
-        private readonly variantServices: VariantServices, 
-        private readonly productServices: ProductServices, 
-        private readonly customerServices: CustomerServices){}
+    constructor(@inject(EmailServices) private readonly emailServices: EmailServices, 
+        @inject(VariantServices) private readonly variantServices: VariantServices, 
+        @inject(ProductServices) private readonly productServices: ProductServices, 
+        @inject(CustomerServices) private readonly customerServices: CustomerServices){}
 
     sendOrderNotification = async(orderId: string, customerId: string, orderTotal: number, orderItems: CartInputItem[]) =>{
         try{

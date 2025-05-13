@@ -13,6 +13,7 @@ import { handleSuccessResponse } from "../../utils/httpresponse.utils";
 import Logger from "../../utils/logger.utils";
 
 import winston from 'winston'
+import { inject } from "tsyringe";
 
 export class AdminController{
     readonly router: Router;
@@ -57,7 +58,15 @@ export class AdminController{
             const page = req.query.page || 1
             const limit = req.query.limit || 10
             const result = await this.adminServices.getAllAdmin({page: parseInt(page as string), limit: parseInt(limit as string)})
-            handleSuccessResponse(res, "Admin List Fetched.", result)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Admin List Fetched.", result.admins, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching Admin List.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

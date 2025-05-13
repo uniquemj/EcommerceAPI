@@ -43,7 +43,15 @@ export class ShipmentAddressController{
             const limit = req.query.limit || 10
         
             const result = await this.shipmentAddressServices.getShipmentAddressList(userId, {page: parseInt(page as string), limit: parseInt(limit as string)})
-            handleSuccessResponse(res, "Shipment Address Fetched.", result)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Shipment Address Fetched.", result.shipmentAddresses, 200, paginationData)
         }catch(e: any){
             this.logger.error("Error while fetching shipment address list.")
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

@@ -6,9 +6,11 @@ import { hashPassword, comparePassword, signToken } from "../../utils/helper.uti
 import { AuthService } from "../../types/auth.types";
 import { paginationField } from "../../types/pagination.types";
 import { CustomerRepositoryInterface } from "../../types/repository.types";
+import { inject, injectable } from "tsyringe";
 
+@injectable()
 export class CustomerServices implements AuthService {
-    constructor(private readonly customerRepository: CustomerRepositoryInterface) { }
+    constructor(@inject('CustomerRepositoryInterface') private readonly customerRepository: CustomerRepositoryInterface) { }
 
     async getCustomerList(pagination: paginationField) {
         const customers = await this.customerRepository.getCustomerList(pagination)

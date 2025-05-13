@@ -1,3 +1,4 @@
+import { inject, injectable } from "tsyringe";
 import { AdminRepository } from "../../repository/user/admin.repository";
 import { AuthService } from "../../types/auth.types";
 import { paginationField } from "../../types/pagination.types";
@@ -6,8 +7,9 @@ import { AdminInfo, AdminProfile, UserCredentials } from "../../types/user.types
 import { comparePassword, hashPassword, signToken } from "../../utils/helper.utils";
 import createHttpError from "../../utils/httperror.utils";
 
+@injectable()
 export class AdminServices implements AuthService {
-    constructor(private readonly adminRepository: AdminRepositoryInterface) { }
+    constructor(@inject('AdminRepositoryInterface') private readonly adminRepository: AdminRepositoryInterface) { }
 
     async getAllAdmin(pagination: paginationField) {
         const result = await this.adminRepository.getAllAdmin(pagination)

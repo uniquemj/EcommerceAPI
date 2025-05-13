@@ -1,8 +1,11 @@
+import { injectable } from "tsyringe";
 import ShipmentAddress from "../model/shippingAddress.model";
 import { paginationField } from "../types/pagination.types";
 import { ShipmentAddressRepositoryInterface } from "../types/repository.types";
 import { ShipmentInfo, ShipmentInputInfo } from "../types/shipment.types";
 
+
+@injectable()
 export class ShipmentAddressRepository implements ShipmentAddressRepositoryInterface{
 
     async createShipmentAddress(shipmentInfo: ShipmentInputInfo): Promise<ShipmentInfo>{

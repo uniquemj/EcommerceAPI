@@ -29,7 +29,7 @@ const productSchema: Schema<ProductDocument> = new Schema({
 
     isActive: {type: Boolean, default: true},
     archieveStatus: {type: String, enum: Object.values(ArchieveStatus), default: ArchieveStatus.UnArchieve}
-})
+},{timestamps: true})
 
 const Product: Model<ProductDocument> = model('product', productSchema)
 

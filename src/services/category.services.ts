@@ -1,12 +1,14 @@
+import { inject, injectable } from "tsyringe";
 import { CategoryRepository } from "../repository/category.repository";
 import { CategoryInfo, CategoryInputInfo } from "../types/category.types";
 import { paginationField } from "../types/pagination.types";
 import { CategoryRepositoryInterface } from "../types/repository.types";
 import createHttpError from "../utils/httperror.utils";
 
+@injectable()
 export class CategoryServices {
 
-    constructor(private readonly categoryRepository: CategoryRepositoryInterface) { }
+    constructor(@inject('CategoryRepositoryInterface') private readonly categoryRepository: CategoryRepositoryInterface) { }
 
     getCategoryList = async (pagination: paginationField) => {
         const category = await this.categoryRepository.getCategoryList(pagination)

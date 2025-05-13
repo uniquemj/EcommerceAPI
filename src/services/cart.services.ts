@@ -1,3 +1,4 @@
+import { inject, injectable } from "tsyringe";
 import { CartRepository } from "../repository/cart.repository";
 import { CartInfo, CartInputInfo, CartInputItem, CartItem } from "../types/cart.types";
 import { CartRepositoryInterface } from "../types/repository.types";
@@ -5,10 +6,11 @@ import { VariantInfo } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
 import { VariantServices } from "./variant.services";
 
+@injectable()
 export class CartServices {
 
-    constructor(private readonly cartRepository: CartRepositoryInterface,
-        private readonly variantServices: VariantServices) { }
+    constructor(@inject('CartRepositoryInterface') private readonly cartRepository: CartRepositoryInterface,
+        @inject(VariantServices) private readonly variantServices: VariantServices) { }
 
     getCartByUserId = async (userId: string) => {
         const cartExist = await this.cartRepository.getCartByUserId(userId)

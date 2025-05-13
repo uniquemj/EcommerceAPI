@@ -63,7 +63,15 @@ export class OrderController{
             delete req.query.limit
 
             const result = await this.orderServices.getCustomerOrderList(query, {page: parseInt(page as string), limit: parseInt(limit as string)}, userId)
-            handleSuccessResponse(res, "Order Fetched.", result)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Order Fetched.", result.orders, 200, paginationData)
         }catch(e: any){
             this.logger.error("Error while getting Order list for Customer.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -107,7 +115,15 @@ export class OrderController{
             delete req.query.limit
 
             const result = await this.orderItemServices.getOrderForSeller(sellerId,{page: parseInt(page as string), limit: parseInt(page as string)}, query)
-            handleSuccessResponse(res, "Received Order Item Fetched for Seller.", result)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Received Order Item Fetched for Seller.", result.orderItems, 200, paginationData)
         }catch(e: any){
             this.logger.error("Error while fetching received order items for seller.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -183,7 +199,15 @@ export class OrderController{
             delete req.query.limit
 
             const result = await this.orderServices.getOrderList({page: parseInt(page as string), limit: parseInt(limit as string)},query)
-            handleSuccessResponse(res, "Order List Fetched.", result)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Order List Fetched.", result.orders, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching order list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -192,9 +216,24 @@ export class OrderController{
 
     getOrderItemList = async(req: AuthRequest, res: Response) =>{
         try{
-            const query = req.query as orderItemFilter
-            const result = await this.orderItemServices.getAllOrderItem(query)
-            handleSuccessResponse(res, "Order Item List Fetched.", result)
+
+            const query = req.query
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+
+            delete req.query.page
+            delete req.query.limit
+
+            const result = await this.orderItemServices.getAllOrderItem({page: parseInt(page as string), limit: parseInt(limit as string)},query)
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Order Item List Fetched.", result.orderItems, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching Order Item List.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

@@ -2,6 +2,7 @@ import { AdminInfo, AdminProfile, CustomerInfo, CustomerProfile, SearchUserField
 import { AuditTrailInfo } from "./audit.types";
 import { CartInfo, CartInputInfo, CartInputItem } from "./cart.types";
 import { CategoryInfo, CategoryInputInfo } from "./category.types";
+import { FileInfo } from "./file.types";
 import { ImageInfo } from "./image.types";
 import { OrderCountFilter, orderFilter, OrderInfo, OrderInputInfo, orderItemFilter } from "./order.types";
 import { OrderItemCountFilter, OrderItemInfo, OrderItemInputInfo } from "./orderitem.types";
@@ -81,7 +82,7 @@ export interface OrderItemRepositoryInterface{
     createOrderItem(orderItemInfo: Partial<OrderItemInputInfo>): Promise<OrderItemInfo>,
     getOrderItemById(orderId: string): Promise<OrderItemInfo | null>,
     getOrderItemList(orderId: string, query: orderItemFilter): Promise<OrderItemInfo[]>
-    getAllOrderItems(query: orderItemFilter): Promise<OrderItemInfo[]>
+    getAllOrderItems(pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[]>
     getOrderForSeller(userId: string, pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[]>
     updateOrderItem(updateOrderItemInfo: Partial<OrderItemInfo>, orderItemId: string): Promise<OrderItemInfo|null>
 }
@@ -127,3 +128,9 @@ export interface AuditTrailRepositoryInterface{
     create(payload: AuditTrailInfo): Promise<AuditTrailInfo>
 }
 
+export interface FileRepositoryInterface{
+    create(metadata: Omit<FileInfo, '_id'>): Promise<FileInfo>;
+    findAll(): Promise<FileInfo[]>;
+    findById(id: string): Promise<FileInfo | null>;
+    delete(id: string): Promise<FileInfo | null>
+}

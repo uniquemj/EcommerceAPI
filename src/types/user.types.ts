@@ -1,4 +1,4 @@
-import { Types } from "mongoose"
+import { Schema, Types } from "mongoose"
 import { ImageInfo } from "./image.types"
 
 export interface User{
@@ -29,7 +29,7 @@ export interface CustomerInfo extends User{
 export interface SellerInfo extends User{
     _id:string
     store_name: string,
-    legal_document: [ImageInfo],
+    legal_document: Schema.Types.ObjectId[],
     address: string,
     city: string,
     country: string,
@@ -50,7 +50,7 @@ export interface CustomerProfile{
 
 export interface SellerProfile{
     store_name?: string,
-    legal_document?: ImageInfo[],
+    legal_document?: string[],
     address?: string,
     city?: string,
     country?: string,

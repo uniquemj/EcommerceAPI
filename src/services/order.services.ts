@@ -1,4 +1,5 @@
 
+import { inject, injectable } from "tsyringe";
 import { OrderRepository } from "../repository/order.repository";
 import { CartInputItem, CartItem } from "../types/cart.types";
 import { DeliverInfo, orderFilter, orderItemFilter } from "../types/order.types";
@@ -11,14 +12,15 @@ import { OrderItemServices } from "./orderItem.services";
 import { ProductServices } from "./product.services";
 import { VariantServices } from "./variant.services";
 
+@injectable()
 export class OrderServices {
 
-    constructor(private readonly orderRepository: OrderRepositoryInterface,
-        private readonly cartServices: CartServices,
-        private readonly orderItemServices: OrderItemServices,
-        private readonly variantServices: VariantServices,
-        private readonly productServices: ProductServices,
-        private readonly notificationServices: NotificationServices
+    constructor(@inject('OrderRepositoryInterface') private readonly orderRepository: OrderRepositoryInterface,
+        @inject(CartServices) private readonly cartServices: CartServices,
+        @inject(OrderItemServices) private readonly orderItemServices: OrderItemServices,
+        @inject(VariantServices) private readonly variantServices: VariantServices,
+        @inject(ProductServices) private readonly productServices: ProductServices,
+        @inject(NotificationServices) private readonly notificationServices: NotificationServices
     ) { }
 
     getOrderList = async (pagination: paginationField, query: orderFilter) => {

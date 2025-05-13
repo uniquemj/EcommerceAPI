@@ -1,14 +1,16 @@
+import { injectable } from "tsyringe";
 import Seller from "../../model/user/seller.model";
 import { paginationField } from "../../types/pagination.types";
 import { SellerRepositoryInterface } from "../../types/repository.types";
 import { SearchUserField, SellerInfo, SellerProfile, UserCredentials, VerifyField} from "../../types/user.types";
 import { signToken } from '../../utils/helper.utils';
 
-
+@injectable()
 export class SellerRepository implements SellerRepositoryInterface{
 
     async getSellerList(pagination: paginationField): Promise<SellerInfo[]>{
         return await Seller.find({})
+        .populate({path: 'legal_document', select: '_id url'})
         .skip((pagination.page - 1) * pagination.limit)
         .limit(pagination.limit)
         .select('-password -__v')
@@ -18,11 +20,11 @@ export class SellerRepository implements SellerRepositoryInterface{
         return await Seller.countDocuments()
     }
     async getSellerById(id: string): Promise<SellerInfo | null>{
-        return await Seller.findById(id).select('-password')
+        return await Seller.findById(id).populate({path: 'legal_document', select: '_id url'}).select('-password')
     }
 
     async getSeller(email: string): Promise<SellerInfo | null>{
-        return await Seller.findOne({email: email})
+        return await Seller.findOne({email: email}).populate({path: 'legal_document', select: '_id url'})
     }
 
     async registerSeller(sellerInfo: Partial<SellerInfo>): Promise<SellerInfo | null>{

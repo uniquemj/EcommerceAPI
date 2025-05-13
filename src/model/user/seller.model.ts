@@ -5,7 +5,7 @@ import { ImageInfo } from "../../types/image.types";
 interface SellerDocument extends User, Document{
     _id: string,
     store_name: string,
-    legal_document: [ImageInfo],
+    legal_document: Array<Schema.Types.ObjectId>,
     address: string,
     city: string,
     country: string,
@@ -18,7 +18,7 @@ const SellerSchema: Schema<SellerDocument> = new Schema({
     fullname: {type: String},
     legal_document:[
         {
-            url: {type: String}
+            type: Schema.Types.ObjectId, ref: 'file'
         }
     ],
     address: {type: String},

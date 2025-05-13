@@ -1,13 +1,14 @@
+import { inject, injectable } from "tsyringe";
 import { VariantRepository } from "../repository/variant.repository";
 import { ImageInfo } from "../types/image.types";
 import { VariantRepositoryInterface } from "../types/repository.types";
 import { VariantInfo, VariantInput } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
 
-
+@injectable()
 export class VariantServices {
 
-    constructor(private readonly variantRepository: VariantRepositoryInterface) { }
+    constructor(@inject('VariantRepositoryInterface') private readonly variantRepository: VariantRepositoryInterface) { }
 
     getVariantProduct = async (variantId: string) => {
         const variant = await this.variantRepository.getVariant(variantId)

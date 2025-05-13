@@ -3,7 +3,10 @@ import { AdminInfo, AdminProfile, UserCredentials } from "../../types/user.types
 import { signToken } from "../../utils/helper.utils";
 import { AdminRepositoryInterface } from "../../types/repository.types";
 import { paginationField } from "../../types/pagination.types";
+import { injectable } from "tsyringe";
 
+
+@injectable()
 export class AdminRepository implements AdminRepositoryInterface{
     async getAllAdmin(pagination: paginationField): Promise<AdminInfo[]>{
         return await Admin.find({})

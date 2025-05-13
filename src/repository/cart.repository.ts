@@ -1,7 +1,9 @@
+import { injectable } from "tsyringe";
 import Cart from "../model/cart.model";
 import { CartInfo, CartInputInfo, CartInputItem, CartItem } from "../types/cart.types";
 import { CartRepositoryInterface } from "../types/repository.types";
 
+@injectable()
 export class CartRepository implements CartRepositoryInterface{
     async createCart(cartInfo: CartInputInfo):Promise<CartInfo>{
         return await Cart.create(cartInfo)

@@ -5,6 +5,8 @@ import { AuthRequest } from "../types/auth.types";
 import createHttpError from "../utils/httperror.utils";
 import { AuditTrailServices } from "../services/audit.services";
 import { handleSuccessResponse } from "../utils/httpresponse.utils";
+import {inject} from 'tsyringe'
+import { count } from "console";
 
 export class AuditTrailController{
     readonly router: Router
@@ -31,7 +33,13 @@ export class AuditTrailController{
             const page = req.query.page || 1
             const limit = req.query.limit || 10
             const result = await this.auditTrailServices.getAllAuditTrails({page: parseInt(page as string), limit: parseInt(limit as string)})
-            handleSuccessResponse(res, "Audit Trails List fetched.", result)
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.count,
+                total_pages: Math.ceil(result.count / parseInt(limit as string)),
+            }
+            handleSuccessResponse(res, "Audit Trails List fetched.", result.audits, 200, paginationData)
         }catch(e: any){
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }

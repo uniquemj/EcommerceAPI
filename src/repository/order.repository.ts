@@ -1,8 +1,10 @@
+import { injectable } from "tsyringe";
 import Order from "../model/order.model";
 import { OrderCountFilter, orderFilter, OrderInfo, OrderInputInfo } from "../types/order.types";
 import { paginationField } from "../types/pagination.types";
 import { OrderRepositoryInterface } from "../types/repository.types";
 
+@injectable()
 export class OrderRepository implements OrderRepositoryInterface{
 
     async getOrderList(pagination: paginationField, query: orderFilter):Promise<OrderInfo[]>{
