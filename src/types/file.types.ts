@@ -3,13 +3,15 @@ export interface FileInfo{
     variantImages?: Express.Multer.File[] 
 }
 
-export interface BusinessFile{
-    legal_document?: Express.Multer.File[]
+export interface SellerFile{
+    legal_document?: Express.Multer.File[],
+    store_logo?: Express.Multer.File[]
 }
 
 export enum FileType{
     Variants = 'variants',
-    LegalDocument = "legal-document"
+    LegalDocument = "legal-document",
+    StoreLogo = 'store-logo'
 }
 
 export interface FileInfo{

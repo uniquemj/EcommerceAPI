@@ -7,7 +7,7 @@ export const productSchema = z.object({
     category: z.string({message: "At least 1 category required."}).trim(),
     productDescription: z.string().trim().optional(),
     productHighlights: z.string().trim().optional(),
-    variants: variantSchema.array()
+    variants: variantSchema.array().min(1, {message: "At least one variant is required."})
 }).strict()
 
 export const updateProductSchema = z.object({

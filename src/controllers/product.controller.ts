@@ -31,7 +31,8 @@ export class ProductController{
 
         instance.router.get('/all', allowedRole('admin'), instance.getAllProduct)
         instance.router.get('/', allowedRole('customer'), instance.getProductList)
-        instance.router.get('/search', instance.searchProducts)
+        instance.router.get('/search', allowedRole('customer'), instance.searchProducts)
+        
         instance.router.get('/seller',allowedRole('seller'), verifySeller,instance.getSellerProductList)
         instance.router.get('/seller/:id',allowedRole('seller'), verifySeller, instance.getSellerProductById)
         instance.router.get('/:id', allowedRole('customer', 'admin'), instance.getProductById)

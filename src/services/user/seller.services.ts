@@ -101,11 +101,15 @@ export class SellerServices implements AuthService {
         return result
     }
 
-    async updateBusinessInfo(businessInfo: SellerProfile, legalFiles: Express.Multer.File[], sellerEmail: string){
+    async updateBusinessInfo(businessInfo: SellerProfile, legalFiles: Express.Multer.File[], store_logo: Express.Multer.File[], sellerEmail: string){
+        
         if(legalFiles.length !== 2){
-            throw createHttpError.BadRequest("Image count must match requirement of 2.")
+            throw createHttpError.BadRequest("Legal Images must be two images.")
         }
         
+        if(store_logo.length !==1){
+            throw createHttpError.BadRequest("Store logo must be one image.")
+        }
         const imageUrls = await Promise.all(
             legalFiles.map(async(image) =>{
                 const result = await this.cloudServices.uploadImage(image, 'legal_documents', FileType.LegalDocument)
@@ -113,11 +117,18 @@ export class SellerServices implements AuthService {
             }) || []
         )
         
-        console.log(imageUrls)
+        const sellerLogo = await Promise.all(
+            store_logo.map(async(image) =>{
+                const result = (await this.cloudServices.uploadImage(image, 'store_logo', FileType.StoreLogo))
+                return result._id
+            }) || []
+        )
         const sellerInfo = {
             ...businessInfo,
-            legal_document: imageUrls
+            legal_document: imageUrls,
+            store_logo: sellerLogo
         }
+
         const sellerExist = await this.sellerRepository.getSeller(sellerEmail)
         if (!sellerExist) {
             throw createHttpError.BadRequest("Seller doesn't exist.")

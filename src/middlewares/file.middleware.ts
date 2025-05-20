@@ -10,11 +10,15 @@ const FullDate = `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
         if (file.fieldname == 'variantImages') {
-            const path = `./uploads/variants/${date.getFullYear()}/${date.getMonth()}/${date.getDate()}`
+            const path = `./uploads/variants/${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`
             fs.mkdirSync(path, { recursive: true })
             cb(null, path)
         } else if (file.fieldname == 'legal_document') {
-            const path = `./uploads/legal_document/${date.getFullYear()}/${date.getMonth()}/${date.getDate()}`
+            const path = `./uploads/legal_document/${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`
+            fs.mkdirSync(path, { recursive: true })
+            cb(null, path)
+        } else if(file.fieldname == 'store_logo'){
+            const path = `./uploads/store_logo/${date.getFullYear()}/${date.getMonth()+1}/${date.getDate()}`
             fs.mkdirSync(path, { recursive: true })
             cb(null, path)
         }

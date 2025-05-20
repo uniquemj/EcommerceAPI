@@ -43,7 +43,7 @@ export class OrderServices {
 
             const orderDetail = {
                 order: order,
-                orderItems: orderItems
+                orderItems: orderItems.orderItems
             }
             return orderDetail
         }))
@@ -87,8 +87,6 @@ export class OrderServices {
 
         const order = await this.orderRepository.createOrder(orderInfo)
         if (order) {
-            await this.notificationServices.sendOrderNotification(order._id as string, userId, orderTotal, cartItems)
-
             cartItems.forEach(async (item) => {
                 const orderItem = {
                     productVariant: item.productVariant,
@@ -105,6 +103,8 @@ export class OrderServices {
                 }
                 await this.orderItemServices.createOrderItem(orderItemInfo)
             })
+            await this.notificationServices.sendOrderNotification(order._id as string, userId, orderTotal, cartItems)
+
         }
 
         await this.cartServices.resetCart(userId)

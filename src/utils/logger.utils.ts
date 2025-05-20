@@ -3,7 +3,6 @@ import winston from 'winston';
 
 const customFormat = winston.format.printf(({timestamp, level, message, stack, ...metadata})=>{
     let obj: Record<string, unknown> | undefined;
-
     for(let key in metadata){
         if(!obj){
             obj = {};

@@ -35,7 +35,7 @@ export class OrderItemServices {
 
     getOrderItemList = async (orderId: string, query: orderItemFilter) => {
         const orderItems = await this.orderItemRepository.getOrderItemList(orderId, query)
-        const count = await this.orderItemRepository.getOrderItemCount({order_id: orderId})
+        const count = orderItems.length
         return {count: count, orderItems}
     }
 
@@ -44,7 +44,7 @@ export class OrderItemServices {
         if (orderItems.length == 0) {
             throw createHttpError.NotFound("No order received.")
         }
-        const count = await this.orderItemRepository.getOrderItemCount({seller_id: userId})
+        const count = orderItems.length
         return {count: count, orderItems}
     }
 
@@ -100,10 +100,6 @@ export class OrderItemServices {
         }
         if (orderExist.order_status as unknown as string != 'return-initialized') {
             throw createHttpError.BadRequest("Order Item status can't be alter to return status as order is not initialized for return.")
-        }
-
-        if (order_status == 'return-accepted') {
-            await this.variantServices.updateStock(String(orderExist.item.productVariant), orderExist.item.quantity)
         }
 
         const result = await this.orderItemRepository.updateOrderItem({ order_status: order_status }, orderItemId)

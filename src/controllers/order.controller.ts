@@ -114,7 +114,7 @@ export class OrderController{
             delete req.query.page
             delete req.query.limit
 
-            const result = await this.orderItemServices.getOrderForSeller(sellerId,{page: parseInt(page as string), limit: parseInt(page as string)}, query)
+            const result = await this.orderItemServices.getOrderForSeller(sellerId,{page: parseInt(page as string), limit: parseInt(limit as string)}, query)
 
             const paginationData = {
                 page: parseInt(page as string),
@@ -233,7 +233,7 @@ export class OrderController{
                 total_pages: Math.ceil(result.count / parseInt(limit as string)),
             }
 
-            handleSuccessResponse(res, "Order Item List Fetched.", result.orderItems, 200, paginationData)
+            handleSuccessResponse(res, "Order Item List Fetched.", result, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching Order Item List.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)

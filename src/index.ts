@@ -4,12 +4,14 @@ import mongoose from 'mongoose'
 import 'dotenv/config'
 import apiRoute from './routes/index'
 import errorHandler from './middlewares/errorhandler.middleware'
+import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import { v2 as cloudinary } from 'cloudinary'
 import { Logger } from './utils/logger.utils'
 import { AuditTrailRepository } from './repository/audit.repository'
 import { AuditTrailServices } from './services/audit.services'
 import { createAuditTrailMiddleware} from './middlewares/auditTrail.middleware'
+import { corsOptions } from "./middlewares/cors.middleware"
 
 const app = express()
 const logger = Logger.getInstance().logger()
@@ -17,6 +19,7 @@ const auditTrailRepository = new AuditTrailRepository()
 const auditTrailServices = new AuditTrailServices(auditTrailRepository)
 
 app.use(express.json())
+app.use(cors(corsOptions))
 app.use(urlencoded({extended: true}))
 app.use(cookieParser())
 app.use(createAuditTrailMiddleware(logger, auditTrailServices))

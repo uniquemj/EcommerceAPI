@@ -51,6 +51,7 @@ export interface CustomerProfile{
 export interface SellerProfile{
     store_name?: string,
     legal_document?: string[],
+    store_logo?:string[],
     address?: string,
     city?: string,
     country?: string,

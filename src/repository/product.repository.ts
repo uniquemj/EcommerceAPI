@@ -65,6 +65,11 @@ export class ProductRepository implements ProductRepositoryInterface {
         const { keyword, category, minPrice, maxPrice, page, limit } = searchFilter
 
         const pipeline: any[] = []
+        pipeline.push({
+            $match: {
+                "archieveStatus": ArchieveStatus.UnArchieve
+            }
+        })
         //Text search
         if (keyword) {
             pipeline.push({

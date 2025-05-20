@@ -53,14 +53,15 @@ export const updateAdminPasswordSchema = z.object({
 }).strict()
 
 export const addBusinessInfoSchema = z.object({
-    legal_document: z.array(z.instanceof(File)).length(2, {message: "Exactly 2 file are required"}).optional(),
+    legal_document: z.array(z.instanceof(File)).optional(),
+    store_logo: z.array(z.instanceof(File)).optional(),
     address: z.string().trim(),
     city: z.string().trim(),
     country: z.string().trim(),
     phone_number: z.string().regex(/^[0-9]{10}$/,{
         message: "Only numbers are allowed and should be of length 10."
     }),
-})
+}).strict()
 
 export const updateBusinessInfoSchema = z.object({
     store_name: z.string().trim().min(3).max(20).optional(),

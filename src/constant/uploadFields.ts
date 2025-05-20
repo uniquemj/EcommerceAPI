@@ -6,9 +6,13 @@ export const ProductImagesFields = [
 ]
 
 
-export const VerificationImages = [
+export const SellerImages = [
     {
         name: 'legal_document',
         maxCount: 2
+    },
+    {
+        name: 'store_logo',
+        maxCount: 1
     }
 ]

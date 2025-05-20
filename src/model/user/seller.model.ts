@@ -9,7 +9,8 @@ interface SellerDocument extends User, Document{
     address: string,
     city: string,
     country: string,
-    is_verified: boolean
+    is_verified: boolean,
+    store_logo: Array<Schema.Types.ObjectId>
 }
 
 const SellerSchema: Schema<SellerDocument> = new Schema({
@@ -21,6 +22,7 @@ const SellerSchema: Schema<SellerDocument> = new Schema({
             type: Schema.Types.ObjectId, ref: 'file'
         }
     ],
+    store_logo: [{type: Schema.Types.ObjectId, ref: 'file'}],
     address: {type: String},
     city: {type: String},
     country: {type: String},

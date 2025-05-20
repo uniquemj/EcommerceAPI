@@ -4,6 +4,7 @@ import createHttpError from "../utils/httperror.utils"
 
 
 
+
 export const allowedRole = (...allowedRole: Array<string>) =>{
     return (req: AuthRequest, res: Response, next: NextFunction) =>{
         if(!allowedRole.includes(req.user!.role!) ){

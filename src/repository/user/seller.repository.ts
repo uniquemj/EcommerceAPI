@@ -11,6 +11,7 @@ export class SellerRepository implements SellerRepositoryInterface{
     async getSellerList(pagination: paginationField): Promise<SellerInfo[]>{
         return await Seller.find({})
         .populate({path: 'legal_document', select: '_id url'})
+        .populate({path: 'store_logo', select: '_id url'})
         .skip((pagination.page - 1) * pagination.limit)
         .limit(pagination.limit)
         .select('-password -__v')
@@ -20,11 +21,16 @@ export class SellerRepository implements SellerRepositoryInterface{
         return await Seller.countDocuments()
     }
     async getSellerById(id: string): Promise<SellerInfo | null>{
-        return await Seller.findById(id).populate({path: 'legal_document', select: '_id url'}).select('-password')
+        return await Seller.findById(id)
+        .populate({path: 'legal_document', select: '_id url'})
+        .populate({path: 'store_logo', select: '_id url'})
+        .select('-password')
     }
 
     async getSeller(email: string): Promise<SellerInfo | null>{
-        return await Seller.findOne({email: email}).populate({path: 'legal_document', select: '_id url'})
+        return await Seller.findOne({email: email})
+        .populate({path: 'legal_document', select: '_id url'})
+        .populate({path: 'store_logo', select: '_id url'})
     }
 
     async registerSeller(sellerInfo: Partial<SellerInfo>): Promise<SellerInfo | null>{

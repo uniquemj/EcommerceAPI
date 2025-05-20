@@ -41,6 +41,7 @@ export class OrderItemRepository implements OrderItemRepositoryInterface{
         const shippingPopulate = {path: "shipping_id", select: "-_id -customer_id -__v"}
         const orderPopulate = {path: "order_id", select:" -__v -orderTotal", populate:[ customerPopulate, shippingPopulate ]}
 
+
         return await OrderItem.find({seller_id: userId, ...query})
         .skip((pagination.page - 1) * pagination.limit)
         .limit(pagination.limit)
