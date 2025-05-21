@@ -1,5 +1,4 @@
-export interface FileInfo{
-    productImages?: Express.Multer.File[],
+export interface ProductFileInfo{
     variantImages?: Express.Multer.File[] 
 }
 

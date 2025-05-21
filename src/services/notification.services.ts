@@ -12,17 +12,15 @@ import { inject, injectable } from "tsyringe";
 export class NotificationServices{
     constructor(@inject(EmailServices) private readonly emailServices: EmailServices, 
         @inject(VariantServices) private readonly variantServices: VariantServices, 
-        @inject(ProductServices) private readonly productServices: ProductServices, 
-        @inject(CustomerServices) private readonly customerServices: CustomerServices){}
+        @inject(ProductServices) private readonly productServices: ProductServices,){}
 
-    sendOrderNotification = async(orderId: string, customerId: string, orderTotal: number, orderItems: CartInputItem[]) =>{
+    sendOrderNotification = async(orderId: string, fullname:string, email: string, orderTotal: number, orderItems: CartInputItem[]) =>{
         try{
 
-            const customer = await this.customerServices.getCustomerById(customerId)
-            const summary = await this.getOrderSummary(orderId, customer.fullname, orderTotal, orderItems)
+            const summary = await this.getOrderSummary(orderId, fullname, orderTotal, orderItems)
             
             await this.emailServices.sendEmail(
-                customer.email,
+                email,
                 "Order Confirmation.",
                 summary
             )
@@ -92,4 +90,54 @@ export class NotificationServices{
         
         return summary
     }   
+
+    sendEmailVerification = async(fullname: string, email: string, code: string) =>{
+      try{
+        const verificationMessage = this.getEmailVerificationMessage(fullname, code)
+
+        await this.emailServices.sendEmail(
+          email,
+          "Verify Your Email.",
+          verificationMessage
+        )
+      } catch(error){
+        throw error
+      }
+    }
+
+    getEmailVerificationMessage = (fullname: string, code: string) =>{
+      const verificationLink = `${process.env.ORIGIN_URL}/verify/${code}`
+      const year = new Date().getFullYear()
+      return `
+      <!DOCTYPE html>
+<html lang="en">
+  <body style="margin:0;padding:0;background-color:#f6f6f6;font-family:Arial,sans-serif;">
+    <div style="max-width:600px;margin:20px auto;background-color:#ffffff;padding:20px;border-radius:6px;box-shadow:0 0 10px rgba(0,0,0,0.1);">
+      <div style="background-color:#007BFF;color:white;padding:20px;text-align:center;border-radius:6px 6px 0 0;">
+        <h1 style="margin:0;">Verify Your Email</h1>
+      </div>
+      <div style="padding:20px;color:#333333;">
+        <p style="font-size:16px;">Hello ${fullname},</p>
+        <p style="font-size:16px;">Thank you for registering with BajarHub!</p>
+        <p style="font-size:16px;">To complete your registration and activate your account, please verify your email by clicking the button below:</p>
+
+        <div style="text-align:center;margin:30px 0;">
+          <a href="${verificationLink}" target="_blank" style="display:inline-block;background-color:#007BFF;color:#ffffff;padding:12px 24px;text-decoration:none;border-radius:4px;font-size:16px;">Verify Email</a>
+        </div>
+
+        <p style="font-size:14px;color:#555;">If the button doesn’t work, copy and paste the following link into your browser:</p>
+        <p style="font-size:14px;word-break:break-all;"><a href="${verificationLink}" style="color:#007BFF;">${verificationLink}</a></p>
+
+        <p style="margin-top:30px;">If you did not create an account, you can safely ignore this email.</p>
+
+        <h3 style="margin-top:30px;">Regards,</h3>
+        <p>BajarHub Team</p>
+      </div>
+      <div style="text-align:center;font-size:12px;color:#999;padding:20px;">
+        &copy; ${year} BajarHub. All rights reserved.
+      </div>
+    </div>
+  </body>
+</html>`
+    }
 }

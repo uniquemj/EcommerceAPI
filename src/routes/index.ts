@@ -93,7 +93,7 @@ router.use('/customer', customerController.router)
 router.use('/seller', sellerController.router)
 
 //Product Route
-router.use('/products',verifyToken, productController.router)
+router.use('/products', productController.router)
 
 // Category Route
 router.use('/category', verifyToken, categoryController.router)

@@ -1,7 +1,7 @@
 export const ProductImagesFields = [
     {
         name: 'variantImages',
-        maxCount: 1
+        maxCount: 3
     }
 ]
 

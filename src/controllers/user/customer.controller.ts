@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { CustomerServices } from "../../services/user/customer.services";
 import { validate } from "../../middlewares/validation.middleware";
-import { customerRegisterSchema, loginSchema, updatePasswordSchema } from "../../validation/user.validate";
+import { customerRegisterSchema, loginSchema, resendVerificationEmailSchema, updatePasswordSchema } from "../../validation/user.validate";
 import createHttpError from "../../utils/httperror.utils";
 import { COOKIE } from "../../constant/cookie";
 import { AuthRequest } from "../../types/auth.types";
@@ -32,7 +32,7 @@ export class CustomerController{
         const instance = CustomerController.instance
 
         instance.router.post('/verify/:code', instance.verifyEmail)
-        
+        instance.router.post('/resend-verification',validate(resendVerificationEmailSchema), instance.resendVerificationEmail)
         instance.router.put('/', verifyToken, allowedRole('customer'), validate(updateCustomerProfileSchema), instance.updateCustomerProfile)
         instance.router.put('/password', verifyToken, allowedRole('customer'), validate(updatePasswordSchema), instance.updatePassword)
         instance.router.get('/profile', verifyToken, allowedRole('customer'), instance.getCustomerProfile)
@@ -55,6 +55,16 @@ export class CustomerController{
         }
     }
 
+    resendVerificationEmail = async(req: Request, res: Response) =>{
+        try{
+            const {email} = req.body
+            const result = await this.customerService.resendVerificationEmail(email)
+            handleSuccessResponse(res, "Resend Verification Email Successfully.", result)
+        }catch(e:any){
+            this.logger.error("Error while resending verification code.", {object:e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
     getCustomerProfile = async(req: AuthRequest, res: Response) =>{
         try{
             const customerId = req.user?._id as string

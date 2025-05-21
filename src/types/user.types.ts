@@ -7,7 +7,7 @@ export interface User{
     password: string,
     is_email_verified?: boolean,
     phone_number?: string,
-    code?: string,
+    code?: string | null,
     readonly role?: string,
 }
 
@@ -23,7 +23,8 @@ export interface AdminInfo extends User{
 }
 export interface CustomerInfo extends User{
     _id:string,
-    date_of_birth?: Date
+    date_of_birth?: Date,
+    codeExpiresAt?: Date
 }
 
 export interface SellerInfo extends User{
@@ -46,6 +47,10 @@ export interface CustomerProfile{
     password?: string,
     phone_number?: string,
     date_of_birth?: string,
+    is_email_verified?:boolean,
+    code?: string | null,
+    codeExpiresAt?: Date | null
+
 }
 
 export interface SellerProfile{
@@ -71,5 +76,5 @@ export interface SearchUserField{
 
 export interface VerifyField{
     is_email_verified?:boolean,
-    is_verified?:boolean
+    is_verified?:boolean,
 }

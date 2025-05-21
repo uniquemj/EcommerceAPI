@@ -12,6 +12,10 @@ import { handleSuccessResponse } from "../utils/httpresponse.utils";
 import Logger from "../utils/logger.utils";
 import winston from 'winston';
 import { VariantServices } from "../services/variant.services";
+import { verifyToken } from "../middlewares/auth.middleware";
+import upload from "../middlewares/file.middleware";
+import { ProductImagesFields } from "../constant/uploadFields";
+import { parseProductInfo } from "../middlewares/parseProductInfo.middleware";
 
 export class ProductController{
     readonly router: Router;
@@ -29,35 +33,38 @@ export class ProductController{
         }
         const instance = ProductController.instance
 
-        instance.router.get('/all', allowedRole('admin'), instance.getAllProduct)
-        instance.router.get('/', allowedRole('customer'), instance.getProductList)
-        instance.router.get('/search', allowedRole('customer'), instance.searchProducts)
-        
-        instance.router.get('/seller',allowedRole('seller'), verifySeller,instance.getSellerProductList)
-        instance.router.get('/seller/:id',allowedRole('seller'), verifySeller, instance.getSellerProductById)
-        instance.router.get('/:id', allowedRole('customer', 'admin'), instance.getProductById)
+        instance.router.get('/all', verifyToken, allowedRole('admin'), instance.getAllProduct)
 
-        instance.router.post('/', allowedRole('seller'), verifySeller, validate(productSchema), instance.createProduct)
-        instance.router.put('/:id', allowedRole('seller'), verifySeller, validate(updateProductSchema), instance.editProduct)
-        instance.router.delete('/:id', allowedRole('seller', 'admin'), verifySeller, instance.removeProduct)
+        instance.router.get('/', instance.getProductList)
+        instance.router.get('/search', instance.searchProducts)
+        
+        instance.router.get('/seller',verifyToken, allowedRole('seller'), verifySeller,instance.getSellerProductList)
+        instance.router.get('/seller/:id',verifyToken, allowedRole('seller'), verifySeller, instance.getSellerProductById)
+        instance.router.get('/:id', instance.getProductById)
+
+        // instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, validate(productSchema), instance.createProduct)
+
+        instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, upload.fields(ProductImagesFields), parseProductInfo, validate(productSchema),instance.demoCreateProduct)
+        instance.router.put('/:id', verifyToken, allowedRole('seller'), verifySeller, validate(updateProductSchema), instance.editProduct)
+        instance.router.delete('/:id', verifyToken, allowedRole('seller', 'admin'), verifySeller, instance.removeProduct)
         // instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
         
         //Variant
-        instance.router.get('/:id/variants', allowedRole('seller'), verifySeller, instance.getProductVariant)
-        instance.router.delete('/:id/variants/:variantId', allowedRole('seller','admin'),verifySeller, instance.removeVariant)
+        instance.router.get('/:id/variants', verifyToken, allowedRole('seller'), verifySeller, instance.getProductVariant)
+        instance.router.delete('/:id/variants/:variantId', verifyToken, allowedRole('seller','admin'),verifySeller, instance.removeVariant)
         
         // Remove Category
-        instance.router.delete('/:id/category/:categoryId', allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
+        instance.router.delete('/:id/category/:categoryId',verifyToken, allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
         
         // Remove and Add Image
-        instance.router.put('/:id/variants/:variantId', allowedRole('seller'), verifySeller, validate(updateVariantSchema), instance.updateProductVariant)
-        instance.router.delete('/:id/variants/:variantId/images/:imageId', allowedRole('seller'),verifySeller, instance.removeImageFromProductVariant)
+        instance.router.put('/:id/variants/:variantId', verifyToken, allowedRole('seller'), verifySeller, validate(updateVariantSchema), instance.updateProductVariant)
+        instance.router.delete('/:id/variants/:variantId/images/:imageId', verifyToken, allowedRole('seller'),verifySeller, instance.removeImageFromProductVariant)
         
         // Inventory
-        instance.router.put('/:id/archieve', allowedRole('seller'), verifySeller, instance.archieveProduct)
-        instance.router.put('/:id/unarchieve', allowedRole('seller'), verifySeller, instance.unarchieveProduct)
-        instance.router.put('/:id/variants/:variantId/stock', allowedRole('seller'), verifySeller, validate(stockValidateSchema), instance.updateVariantStock)
-        instance.router.put('/:id/variants/:variantId/availability', allowedRole('seller'), verifySeller, validate(availabilityValidateSchema), instance.updateVariantAvailability)
+        instance.router.put('/:id/archieve', verifyToken, allowedRole('seller'), verifySeller, instance.archieveProduct)
+        instance.router.put('/:id/unarchieve', verifyToken,  allowedRole('seller'), verifySeller, instance.unarchieveProduct)
+        instance.router.put('/:id/variants/:variantId/stock',verifyToken, allowedRole('seller'), verifySeller, validate(stockValidateSchema), instance.updateVariantStock)
+        instance.router.put('/:id/variants/:variantId/availability', verifyToken, allowedRole('seller'), verifySeller, validate(availabilityValidateSchema), instance.updateVariantAvailability)
 
         return instance
     }   
@@ -166,6 +173,22 @@ export class ProductController{
             handleSuccessResponse(res, "Product Fetched.", result)
         }catch(e:any){
             this.logger.error("Error while fetching product by id.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    demoCreateProduct = async(req: AuthRequest, res: Response) =>{
+        try{
+            const productInfo = req.body
+            console.log(productInfo)
+            console.log(req.files)
+            // const files = req.files 
+            // console.log(files)
+            handleSuccessResponse(res, "Product Create endpoint hit.", [])
+            // const product = await this.productServices.createProduct(productInfo, req.user!._id!)
+            // handleSuccessResponse(res, "Product Created.", product)
+        } catch(e: any){
+            this.logger.error("Error while creating product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

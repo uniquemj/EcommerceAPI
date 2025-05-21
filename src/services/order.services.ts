@@ -11,6 +11,7 @@ import { NotificationServices } from "./notification.services";
 import { OrderItemServices } from "./orderItem.services";
 import { ProductServices } from "./product.services";
 import { VariantServices } from "./variant.services";
+import { CustomerServices } from "./user/customer.services";
 
 @injectable()
 export class OrderServices {
@@ -20,7 +21,8 @@ export class OrderServices {
         @inject(OrderItemServices) private readonly orderItemServices: OrderItemServices,
         @inject(VariantServices) private readonly variantServices: VariantServices,
         @inject(ProductServices) private readonly productServices: ProductServices,
-        @inject(NotificationServices) private readonly notificationServices: NotificationServices
+        @inject(NotificationServices) private readonly notificationServices: NotificationServices,
+        @inject(CustomerServices) private readonly customerServices: CustomerServices
     ) { }
 
     getOrderList = async (pagination: paginationField, query: orderFilter) => {
@@ -68,7 +70,10 @@ export class OrderServices {
     }
 
     createOrder = async (deliveryInfo: DeliverInfo, userId: string) => {
-
+        const customer = await this.customerServices.getCustomerById(userId)
+        if(!customer) {
+            throw createHttpError.BadRequest("No customer exist with email.")
+        }
         const cartExist = await this.cartServices.getCartByUserId(userId)
 
         if (!cartExist) {
@@ -103,7 +108,7 @@ export class OrderServices {
                 }
                 await this.orderItemServices.createOrderItem(orderItemInfo)
             })
-            await this.notificationServices.sendOrderNotification(order._id as string, userId, orderTotal, cartItems)
+            await this.notificationServices.sendOrderNotification(order._id as string, customer.fullname, customer.email, orderTotal, cartItems)
 
         }
 

@@ -4,7 +4,8 @@ import { UserRole } from "../../types/user.types";
 
 interface CustomerDocument extends User, Document{
     _id: string,
-    date_of_birth?: Date
+    date_of_birth?: Date,
+    codeExpiresAt: Date
 }
 
 const CustomerSchema: Schema<CustomerDocument> = new Schema({
@@ -15,6 +16,7 @@ const CustomerSchema: Schema<CustomerDocument> = new Schema({
     is_email_verified: {type: Boolean, default: false},
     date_of_birth: {type: Date},
     code: {type: String},
+    codeExpiresAt: {type: Date},
     role: {type: String, enum: Object.values(UserRole), default: UserRole.CUSTOMER},
 })
 

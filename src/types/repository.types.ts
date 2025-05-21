@@ -28,6 +28,7 @@ export interface CustomerRepositoryInterface{
     getCustomerList(pagination: paginationField): Promise<CustomerInfo[]>,
     getCustomerById(id: string): Promise<CustomerInfo | null>,
     getCustomerByEmail(email: string): Promise<CustomerInfo | null>,
+    getCustomerByCode(code: string): Promise<CustomerInfo | null>,
     registerCustomer(userInfo: Partial<CustomerInfo>): Promise<CustomerInfo | null>
     verify(search: SearchUserField, verifyStatus: VerifyField): Promise<CustomerInfo | null>
     loginCustomer(userCredentials: UserCredentials): Promise<{token: string, user: CustomerInfo}>,

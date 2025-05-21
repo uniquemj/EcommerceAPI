@@ -89,3 +89,8 @@ export const updateNormalAdminInfo = z.object({
 }).strict().refine((data)=>Object.keys(data).length > 0, {
     message: "At least one field must be provided to update. Available fields: fullname, password, isSuperAdmin."
 })
+
+
+export const resendVerificationEmailSchema = z.object({
+    email: z.string().email()
+}).strict()

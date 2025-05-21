@@ -5,7 +5,6 @@ import { imageSchema } from './image.validate'
 export const variantSchema = z.object({
     color: z.string().trim(),
     size: z.string().trim().optional(),
-    images: imageSchema.array(),
     price: z.number(),
     stock: z.number().min(0),
     availability: z.boolean().optional(),

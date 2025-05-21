@@ -7,10 +7,12 @@ import { AuthService } from "../../types/auth.types";
 import { paginationField } from "../../types/pagination.types";
 import { CustomerRepositoryInterface } from "../../types/repository.types";
 import { inject, injectable } from "tsyringe";
+import { NotificationServices } from "../notification.services";
+import { custom } from "zod";
 
 @injectable()
 export class CustomerServices implements AuthService {
-    constructor(@inject('CustomerRepositoryInterface') private readonly customerRepository: CustomerRepositoryInterface) { }
+    constructor(@inject('CustomerRepositoryInterface') private readonly customerRepository: CustomerRepositoryInterface, @inject(NotificationServices) private readonly notificationServices:NotificationServices) { }
 
     async getCustomerList(pagination: paginationField) {
         const customers = await this.customerRepository.getCustomerList(pagination)
@@ -42,18 +44,55 @@ export class CustomerServices implements AuthService {
             fullname: userInfo.fullname,
             email: userInfo.email,
             password: hashedPassword,
-            code: v4()
+            code: v4(),
+            codeExpiresAt: new Date(Date.now()+1000*60*15)
         }
 
         const result = await this.customerRepository.registerCustomer(userDetail)
+        if(result){
+            await this.notificationServices.sendEmailVerification(result?.fullname, result?.email, result?.code as string)        
+        }
 
         return result
     }
 
     async verifyEmail(code: string) {
-        const result = await this.customerRepository.verify({ code }, { is_email_verified: true })
-        if (!result) {
-            throw createHttpError.BadRequest("Code not valid.")
+        const customer = await this.customerRepository.getCustomerByCode(code);
+
+        if(!customer){
+            throw createHttpError.BadRequest("Invalid code.")
+        }
+
+        if(customer.is_email_verified){
+            throw createHttpError.BadRequest("Email already verified.");
+        }
+
+        if(!customer.codeExpiresAt || new Date() > customer.codeExpiresAt){
+            throw createHttpError.BadRequest("Verification code expired.");
+        }
+
+        const result = await this.customerRepository.updateCustomerInfo(customer._id, { is_email_verified: true, code: null, codeExpiresAt: null})
+        return result
+    }
+
+    async resendVerificationEmail(email: string){
+        const customer = await this.customerRepository.getCustomerByEmail(email);
+
+        if(!customer){
+            throw createHttpError.BadRequest("No user found with that email.")
+        }
+
+        if(customer.is_email_verified){
+            throw createHttpError.BadRequest("Email already verified.")
+        }
+
+        const updateInfo = {
+            code: v4(),
+            codeExpiresAt: new Date(Date.now()+1000*60*15) 
+        }
+        const result = await this.customerRepository.updateCustomerInfo(customer._id, updateInfo)
+        if(result){
+            await this.notificationServices.sendEmailVerification(result.fullname, result.email, result?.code as string)
         }
         return result
     }

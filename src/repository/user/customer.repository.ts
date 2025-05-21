@@ -27,6 +27,10 @@ export class CustomerRepository implements CustomerRepositoryInterface{
         return await Customer.findOne({email: email})
     }
 
+    async getCustomerByCode(code: string): Promise<CustomerInfo | null>{
+        return await Customer.findOne({code: code}).select('-password')
+    }
+
     async registerCustomer(userInfo: Partial<CustomerInfo>): Promise<CustomerInfo | null>{
         const newCustomer = await Customer.create(userInfo)
         const result = await Customer.findById(newCustomer._id).select('-password')
