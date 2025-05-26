@@ -35,6 +35,7 @@ export interface SellerInfo extends User{
     city: string,
     country: string,
     is_verified?: boolean,
+    codeExpiresAt?:Date
 }
 
 export interface UserCredentials{
@@ -62,6 +63,9 @@ export interface SellerProfile{
     country?: string,
     phone_number?: string,
     password?:string,
+    is_email_verified?:boolean,
+    code?:string|null,
+    codeExpiresAt?:Date|null
 }
 
 export interface AdminProfile{

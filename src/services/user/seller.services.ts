@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import bcrypt from 'bcryptjs';
 import { SellerRepository } from "../../repository/user/seller.repository";
-import { SellerInfo, SellerProfile, UserCredentials } from "../../types/user.types";
+import { SellerInfo, SellerProfile, UserCredentials, UserRole } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
 import { comparePassword, hashPassword } from "../../utils/helper.utils";
 import { ProductServices } from "../product.services";
@@ -11,12 +11,13 @@ import { paginationField } from "../../types/pagination.types";
 import { SellerRepositoryInterface } from "../../types/repository.types";
 import { inject, injectable } from "tsyringe";
 import { FileType } from "../../types/file.types";
+import { NotificationServices } from "../notification.services";
 
 
 @injectable()
 export class SellerServices implements AuthService {
 
-    constructor(@inject('SellerRepositoryInterface') private readonly sellerRepository: SellerRepositoryInterface, @inject(ProductServices) private readonly productServices: ProductServices, @inject(CloudServices) private readonly cloudServices: CloudServices) { }
+    constructor(@inject('SellerRepositoryInterface') private readonly sellerRepository: SellerRepositoryInterface, @inject(ProductServices) private readonly productServices: ProductServices, @inject(CloudServices) private readonly cloudServices: CloudServices, @inject(NotificationServices) private readonly notificationServices: NotificationServices) { }
 
     async getSellerById(id: string) {
         const sellerExist = await this.sellerRepository.getSellerById(id)
@@ -48,17 +49,54 @@ export class SellerServices implements AuthService {
             store_name: sellerInfo.store_name,
             email: sellerInfo.email,
             password: hashedPassword,
-            code: v4()
+            code: v4(),
+            codeExpiresAt: new Date(Date.now() + 1000*60*15)
         }
 
         const result = await this.sellerRepository.registerSeller(sellerDetail)
+        if(result){
+            await this.notificationServices.sendEmailVerification(result.store_name, result.email, result.code as string, UserRole.SELLER)
+        }
         return result
     }
 
     async verifyEmail(code: string) {
-        const result = await this.sellerRepository.verify({ code: code }, { is_email_verified: true })
-        if (!result) {
-            throw createHttpError.BadRequest("Invalid Code.")
+        const seller = await this.sellerRepository.getSellerByCode(code)
+        console.log(seller)
+        if(!seller){
+            throw createHttpError.BadRequest("Invalid code.")
+        }
+
+        if(seller.is_email_verified){
+            throw createHttpError.BadRequest("Email already verified.")
+        }
+
+        if(!seller.codeExpiresAt || new Date() > seller.codeExpiresAt){
+            throw createHttpError.BadRequest("Verification code expired.")
+        }
+
+        const result = await this.sellerRepository.updateSellerInfo({is_email_verified: true, code: null, codeExpiresAt: null}, seller._id)
+        return result
+    }
+
+    async resendVerificationEmail(email: string){
+        const seller = await this.sellerRepository.getSeller(email);
+
+        if(!seller){
+            throw createHttpError.BadRequest("No user found with that email.")
+        }
+
+        if(seller.is_email_verified){
+            throw createHttpError.BadRequest("Email already verified.")
+        }
+
+        const updateInfo = {
+            code: v4(),
+            codeExpiresAt: new Date(Date.now()+1000*60*15) 
+        }
+        const result = await this.sellerRepository.updateSellerInfo(updateInfo, seller._id )
+        if(result){
+            await this.notificationServices.sendEmailVerification(result.fullname, result.email, result?.code as string, UserRole.SELLER)
         }
         return result
     }

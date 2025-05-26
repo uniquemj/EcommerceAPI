@@ -52,9 +52,17 @@ export const updateAdminPasswordSchema = z.object({
     new_password: z.string().min(5)
 }).strict()
 
+const allowedImageTypes = ["image/jpeg", "image/jpg", "image/png"];
+
+const imageFile = z.instanceof(File).refine(
+  (file) => allowedImageTypes.includes(file.type),
+  { message: "Only .jpeg, .jpg, .png images are allowed" }
+);
+
+
 export const addBusinessInfoSchema = z.object({
-    legal_document: z.array(z.instanceof(File)).optional(),
-    store_logo: z.array(z.instanceof(File)).optional(),
+    legal_document: z.array(imageFile).length(2, "Exactly 2 legal document images are required").optional(),
+    store_logo: z.array(imageFile).length(1, "Store logo image is required").optional(),
     address: z.string().trim(),
     city: z.string().trim(),
     country: z.string().trim(),

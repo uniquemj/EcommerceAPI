@@ -26,6 +26,9 @@ export class SellerRepository implements SellerRepositoryInterface{
         .populate({path: 'store_logo', select: '_id url'})
         .select('-password')
     }
+    async getSellerByCode(code: string): Promise<SellerInfo | null>{
+        return await Seller.findOne({code: code}).select('-password -legal_document -store_logo')
+    }
 
     async getSeller(email: string): Promise<SellerInfo | null>{
         return await Seller.findOne({email: email})
@@ -46,13 +49,13 @@ export class SellerRepository implements SellerRepositoryInterface{
     }
 
     async loginSeller(sellerCredentials: UserCredentials): Promise<{token: string, user: SellerInfo}>{
-        const seller = await Seller.findOne({email: sellerCredentials.email}).select('-password -legal_document') as SellerInfo
+        const seller = await Seller.findOne({email: sellerCredentials.email}).select('-password -legal_document').populate({path: 'store_logo', select: '_id url'}) as SellerInfo
         const token = signToken({_id: seller?._id, email: seller?.email, role: seller?.role, is_email_verified: seller?.is_email_verified, is_verified: seller.is_verified})
         return {token, user: seller}
     }
 
     async updateSellerInfo(sellerInfo: SellerProfile, sellerId: string): Promise<SellerInfo | null>{
-        return await Seller.findByIdAndUpdate(sellerId, sellerInfo, {new: true}).select('-password -is_verified -is_email_verified -code -__v')
+        return await Seller.findByIdAndUpdate(sellerId, sellerInfo, {new: true}).select('-password -is_verified -is_email_verified -code -__v').populate({path: 'store_logo', select: '_id url'})
     }
 
     async deleteSeller(sellerId: string): Promise<SellerInfo | null>{

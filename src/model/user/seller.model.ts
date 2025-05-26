@@ -10,7 +10,8 @@ interface SellerDocument extends User, Document{
     city: string,
     country: string,
     is_verified: boolean,
-    store_logo: Array<Schema.Types.ObjectId>
+    store_logo: Array<Schema.Types.ObjectId>,
+    codeExpiresAt: Date
 }
 
 const SellerSchema: Schema<SellerDocument> = new Schema({
@@ -31,7 +32,8 @@ const SellerSchema: Schema<SellerDocument> = new Schema({
     is_email_verified: {type: Boolean, default: false},
     is_verified: {type: Boolean, default: false},
     code: {type: String},
-    role: {type: String, enum: Object.values(UserRole), default: UserRole.SELLER}
+    role: {type: String, enum: Object.values(UserRole), default: UserRole.SELLER},
+    codeExpiresAt: {type: Date}
 })
 
 const Seller: Model<SellerDocument> = model('seller', SellerSchema)

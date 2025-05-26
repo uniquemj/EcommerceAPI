@@ -7,6 +7,7 @@ import { CartInputItem, CartItem } from "../types/cart.types";
 import { VariantServices } from "./variant.services";
 import { ProductServices } from "./product.services";
 import { inject, injectable } from "tsyringe";
+import { UserRole } from "../types/user.types";
 
 @injectable()
 export class NotificationServices{
@@ -91,9 +92,9 @@ export class NotificationServices{
         return summary
     }   
 
-    sendEmailVerification = async(fullname: string, email: string, code: string) =>{
+    sendEmailVerification = async(fullname: string, email: string, code: string, userType: string=UserRole.CUSTOMER) =>{
       try{
-        const verificationMessage = this.getEmailVerificationMessage(fullname, code)
+        const verificationMessage = this.getEmailVerificationMessage(fullname, code, userType)
 
         await this.emailServices.sendEmail(
           email,
@@ -105,8 +106,8 @@ export class NotificationServices{
       }
     }
 
-    getEmailVerificationMessage = (fullname: string, code: string) =>{
-      const verificationLink = `${process.env.ORIGIN_URL}/verify/${code}`
+    getEmailVerificationMessage = (fullname: string, code: string, userType: string) =>{
+      const verificationLink = userType=="customer" ? `${process.env.ORIGIN_URL}/auth/verify/${code}`: `${process.env.ORIGIN_URL}/auth/seller/verify/${code}`
       const year = new Date().getFullYear()
       return `
       <!DOCTYPE html>

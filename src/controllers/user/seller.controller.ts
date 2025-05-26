@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 import { SellerServices } from "../../services/user/seller.services";
 import createHttpError from "../../utils/httperror.utils";
 import { validate } from "../../middlewares/validation.middleware";
-import { addBusinessInfoSchema, loginSchema, sellerRegisterSchema, updateBusinessInfoSchema, updatePasswordSchema } from "../../validation/user.validate";
+import { addBusinessInfoSchema, loginSchema, resendVerificationEmailSchema, sellerRegisterSchema, updateBusinessInfoSchema, updatePasswordSchema } from "../../validation/user.validate";
 import { AuthRequest } from "../../types/auth.types";
 import { COOKIE } from "../../constant/cookie";
 import { SellerProfile } from "../../types/user.types";
@@ -34,7 +34,7 @@ export class SellerController{
         const instance = SellerController.instance;
 
         instance.router.post('/verify/:code', instance.verifyEmail)
-
+        instance.router.post('/resend-verification',validate(resendVerificationEmailSchema), instance.resendVerificationEmail)
         instance.router.get('/profile', verifyToken, allowedRole('seller'), instance.getSellerProfile)
         instance.router.post('/profile', verifyToken, allowedRole('seller'), upload.fields(SellerImages), validate(addBusinessInfoSchema), instance.addBusinessInfo)
         instance.router.put('/profile', verifyToken, allowedRole('seller'), validate(updateBusinessInfoSchema), instance.updateSellerInfo)
@@ -55,6 +55,17 @@ export class SellerController{
             handleSuccessResponse(res, "Seller Email Verified.", result)
         }catch(e: any){
             this.logger.error("Error while verifying Email.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    resendVerificationEmail = async(req: Request, res: Response) =>{
+        try{
+            const {email} = req.body
+            const result = await this.sellerServices.resendVerificationEmail(email)
+            handleSuccessResponse(res, "Resend Verification Email Successfully.", result)
+        }catch(e:any){
+            this.logger.error("Error while resending verification code.", {object:e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

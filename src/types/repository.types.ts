@@ -40,6 +40,7 @@ export interface SellerRepositoryInterface{
     getSellerCount():Promise<number>,
     getSellerList(pagination: paginationField): Promise<SellerInfo[]>,
     getSellerById(id: string): Promise<SellerInfo|null>,
+    getSellerByCode(code: string): Promise<SellerInfo | null>,
     getSeller(email: string): Promise<SellerInfo | null>,
     registerSeller(sellerInfo: Partial<SellerInfo>): Promise<SellerInfo|null>,
     verify(search: SearchUserField, verifyStatus: VerifyField): Promise<SellerInfo|null>
