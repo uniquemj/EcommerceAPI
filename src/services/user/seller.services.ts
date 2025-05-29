@@ -1,7 +1,7 @@
 import { v4 } from "uuid";
 import bcrypt from 'bcryptjs';
 import { SellerRepository } from "../../repository/user/seller.repository";
-import { SellerInfo, SellerProfile, UserCredentials, UserRole } from "../../types/user.types";
+import { SellerInfo, SellerProfile, UserCredentials, UserRole, VerificationStatus } from "../../types/user.types";
 import createHttpError from "../../utils/httperror.utils";
 import { comparePassword, hashPassword } from "../../utils/helper.utils";
 import { ProductServices } from "../product.services";
@@ -29,9 +29,6 @@ export class SellerServices implements AuthService {
 
     async getSellerList(pagination: paginationField) {
         const sellers = await this.sellerRepository.getSellerList(pagination)
-        if (sellers.length == 0) {
-            throw createHttpError.NotFound("Seller List is Empty.")
-        }
         const count = await this.sellerRepository.getSellerCount()
         return {count, sellers}
     }
@@ -54,8 +51,9 @@ export class SellerServices implements AuthService {
         }
 
         const result = await this.sellerRepository.registerSeller(sellerDetail)
+        const seller = await this.sellerRepository.getSellerById(result?._id as string)
         if(result){
-            await this.notificationServices.sendEmailVerification(result.store_name, result.email, result.code as string, UserRole.SELLER)
+            await this.notificationServices.sendEmailVerification(result.store_name, result.email, seller?.code as string, UserRole.SELLER)
         }
         return result
     }
@@ -95,6 +93,7 @@ export class SellerServices implements AuthService {
             codeExpiresAt: new Date(Date.now()+1000*60*15) 
         }
         const result = await this.sellerRepository.updateSellerInfo(updateInfo, seller._id )
+
         if(result){
             await this.notificationServices.sendEmailVerification(result.fullname, result.email, result?.code as string, UserRole.SELLER)
         }
@@ -106,7 +105,7 @@ export class SellerServices implements AuthService {
         if (!sellerExist) {
             throw createHttpError.NotFound("Seller with Id does not exist.")
         }
-        const result = await this.sellerRepository.verify({ _id: sellerId }, { is_verified: true })
+        const result = await this.sellerRepository.updateSellerInfo({is_verified: true, verification_status: VerificationStatus.VERIFIED, rejection_reason: ""}, sellerId)
         return result
     }
 
@@ -140,6 +139,21 @@ export class SellerServices implements AuthService {
     }
 
     async updateBusinessInfo(businessInfo: SellerProfile, legalFiles: Express.Multer.File[], store_logo: Express.Multer.File[], sellerEmail: string){
+        const sellerExist = await this.sellerRepository.getSeller(sellerEmail)
+
+        if (!sellerExist) {
+            throw createHttpError.BadRequest("Seller doesn't exist.")
+        }
+
+        if(sellerExist.legal_document.length > 0){
+            sellerExist.legal_document.map(async (images)=>{
+                await this.cloudServices.destroyImage(String(images))
+            })
+
+            sellerExist.store_logo.map(async(images)=>{
+                await this.cloudServices.destroyImage(String(images))
+            })
+        }
         
         if(legalFiles.length !== 2){
             throw createHttpError.BadRequest("Legal Images must be two images.")
@@ -164,15 +178,29 @@ export class SellerServices implements AuthService {
         const sellerInfo = {
             ...businessInfo,
             legal_document: imageUrls,
-            store_logo: sellerLogo
+            store_logo: sellerLogo,
+            verification_status: VerificationStatus.PENDING,
+            rejection_reason: ""
         }
 
-        const sellerExist = await this.sellerRepository.getSeller(sellerEmail)
-        if (!sellerExist) {
-            throw createHttpError.BadRequest("Seller doesn't exist.")
-        }
+        
 
         const result = await this.sellerRepository.updateSellerInfo(sellerInfo, sellerExist._id)
+        return result
+    }
+
+    async updateSellerVerification(id: string, status: string, rejection_reason: string){
+        const seller = await this.sellerRepository.getSellerById(id)
+        if(!seller){
+            throw createHttpError.BadRequest("Seller doesn't exist.")
+        }
+        const verificationStatus = {
+            verification_status: status,
+            rejection_reason: rejection_reason,
+            is_verified: status == VerificationStatus.REJECTED ? false : true
+        }
+
+        const result = await this.sellerRepository.updateSellerInfo(verificationStatus, id)
         return result
     }
 
@@ -202,9 +230,11 @@ export class SellerServices implements AuthService {
         const result = await this.sellerRepository.deleteSeller(sellerId)
         const sellerProductList = await this.productServices.getSellerProductList(sellerId,{page: 0, limit: 0},{})
 
-        sellerProductList.product.forEach(async (product) => {
-            await this.productServices.editProduct(product._id, { isActive: false })
-        })
+        // if(sellerProductList.product.length > 0){
+        //     sellerProductList.product.forEach(async (product) => {
+        //         await this.productServices.editProduct(product._id, { isActive: false })
+        //     })
+        // }
 
         return result
     }

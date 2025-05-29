@@ -38,9 +38,12 @@ export class CategoryServices {
     createCategory = async (categoryInfo: CategoryInputInfo) => {
         const { title, parent_category } = categoryInfo
 
-        const categoryDetail = {
-            title: title.toLowerCase(),
-            parent_category: parent_category
+        let categoryDetail:CategoryInputInfo = {
+            title: title.toLowerCase()
+        }
+        
+        if(parent_category?.length as number > 0){
+            categoryDetail['parent_category'] = parent_category
         }
 
         const categoryExist = await this.categoryRepository.getCategoryByTitle(categoryDetail.title)
@@ -51,13 +54,14 @@ export class CategoryServices {
         return category
     }
 
-    updateCategory = async (id: string, title: string) => {
+    updateCategory = async (id: string, info: Partial<CategoryInputInfo>) => {
         const categoryExist = await this.categoryRepository.getCategoryById(id)
         if (!categoryExist) {
             throw createHttpError.NotFound("Category with id does not exist.")
         }
         const categoryInfo = {
-            title: title.toLowerCase()
+            title: info.title!.toLowerCase() as string,
+            ...info
         }
         const result = await this.categoryRepository.updateCategory(id, categoryInfo)
         return result

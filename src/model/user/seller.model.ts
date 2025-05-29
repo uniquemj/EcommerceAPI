@@ -1,5 +1,5 @@
 import { Schema, Document, Model, model } from "mongoose";
-import { User, UserRole } from "../../types/user.types";
+import { User, UserRole, VerificationStatus } from "../../types/user.types";
 import { ImageInfo } from "../../types/image.types";
 
 interface SellerDocument extends User, Document{
@@ -10,8 +10,10 @@ interface SellerDocument extends User, Document{
     city: string,
     country: string,
     is_verified: boolean,
+    verification_status: string,
     store_logo: Array<Schema.Types.ObjectId>,
-    codeExpiresAt: Date
+    codeExpiresAt: Date,
+    rejection_reason: string
 }
 
 const SellerSchema: Schema<SellerDocument> = new Schema({
@@ -33,7 +35,9 @@ const SellerSchema: Schema<SellerDocument> = new Schema({
     is_verified: {type: Boolean, default: false},
     code: {type: String},
     role: {type: String, enum: Object.values(UserRole), default: UserRole.SELLER},
-    codeExpiresAt: {type: Date}
+    codeExpiresAt: {type: Date},
+    verification_status: {type: String, enum: Object.values(VerificationStatus), default: VerificationStatus.PENDING},
+    rejection_reason: {type: String}
 })
 
 const Seller: Model<SellerDocument> = model('seller', SellerSchema)

@@ -49,8 +49,11 @@ export class CustomerServices implements AuthService {
         }
 
         const result = await this.customerRepository.registerCustomer(userDetail)
+
+        const customer = await this.customerRepository.getCustomerById(result?._id as string)
+        
         if(result){
-            await this.notificationServices.sendEmailVerification(result?.fullname, result?.email, result?.code as string)        
+            await this.notificationServices.sendEmailVerification(result?.fullname, result?.email, customer?.code as string)        
         }
 
         return result

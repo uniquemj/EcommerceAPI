@@ -1,51 +1,60 @@
 import { Schema } from "mongoose"
 import { CategoryInfo } from "./category.types"
-import { VariantInfo, VariantInput} from "./variants.types"
+import { VariantInfo, VariantInput } from "./variants.types"
+import { DangerousGoods, WarrantyType } from "../model/product.model";
 
-export enum ArchieveStatus{
+export enum ArchieveStatus {
     Archieve = "archieve",
     UnArchieve = "unarchieve"
 }
 
-export interface ProductInfo{
-    _id:string,
+export interface ProductInfo {
+    _id: string,
     seller: Schema.Types.ObjectId,
     name: string,
-    defaultVariant:Schema.Types.ObjectId,
-    category: CategoryInfo[] | string,
-    variants: VariantInfo[],
+    defaultVariant: Schema.Types.ObjectId,
+    category: Schema.Types.ObjectId,
+    variants: VariantInput[] | VariantInfo[],
     productDescripton: string,
     productHighlights: string,
-    isActive:boolean,
-    archieveStatus: string
+    isActive: boolean,
+    archieveStatus: string,
+    dangerousGoods: DangerousGoods,
+    warrantyType: WarrantyType,
+    warrantyPeriod: number,
+    warrantyPolicy: string
 }
 
-export interface ProductInputInfo{
-    seller: string; 
-    name: string; 
-    category: CategoryInfo[] | string; 
-    variants: VariantInput[]; 
-    productDescripton: string; 
-    productHighlights: string; 
+export interface ProductInputInfo {
+    seller: string;
+    name: string;
+    category: string;
+    variants: VariantInput[];
+    productDescripton: string;
+    productHighlights: string;
     defaultVariant: string,
     isActive: boolean,
-    archieveStatus: string
+    archieveStatus: string,
+    dangerousGoods: DangerousGoods,
+    warrantyType: WarrantyType,
+    warrantyPeriod: number,
+    warrantyPolicy: string
 }
 
-export interface ProductFilter{
+export interface ProductFilter {
     archieveStatus?: string
 }
 
-export interface CountFilter extends ProductFilter{
+export interface CountFilter extends ProductFilter {
     seller?: string,
-    isActive?:boolean
+    isActive?: boolean
 }
 
-export interface searchFilter{
-    keyword?:string,//name, description, store_name
+export interface searchFilter {
+    keyword?: string,//name, description, store_name
     category?: string,
     minPrice?: number,
-    maxPrice?:number,
+    maxPrice?: number,
     page?: number,
-    limit?:number
+    limit?: number
 }

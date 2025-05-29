@@ -21,7 +21,7 @@ export class VariantRepository implements VariantRepositoryInterface{
         .populate('product', '_id name seller')
     }
 
-    async updateVariant(variantId: string, updateInfo: VariantInput): Promise<VariantInfo|null>{
+    async updateVariant(variantId: string, updateInfo: Partial<VariantInput>): Promise<VariantInfo|null>{
         return await Variant.findByIdAndUpdate(variantId, updateInfo, {new: true})
     }
     async deleteVariant(variantId: string): Promise<VariantInfo | null>{
@@ -39,7 +39,7 @@ export class VariantRepository implements VariantRepositoryInterface{
     async removeImageFromProductVariant(variantId:string, imageId: string): Promise<VariantInfo | null>{
         return await Variant.findOneAndUpdate(
             {_id: variantId},
-            {$pull: {images: {_id: imageId}}},
+            {$set: {images: null}},
             {new: true}
         )
     }

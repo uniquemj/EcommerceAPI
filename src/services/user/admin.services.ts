@@ -30,9 +30,16 @@ export class AdminServices implements AuthService {
 
     async registerUser(userInfo: AdminInfo) {
         const adminExist = await this.adminRepository.getAdminByEmail(userInfo.email)
+
         if (adminExist) {
             throw createHttpError.BadRequest("Admin with Email exist.")
         }
+
+        const usernameExist = await this.adminRepository.getAdminByUsername(userInfo.username)
+        if(usernameExist){
+            throw createHttpError.BadRequest("Admin with Username exist.")
+        }
+
         const hashedPassword = await hashPassword(userInfo.password)
         userInfo.password = hashedPassword
         const result = await this.adminRepository.createAdmin(userInfo)

@@ -31,11 +31,14 @@ export interface SellerInfo extends User{
     _id:string
     store_name: string,
     legal_document: Schema.Types.ObjectId[],
+    store_logo: Schema.Types.ObjectId[],
     address: string,
     city: string,
     country: string,
     is_verified?: boolean,
-    codeExpiresAt?:Date
+    codeExpiresAt?:Date,
+    verification_status: string,
+    rejection_reason: string
 }
 
 export interface UserCredentials{
@@ -65,7 +68,10 @@ export interface SellerProfile{
     password?:string,
     is_email_verified?:boolean,
     code?:string|null,
-    codeExpiresAt?:Date|null
+    codeExpiresAt?:Date|null,
+    rejection_reason?:string,
+    verification_status?: string,
+    is_verified?:boolean
 }
 
 export interface AdminProfile{
@@ -81,4 +87,10 @@ export interface SearchUserField{
 export interface VerifyField{
     is_email_verified?:boolean,
     is_verified?:boolean,
+}
+
+export enum VerificationStatus{
+    PENDING="pending",
+    VERIFIED="verified",
+    REJECTED="rejected"
 }

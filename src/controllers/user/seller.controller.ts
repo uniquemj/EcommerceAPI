@@ -2,7 +2,7 @@ import { Request, Response, Router } from "express";
 import { SellerServices } from "../../services/user/seller.services";
 import createHttpError from "../../utils/httperror.utils";
 import { validate } from "../../middlewares/validation.middleware";
-import { addBusinessInfoSchema, loginSchema, resendVerificationEmailSchema, sellerRegisterSchema, updateBusinessInfoSchema, updatePasswordSchema } from "../../validation/user.validate";
+import { addBusinessInfoSchema, loginSchema, resendVerificationEmailSchema, sellerRegisterSchema, updateBusinessInfoSchema, updatePasswordSchema, updateSellerVerificationSchema } from "../../validation/user.validate";
 import { AuthRequest } from "../../types/auth.types";
 import { COOKIE } from "../../constant/cookie";
 import { SellerProfile } from "../../types/user.types";
@@ -43,6 +43,7 @@ export class SellerController{
         instance.router.get('/', verifyToken, allowedRole('admin'), instance.getSellerList)
         instance.router.get('/:id', verifyToken, allowedRole('admin'), instance.getSellerById)
         instance.router.post('/verify-seller/:id', verifyToken, allowedRole('admin'), instance.verifySeller)
+        instance.router.post('/verify-seller/update/:id', verifyToken, allowedRole('admin'), validate(updateSellerVerificationSchema), instance.updateSellerVerification)
         instance.router.delete('/:id', verifyToken, allowedRole('admin'), verifySuperAdmin, instance.deleteSeller)
         
         return instance
@@ -106,10 +107,21 @@ export class SellerController{
             handleSuccessResponse(res, "Business Info Added.", result)
         }catch(e:any){
             this.logger.error("Error while adding Business Info.", {object: e, error: new Error()})
-            throw createHttpError.Custom(e.statuscode, e.message, e.errors)
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
 
+    updateSellerVerification = async(req: AuthRequest, res: Response) =>{
+        try{
+            const verificationInfo = req.body
+            const userId = req.params.id
+            const result = await this.sellerServices.updateSellerVerification(userId, verificationInfo.status, verificationInfo.rejection_reason ?? "")
+            handleSuccessResponse(res, "Seller Verification Updated", result)
+        }catch(e: any){
+            this.logger.error("Error while updating Seller Verification.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
     updateSellerInfo = async(req: AuthRequest, res: Response) =>{
         try{
             const sellerInfo = req.body as SellerProfile

@@ -27,6 +27,10 @@ export class AdminRepository implements AdminRepositoryInterface{
         return await Admin.findOne({email: email})
     }
 
+    async getAdminByUsername(username: string): Promise<AdminInfo | null>{
+        return await Admin.findOne({username: username})
+    }
+    
     async createAdmin(adminInfo: AdminInfo): Promise<AdminInfo | null>{
         const admin = await Admin.create(adminInfo)
         const result = await Admin.findById(admin._id).select('-password')

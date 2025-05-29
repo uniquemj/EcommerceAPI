@@ -16,6 +16,7 @@ import { verifyToken } from "../middlewares/auth.middleware";
 import upload from "../middlewares/file.middleware";
 import { ProductImagesFields } from "../constant/uploadFields";
 import { parseProductInfo } from "../middlewares/parseProductInfo.middleware";
+import { ProductFileInfo } from "../types/file.types";
 
 export class ProductController{
     readonly router: Router;
@@ -42,10 +43,9 @@ export class ProductController{
         instance.router.get('/seller/:id',verifyToken, allowedRole('seller'), verifySeller, instance.getSellerProductById)
         instance.router.get('/:id', instance.getProductById)
 
-        // instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, validate(productSchema), instance.createProduct)
 
-        instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, upload.fields(ProductImagesFields), parseProductInfo, validate(productSchema),instance.demoCreateProduct)
-        instance.router.put('/:id', verifyToken, allowedRole('seller'), verifySeller, validate(updateProductSchema), instance.editProduct)
+        instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, upload.fields(ProductImagesFields), parseProductInfo, validate(productSchema),instance.createProduct)
+        instance.router.put('/:id', verifyToken, allowedRole('seller'), verifySeller, validate(updateProductSchema), upload.fields(ProductImagesFields), instance.editProduct)
         instance.router.delete('/:id', verifyToken, allowedRole('seller', 'admin'), verifySeller, instance.removeProduct)
         // instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
         
@@ -57,7 +57,7 @@ export class ProductController{
         instance.router.delete('/:id/category/:categoryId',verifyToken, allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
         
         // Remove and Add Image
-        instance.router.put('/:id/variants/:variantId', verifyToken, allowedRole('seller'), verifySeller, validate(updateVariantSchema), instance.updateProductVariant)
+        instance.router.put('/:id/variants/:variantId', verifyToken, allowedRole('seller'), verifySeller, validate(updateVariantSchema),upload.fields(ProductImagesFields), instance.updateProductVariant)
         instance.router.delete('/:id/variants/:variantId/images/:imageId', verifyToken, allowedRole('seller'),verifySeller, instance.removeImageFromProductVariant)
         
         // Inventory
@@ -177,26 +177,12 @@ export class ProductController{
         }
     }
 
-    demoCreateProduct = async(req: AuthRequest, res: Response) =>{
-        try{
-            const productInfo = req.body
-            console.log(productInfo)
-            console.log(req.files)
-            // const files = req.files 
-            // console.log(files)
-            handleSuccessResponse(res, "Product Create endpoint hit.", [])
-            // const product = await this.productServices.createProduct(productInfo, req.user!._id!)
-            // handleSuccessResponse(res, "Product Created.", product)
-        } catch(e: any){
-            this.logger.error("Error while creating product.", {object: e, error: new Error()})
-            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
-        }
-    }
-
     createProduct = async(req: AuthRequest, res: Response) =>{
         try{
             const productInfo = req.body
-            const product = await this.productServices.createProduct(productInfo, req.user!._id!)
+            const files = req.files as ProductFileInfo
+            const variantImages = files.variantImages as Express.Multer.File[]
+            const product = await this.productServices.createProduct(productInfo, variantImages, req.user!._id!)
             handleSuccessResponse(res, "Product Created.", product)
         } catch(e: any){
             this.logger.error("Error while creating product.", {object: e, error: new Error()})
@@ -204,12 +190,16 @@ export class ProductController{
         }
     }
 
+
     editProduct = async(req: AuthRequest, res: Response) =>{
         try{
             const productId = req.params.id
             const productInfo = req.body
+            const files = req.files as ProductFileInfo
 
-            const result = await this.productServices.editProduct(productId, productInfo)
+            const variantImages = files.variantImages as Express.Multer.File[]
+
+            const result = await this.productServices.editProduct(productId, productInfo, variantImages)
             handleSuccessResponse(res, "Product updated.", result)
         }catch(e: any){
             this.logger.error("Error while updating product.", {object: e, error: new Error()})
@@ -261,8 +251,10 @@ export class ProductController{
             const variantId = req.params.variantId
             const updateInfo = req.body
             const userId = req.user?._id as string
+            const files = req.files as ProductFileInfo
 
-            const result= await this.productServices.updateProductVariant(productId, variantId, updateInfo, userId)
+            const variantImages = files.variantImages as Express.Multer.File[]
+            const result= await this.productServices.updateProductVariant(productId, variantId, updateInfo,variantImages, userId)
             handleSuccessResponse(res, "Variant Updated.", result)
         }catch(e: any){
             this.logger.error("Error while updating Product Variant.", {object: e, error: new Error()})

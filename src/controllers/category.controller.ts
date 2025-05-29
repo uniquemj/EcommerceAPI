@@ -3,7 +3,7 @@ import { CategoryServices } from '../services/category.services';
 import createHttpError from '../utils/httperror.utils';
 import { allowedRole } from '../middlewares/role.middleware';
 import { validate } from '../middlewares/validation.middleware';
-import { categorySchema } from '../validation/category.validate';
+import { categorySchema, updateCategorySchema } from '../validation/category.validate';
 import { AuthRequest } from '../types/auth.types';
 import { CategoryInfo } from '../types/category.types';
 import { handleSuccessResponse } from '../utils/httpresponse.utils';
@@ -29,7 +29,7 @@ export class CategoryController{
         instance.router.get('/', allowedRole('customer','seller', 'admin'),instance.getCategoryList)
         instance.router.get('/:id', allowedRole('admin'), instance.getCategoryById)
         instance.router.post('/', allowedRole('admin'),validate(categorySchema), instance.createCategory)
-        instance.router.put('/:id', allowedRole('admin'), instance.updateCategory)
+        instance.router.put('/:id', allowedRole('admin'), validate(updateCategorySchema),instance.updateCategory)
         instance.router.delete('/:id', allowedRole('admin'), instance.removeCategory)
         return instance
     }
@@ -47,7 +47,7 @@ export class CategoryController{
                 total_pages: Math.ceil(category.count / parseInt(limit as string)),
             }
 
-            handleSuccessResponse(res, "Category List Fetched.", category, 200, paginationData)
+            handleSuccessResponse(res, "Category List Fetched.", category.category, 200, paginationData)
         }catch(e: any){
             this.logger.error("Error while fetching Category list.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -78,9 +78,9 @@ export class CategoryController{
 
     updateCategory = async(req: AuthRequest, res: Response) =>{
         try{
-            const {title} = req.body
+            const categoryInfo = req.body
             const id = req.params.id
-            const category = await this.categoryServices.updateCategory(id, title)
+            const category = await this.categoryServices.updateCategory(id, categoryInfo)
             handleSuccessResponse(res, "Category Updated.", category)
         }catch(e: any){
             this.logger.error("Error while updating Category.", {object: e, error: new Error()})

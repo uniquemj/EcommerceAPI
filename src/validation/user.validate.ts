@@ -1,5 +1,6 @@
 import {z} from 'zod'
 import { imageSchema } from './image.validate'
+import { VerificationStatus } from '../types/user.types'
 
 export const customerRegisterSchema = z.object({
     fullname: z.string().trim().min(6).max(50),
@@ -102,3 +103,11 @@ export const updateNormalAdminInfo = z.object({
 export const resendVerificationEmailSchema = z.object({
     email: z.string().email()
 }).strict()
+
+export const updateSellerVerificationSchema = z.object({
+    status: z.nativeEnum(VerificationStatus),
+    rejection_reason: z.string().optional()
+}).strict().refine((data) => data.status !== VerificationStatus.REJECTED || data.rejection_reason?.trim()?.length as number > 0, {
+    message: "'rejection_reason' is required with status 'rejected'.",
+    path: ['rejected_reason']
+})

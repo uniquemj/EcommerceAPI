@@ -17,6 +17,7 @@ export interface AdminRepositoryInterface{
     getAllAdmin(pagination: paginationField): Promise<AdminInfo[]>,
     getAdminById(id: string): Promise<AdminInfo | null>,
     getAdminByEmail(email: string): Promise<AdminInfo | null>,
+    getAdminByUsername(username: string): Promise<AdminInfo | null>,
     createAdmin(adminInfo: AdminInfo): Promise<AdminInfo | null>,
     loginAdmin(userCredentials: UserCredentials): Promise<{token: string, user: AdminInfo}>,
     updateAdmin(adminInfo: AdminProfile, adminId: string): Promise<AdminInfo | null>,
@@ -117,7 +118,7 @@ export interface VariantRepositoryInterface{
     createVariant(variantInfo: Partial<VariantInput>): Promise<VariantInfo>
     getVariant(variantId: string): Promise<VariantInfo|null>
     getVariantByProduct(productId: string): Promise<VariantInfo[]>
-    updateVariant(variantId: string, updateInfo: Partial<VariantInfo>): Promise<VariantInfo | null>
+    updateVariant(variantId: string, updateInfo: Partial<VariantInput>): Promise<VariantInfo | null>
     deleteVariant(variantId: string): Promise<VariantInfo | null>,
     addImageToProductVariant(variantId: string, image: ImageInfo): Promise<VariantInfo | null>
     removeImageFromProductVariant(variantId: string, imageId: string): Promise<VariantInfo|null>,

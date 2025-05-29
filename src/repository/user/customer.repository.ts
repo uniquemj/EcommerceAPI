@@ -33,7 +33,7 @@ export class CustomerRepository implements CustomerRepositoryInterface{
 
     async registerCustomer(userInfo: Partial<CustomerInfo>): Promise<CustomerInfo | null>{
         const newCustomer = await Customer.create(userInfo)
-        const result = await Customer.findById(newCustomer._id).select('-password')
+        const result = await Customer.findById(newCustomer._id).select('-password -code')
         return result
     }
 
@@ -52,7 +52,7 @@ export class CustomerRepository implements CustomerRepositoryInterface{
     }
 
     async updateCustomerInfo(userId: string, updateInfo: CustomerProfile): Promise<CustomerInfo | null>{
-        return await Customer.findByIdAndUpdate(userId, updateInfo, {new: true}).select('-password -verified -code -role -is_verified')
+        return await Customer.findByIdAndUpdate(userId, updateInfo, {new: true}).select('-password -verified -code -role -is_verified -codeExpiredAt')
     }
 
     async deleteCustomer(customerId: string): Promise<CustomerInfo | null>{

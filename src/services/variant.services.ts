@@ -4,11 +4,12 @@ import { ImageInfo } from "../types/image.types";
 import { VariantRepositoryInterface } from "../types/repository.types";
 import { VariantInfo, VariantInput } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
+import { CloudServices } from "./cloud.services";
 
 @injectable()
 export class VariantServices {
 
-    constructor(@inject('VariantRepositoryInterface') private readonly variantRepository: VariantRepositoryInterface) { }
+    constructor(@inject('VariantRepositoryInterface') private readonly variantRepository: VariantRepositoryInterface, @inject(CloudServices) private readonly cloudServices: CloudServices) { }
 
     getVariantProduct = async (variantId: string) => {
         const variant = await this.variantRepository.getVariant(variantId)
@@ -20,17 +21,13 @@ export class VariantServices {
             const variantInfo = {
                 product: product_id,
                 color: variant.color,
-                images: [...variant.images as ImageInfo[]],
+                images: variant.images,
                 price: variant.price,
                 size: variant.size ?? "",
                 stock: variant.stock,
                 availability: variant.availability,
                 packageWeight: variant.packageWeight ?? 1,
-                packageLength: variant.packageLength,
-                dangerousGoods: variant.dangerousGoods,
-                warrantyType: variant.warrantyType,
-                warrantyPeriod: variant.warrantyPeriod ?? 1,
-                warrantyPolicy: variant.warrantyPolicy ?? ""
+                packageLength: variant.packageLength
             }
 
             const newVariant = await this.variantRepository.createVariant(variantInfo)
@@ -45,7 +42,7 @@ export class VariantServices {
         return result
     }
 
-    async updateVariant(variantId: string, updateVariantInfo: VariantInfo) {
+    async updateVariant(variantId: string, updateVariantInfo: Partial<VariantInput>) {
         const variantExist = await this.variantRepository.getVariant(variantId)
         if (!variantExist) {
             throw createHttpError.NotFound("Variant with Id not found.")
@@ -81,16 +78,16 @@ export class VariantServices {
 
     async removeImageFromProductVariant(variantId: string, imageId: string) {
         const variantExist = await this.variantRepository.getVariant(variantId)
-        console.log(variantExist)
 
         if (!variantExist) {
             throw createHttpError.NotFound("Variant with Id not found.")
         }
-        const imageStatus = variantExist.images.some((image) => image._id == imageId)
 
-        if (!imageStatus) {
+        if (String(variantExist.images) != imageId) {
             throw createHttpError.NotFound("Image with id not found in variant.")
         }
+
+        await this.cloudServices.destroyImage(imageId)
 
         const result = await this.variantRepository.removeImageFromProductVariant(variantId, imageId)
         return result

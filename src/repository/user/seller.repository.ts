@@ -32,13 +32,11 @@ export class SellerRepository implements SellerRepositoryInterface{
 
     async getSeller(email: string): Promise<SellerInfo | null>{
         return await Seller.findOne({email: email})
-        .populate({path: 'legal_document', select: '_id url'})
-        .populate({path: 'store_logo', select: '_id url'})
     }
 
     async registerSeller(sellerInfo: Partial<SellerInfo>): Promise<SellerInfo | null>{
         const newSeller = await Seller.create(sellerInfo)
-        const seller = await Seller.findById(newSeller._id).select('-password')
+        const seller = await Seller.findById(newSeller._id).select('-password -code')
         return seller
     }
 
@@ -55,7 +53,7 @@ export class SellerRepository implements SellerRepositoryInterface{
     }
 
     async updateSellerInfo(sellerInfo: SellerProfile, sellerId: string): Promise<SellerInfo | null>{
-        return await Seller.findByIdAndUpdate(sellerId, sellerInfo, {new: true}).select('-password -is_verified -is_email_verified -code -__v').populate({path: 'store_logo', select: '_id url'})
+        return await Seller.findByIdAndUpdate(sellerId, sellerInfo, {new: true}).select('-password -is_verified -is_email_verified -code -codeExpiresAt -__v').populate({path: 'store_logo', select: '_id url'})
     }
 
     async deleteSeller(sellerId: string): Promise<SellerInfo | null>{
