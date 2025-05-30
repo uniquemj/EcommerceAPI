@@ -72,6 +72,7 @@ export class VariantServices {
         if (!variantExist) {
             throw createHttpError.NotFound("Variant with Id not found.")
         }
+        await this.cloudServices.destroyImage(String(variantExist.images))
         const result = await this.variantRepository.deleteVariant(variantId)
         return result
     }

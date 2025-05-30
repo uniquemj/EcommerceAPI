@@ -44,8 +44,8 @@ export class ProductController{
         instance.router.get('/:id', instance.getProductById)
 
 
-        instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, upload.fields(ProductImagesFields), parseProductInfo, validate(productSchema),instance.createProduct)
-        instance.router.put('/:id', verifyToken, allowedRole('seller'), verifySeller, validate(updateProductSchema), upload.fields(ProductImagesFields), instance.editProduct)
+        instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, upload.array("variantImages"), parseProductInfo, validate(productSchema), instance.createProduct)
+        instance.router.put('/:id', verifyToken, allowedRole('seller'), verifySeller, upload.array("variantImages"), parseProductInfo, validate(updateProductSchema), instance.editProduct)
         instance.router.delete('/:id', verifyToken, allowedRole('seller', 'admin'), verifySeller, instance.removeProduct)
         // instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
         
@@ -180,8 +180,10 @@ export class ProductController{
     createProduct = async(req: AuthRequest, res: Response) =>{
         try{
             const productInfo = req.body
-            const files = req.files as ProductFileInfo
-            const variantImages = files.variantImages as Express.Multer.File[]
+            // const files = req.files as ProductFileInfo
+            // console.log(files)
+            const variantImages = req.files as Express.Multer.File[]
+            console.log(variantImages)
             const product = await this.productServices.createProduct(productInfo, variantImages, req.user!._id!)
             handleSuccessResponse(res, "Product Created.", product)
         } catch(e: any){

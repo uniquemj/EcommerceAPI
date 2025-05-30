@@ -4,6 +4,7 @@ import Product from "../model/product.model";
 import { paginationField } from "../types/pagination.types";
 import { ArchieveStatus, CountFilter, ProductFilter, ProductInfo, ProductInputInfo, searchFilter } from "../types/product.types";
 import { ProductRepositoryInterface } from "../types/repository.types";
+import Variant from "../model/variant.model";
 
 @injectable()
 export class ProductRepository implements ProductRepositoryInterface {
@@ -107,7 +108,7 @@ export class ProductRepository implements ProductRepositoryInterface {
                     from: 'variants',
                     localField: 'variants',
                     foreignField: '_id',
-                    as: 'variants'
+                    as: 'variants',
                 }
             }
         )
