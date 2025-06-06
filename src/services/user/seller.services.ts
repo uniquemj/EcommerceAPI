@@ -238,4 +238,6 @@ export class SellerServices implements AuthService {
 
         return result
     }
+
+    
 }

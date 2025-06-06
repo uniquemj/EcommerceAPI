@@ -17,6 +17,7 @@ import upload from "../middlewares/file.middleware";
 import { ProductImagesFields } from "../constant/uploadFields";
 import { parseProductInfo } from "../middlewares/parseProductInfo.middleware";
 import { ProductFileInfo } from "../types/file.types";
+import { parseVariant } from "../middlewares/parseVariant";
 
 export class ProductController{
     readonly router: Router;
@@ -50,14 +51,15 @@ export class ProductController{
         // instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
         
         //Variant
-        instance.router.get('/:id/variants', verifyToken, allowedRole('seller'), verifySeller, instance.getProductVariant)
+        instance.router.get('/:id/variants', verifyToken, allowedRole('seller', 'admin'), verifySeller, instance.getProductVariant)
+        instance.router.get('/:id/variants/:variantId', verifyToken, allowedRole('seller', 'admin'), verifySeller, instance.getVariantById)
         instance.router.delete('/:id/variants/:variantId', verifyToken, allowedRole('seller','admin'),verifySeller, instance.removeVariant)
         
         // Remove Category
         instance.router.delete('/:id/category/:categoryId',verifyToken, allowedRole('seller'), verifySeller, instance.removeCategoryFromProduct)
         
         // Remove and Add Image
-        instance.router.put('/:id/variants/:variantId', verifyToken, allowedRole('seller'), verifySeller, validate(updateVariantSchema),upload.fields(ProductImagesFields), instance.updateProductVariant)
+        instance.router.put('/:id/variants/:variantId', verifyToken, allowedRole('seller'), verifySeller, upload.array("variantImages"), parseVariant,validate(updateVariantSchema), instance.updateProductVariant)
         instance.router.delete('/:id/variants/:variantId/images/:imageId', verifyToken, allowedRole('seller'),verifySeller, instance.removeImageFromProductVariant)
         
         // Inventory
@@ -183,7 +185,6 @@ export class ProductController{
             // const files = req.files as ProductFileInfo
             // console.log(files)
             const variantImages = req.files as Express.Multer.File[]
-            console.log(variantImages)
             const product = await this.productServices.createProduct(productInfo, variantImages, req.user!._id!)
             handleSuccessResponse(res, "Product Created.", product)
         } catch(e: any){
@@ -197,9 +198,7 @@ export class ProductController{
         try{
             const productId = req.params.id
             const productInfo = req.body
-            const files = req.files as ProductFileInfo
-
-            const variantImages = files.variantImages as Express.Multer.File[]
+            const variantImages = req.files as Express.Multer.File[]
 
             const result = await this.productServices.editProduct(productId, productInfo, variantImages)
             handleSuccessResponse(res, "Product updated.", result)
@@ -253,9 +252,8 @@ export class ProductController{
             const variantId = req.params.variantId
             const updateInfo = req.body
             const userId = req.user?._id as string
-            const files = req.files as ProductFileInfo
 
-            const variantImages = files.variantImages as Express.Multer.File[]
+            const variantImages = req.files as Express.Multer.File[]
             const result= await this.productServices.updateProductVariant(productId, variantId, updateInfo,variantImages, userId)
             handleSuccessResponse(res, "Variant Updated.", result)
         }catch(e: any){
@@ -304,6 +302,17 @@ export class ProductController{
         }
     }
 
+    getVariantById = async(req: AuthRequest, res: Response) =>{
+        try{
+            const variantId = req.params.variantId
+            const productId = req.params.id
+            const result = await this.productServices.getVariantById(productId, variantId)
+            handleSuccessResponse(res, "Variant Fetched.", result)
+        }catch(e:any){
+            this.logger.error("Error while fetching variant By Id.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
     updateVariantStock = async(req: AuthRequest, res: Response) =>{
         try{
             const variantId = req.params.variantId

@@ -6,6 +6,7 @@ const errorHandler = (err:any, req: Request, res: Response, next: NextFunction) 
     const statusCode = err.statusCode || 500
     const message = err.message || 'Internal Server Error'
     const errors = err.errors || []
+
     logger.error({message: message, statusCode: err.statusCode, errors: err.errors})
     res.status(statusCode).send({message: message, success: false, errors: errors})
 }

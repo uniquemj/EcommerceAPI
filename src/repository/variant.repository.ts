@@ -19,6 +19,7 @@ export class VariantRepository implements VariantRepositoryInterface{
     async getVariantByProduct(productId: string): Promise<VariantInfo[]>{
         return await Variant.find({product: productId})
         .populate('product', '_id name seller')
+        .populate({path: 'images', select: '_id, url'})
     }
 
     async updateVariant(variantId: string, updateInfo: Partial<VariantInput>): Promise<VariantInfo|null>{

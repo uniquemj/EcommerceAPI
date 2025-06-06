@@ -22,7 +22,7 @@ interface ProductDocument extends Document {
     category: Schema.Types.ObjectId,
     variants: VariantInfo[],
 
-    productDescripton: string,
+    productDescription: string,
     productHighlights: string,
     dangerousGoods: DangerousGoods,
     warrantyType: WarrantyType,
@@ -39,7 +39,7 @@ const productSchema: Schema<ProductDocument> = new Schema({
     defaultVariant: { type: Schema.Types.ObjectId, ref: 'variant' },
     category: { type: Schema.Types.ObjectId, ref: 'category' },
     variants: [{ type: Schema.Types.ObjectId, ref: 'variant' }],
-    productDescripton: { type: String },
+    productDescription: { type: String },
     productHighlights: { type: String },
     dangerousGoods: { type: String, enum: Object.values(DangerousGoods), default: DangerousGoods.No },
     warrantyType: { type: String, enum: Object.values(WarrantyType), default: WarrantyType.NoWarranty },

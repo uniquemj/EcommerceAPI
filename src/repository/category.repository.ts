@@ -15,6 +15,9 @@ export class CategoryRepository implements CategoryRepositoryInterface{
         .populate('parent_category', 'title parent_category')
     }
 
+    async getAllCategoryList(pagination: paginationField): Promise<CategoryInfo[]>{
+        return await Category.find({}).skip((pagination.page - 1) * pagination.limit).limit(pagination.limit).lean()
+    }
     async getCategoryCount(): Promise<number>{
         return await Category.countDocuments()
     }

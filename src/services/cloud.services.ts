@@ -36,8 +36,7 @@ export class CloudServices {
         if(!image_meta_data){
             throw createHttpError.BadRequest("No Image for Id found.")
         }
-        const destroy_image = await cloudinary.uploader.destroy(image_meta_data.blob_path)
-        console.log(destroy_image)
+        await cloudinary.uploader.destroy(image_meta_data.blob_path)
         await this.fileService.delete(id)
     }
 }

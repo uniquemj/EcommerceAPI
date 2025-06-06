@@ -11,3 +11,8 @@ export interface CategoryInputInfo{
     title: string,
     parent_category?:string
 }
+
+export interface CategoryTreeInfo{
+    category: CategoryInfo,
+    children?: CategoryTreeInfo[]
+}

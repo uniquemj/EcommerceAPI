@@ -63,6 +63,7 @@ export interface CartRepositoryInterface{
 export interface CategoryRepositoryInterface{
     getCategoryCount(): Promise<number>,
     getCategoryList(pagination: paginationField): Promise<CategoryInfo[]>,
+    getAllCategoryList(pagination:paginationField): Promise<CategoryInfo[]>,
     getCategoryByTitle(title: string): Promise<CategoryInfo|null>,
     getCategoryById(id: string): Promise<CategoryInfo | null>,
     createCategory(categoryInfo: CategoryInputInfo): Promise<CategoryInfo>

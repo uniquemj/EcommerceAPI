@@ -9,6 +9,7 @@ import { CategoryInfo } from '../types/category.types';
 import { handleSuccessResponse } from '../utils/httpresponse.utils';
 import Logger from '../utils/logger.utils';
 import winston from 'winston';
+import { verifyToken } from '../middlewares/auth.middleware';
 
 export class CategoryController{
     readonly router: Router;
@@ -26,11 +27,12 @@ export class CategoryController{
         }
         const instance = CategoryController.instance
 
-        instance.router.get('/', allowedRole('customer','seller', 'admin'),instance.getCategoryList)
-        instance.router.get('/:id', allowedRole('admin'), instance.getCategoryById)
-        instance.router.post('/', allowedRole('admin'),validate(categorySchema), instance.createCategory)
-        instance.router.put('/:id', allowedRole('admin'), validate(updateCategorySchema),instance.updateCategory)
-        instance.router.delete('/:id', allowedRole('admin'), instance.removeCategory)
+        instance.router.get('/',instance.getCategoryList)
+        instance.router.get('/tree', instance.getCategoryTree)
+        instance.router.get('/:id', instance.getCategoryById)
+        instance.router.post('/', verifyToken, allowedRole('admin'),validate(categorySchema), instance.createCategory)
+        instance.router.put('/:id', verifyToken, allowedRole('admin'), validate(updateCategorySchema),instance.updateCategory)
+        instance.router.delete('/:id', verifyToken, allowedRole('admin'), instance.removeCategory)
         return instance
     }
 
@@ -65,6 +67,17 @@ export class CategoryController{
         }
     }
 
+    getCategoryTree = async(req: AuthRequest, res: Response) =>{
+        try{
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const tree = await this.categoryServices.getCategoryTree({page: parseInt(page as string), limit: parseInt(limit as string)});
+            handleSuccessResponse(res, "Category Tree Fetched.", tree)
+        }catch(e:any){
+            this.logger.error("Error while fetching Category Tree", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
     createCategory = async(req: AuthRequest, res: Response) =>{
         try{
             const categoryInfo = req.body

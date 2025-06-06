@@ -96,7 +96,7 @@ router.use('/seller', sellerController.router)
 router.use('/products', productController.router)
 
 // Category Route
-router.use('/category', verifyToken, categoryController.router)
+router.use('/category', categoryController.router)
 
 // Cart Route
 router.use('/carts',verifyToken, cartController.router)

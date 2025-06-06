@@ -15,7 +15,7 @@ export interface ProductInfo {
     defaultVariant: Schema.Types.ObjectId,
     category: Schema.Types.ObjectId,
     variants: VariantInput[] | VariantInfo[],
-    productDescripton: string,
+    productDescription: string,
     productHighlights: string,
     isActive: boolean,
     archieveStatus: string,
@@ -30,7 +30,7 @@ export interface ProductInputInfo {
     name: string;
     category: string;
     variants: VariantInput[];
-    productDescripton: string;
+    productDescription: string;
     productHighlights: string;
     defaultVariant: string,
     isActive: boolean,

@@ -4,6 +4,7 @@ import { CategoryInfo, CategoryInputInfo } from "../types/category.types";
 import { paginationField } from "../types/pagination.types";
 import { CategoryRepositoryInterface } from "../types/repository.types";
 import createHttpError from "../utils/httperror.utils";
+import { buildCategoryTree } from "../utils/helper.utils";
 
 @injectable()
 export class CategoryServices {
@@ -12,9 +13,7 @@ export class CategoryServices {
 
     getCategoryList = async (pagination: paginationField) => {
         const category = await this.categoryRepository.getCategoryList(pagination)
-        if (category && category.length == 0) {
-            throw createHttpError.NotFound("Category List is Empty.")
-        }
+
         const count = await this.categoryRepository.getCategoryCount()
         return {count, category}
     }
@@ -25,6 +24,17 @@ export class CategoryServices {
             throw createHttpError.NotFound("Category doesn't exist.")
         }
         return result
+    }
+
+    getCategoryTree = async(pagination: paginationField) =>{
+        const categories = await this.categoryRepository.getAllCategoryList({page: 0, limit: 0})
+        const tree = buildCategoryTree(categories)
+
+        const {page = 1, limit=10} = pagination
+        const start = (page - 1) * limit
+        const end = start + limit
+        const paginatedTree = tree.slice(start, end)
+        return paginatedTree
     }
 
     getCategoryById = async (id: string) => {

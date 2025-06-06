@@ -96,7 +96,7 @@ export class ProductServices {
     //     return product
     // }
     async createProduct(productInfo: ProductInfo, files: Express.Multer.File[], userId: string) {
-        const { name, category, variants, productDescripton, productHighlights, dangerousGoods, warrantyType,warrantyPeriod, warrantyPolicy } = productInfo
+        const { name, category, variants, productDescription, productHighlights, dangerousGoods, warrantyType,warrantyPeriod, warrantyPolicy } = productInfo
 
         const categoryExist = await this.categoryServices.getCategoryById(String(category))
 
@@ -108,7 +108,7 @@ export class ProductServices {
             name: name,
             category: categoryExist._id,
             variants: variantList,
-            productDescripton: productDescripton ?? "",
+            productDescription: productDescription ?? "",
             productHighlights: productHighlights ?? "",
             dangerousGoods: dangerousGoods,
             warrantyType: warrantyType,
@@ -120,9 +120,8 @@ export class ProductServices {
 
         if (variants?.length > 0) {
             const newVariants = await Promise.all(variants.map(async (variant, index) => {
-                const newVariant = { ...variant }
+                const newVariant = { ...variant , size: variant.size == "-" ? "" : variant.size}
                 const result = await this.cloudServices.uploadImage(files[index], 'variantImages', FileType.Variants)
-                console.log(result._id)
                 newVariant.images = result._id
                 return newVariant as unknown as VariantInput
             }))
@@ -143,7 +142,7 @@ export class ProductServices {
 
         if (productInfo.variants?.length as number > 0) {
             const newVariants = await Promise.all(productInfo.variants!.map(async (variant, index) => {
-                const newVariant = { ...variant }
+                const newVariant = { ...variant , size: variant.size == "-" ? "" : variant.size}
                 const result = await this.cloudServices.uploadImage(variantImages[index], 'variantImages', FileType.Variants)
                 newVariant.images = result._id
                 return newVariant as unknown as VariantInput
@@ -160,11 +159,8 @@ export class ProductServices {
             if (!categoryExist) {
                 throw createHttpError.BadRequest("Category of Id not found.")
             }
-            updateProductInfo = {
-                category: categoryExist._id
-            }
+            updateProductInfo.category =  categoryExist._id
         }
-
         const result = await this.productRepository.editProduct(productId, updateProductInfo)
         return result
     }
@@ -258,8 +254,12 @@ export class ProductServices {
         if (!productExist) {
             throw createHttpError.NotFound("Product with Id not found.")
         }
-        await this.variantServices.deleteVariant(variantId)
-        const result = await this.productRepository.removeVariant(productId, variantId)
+
+        if(productExist.variants.length < 2){
+            throw createHttpError.BadRequest("Product must have one variant.")
+        }
+        const result = await this.variantServices.deleteVariant(variantId)
+        await this.productRepository.removeVariant(productId, variantId)
         return result
     }
 
@@ -271,6 +271,15 @@ export class ProductServices {
 
         const variants = await this.variantServices.getVariantByProduct(productId)
         return variants
+    }
+
+    async getVariantById(productId: string, variantId: string){
+        const productExist = await this.productRepository.getProductById(productId)
+        if(!productExist){
+            throw createHttpError.NotFound("Product with Id not found.")
+        }
+        const variant = await this.variantServices.getVariant(variantId)
+        return variant
     }
 
     async updateArchieveStatus(status: string, productId: string) {
