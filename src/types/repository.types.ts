@@ -4,7 +4,7 @@ import { CartInfo, CartInputInfo, CartInputItem } from "./cart.types";
 import { CategoryInfo, CategoryInputInfo } from "./category.types";
 import { FileInfo } from "./file.types";
 import { ImageInfo } from "./image.types";
-import { OrderCountFilter, orderFilter, OrderInfo, OrderInputInfo, orderItemFilter } from "./order.types";
+import { OrderCountFilter, orderFilter, OrderInfo, OrderInputInfo, OrderItemDateCount, orderItemFilter } from "./order.types";
 import { OrderItemCountFilter, OrderItemInfo, OrderItemInputInfo } from "./orderitem.types";
 import { paginationField } from "./pagination.types";
 import { CountFilter, ProductFilter, ProductInfo, ProductInputInfo, searchFilter } from "./product.types";
@@ -74,21 +74,24 @@ export interface CategoryRepositoryInterface{
 export interface OrderRepositoryInterface{
     getOrderCounts(countFilter: OrderCountFilter): Promise<number>,
     getOrderList(pagination: paginationField, query: orderFilter): Promise<OrderInfo[]>
-    getCustomerOrderList(userId: string, pagination: paginationField): Promise<OrderInfo[]>
+    getCustomerOrderList(userId: string, pagination: paginationField, query?: orderFilter): Promise<OrderInfo[]>
     getCustomerOrder(orderId: string, userId: string): Promise<OrderInfo|null>
     getOrderById(orderId: string): Promise<OrderInfo|null>
     createOrder(orderInfo: OrderInputInfo): Promise<OrderInfo | null>
-    updateOrder(orderId: string, updateInfo: Partial<OrderInputInfo>): Promise<OrderInfo | null>
+    updateOrder(orderId: string, updateInfo: Partial<OrderInputInfo>): Promise<OrderInfo | null>,
+    getAllOrderList (pagination: paginationField):Promise<OrderInfo[]>
 }
 
 export interface OrderItemRepositoryInterface{
     getOrderItemCount (countFilter: OrderItemCountFilter): Promise<number>,
     createOrderItem(orderItemInfo: Partial<OrderItemInputInfo>): Promise<OrderItemInfo>,
     getOrderItemById(orderId: string): Promise<OrderItemInfo | null>,
-    getOrderItemList(orderId: string, query: orderItemFilter): Promise<OrderItemInfo[]>
+    getOrderItemList(orderId: string, query?: orderItemFilter): Promise<OrderItemInfo[]>
     getAllOrderItems(pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[]>
     getOrderForSeller(userId: string, pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[]>
     updateOrderItem(updateOrderItemInfo: Partial<OrderItemInfo>, orderItemId: string): Promise<OrderItemInfo|null>
+    getOrderItemCountByDate(sellerId: string): Promise<OrderItemDateCount[]>,
+    getOrderItemsForAdmin(pagination: paginationField): Promise<OrderItemInfo[]>
 }
 
 export interface ProductRepositoryInterface{
@@ -97,13 +100,19 @@ export interface ProductRepositoryInterface{
     getAllProducts(pagination: paginationField, query: ProductFilter): Promise<ProductInfo[]>,
     getProductList(pagination: paginationField): Promise<ProductInfo[]>,
     getProductById(id: string): Promise<ProductInfo|null>,
+    getProductByCategory(categoryId: string, pagination: paginationField): Promise<ProductInfo[]> ,
     getSellerProductList(sellerId: string, pagination: paginationField, query: ProductFilter): Promise<ProductInfo[]>
     getSellerProductById(id: string, userId: string): Promise<ProductInfo | null>
     createProduct(productInfo: Partial<ProductInputInfo>): Promise<ProductInfo>,
     editProduct(productId: string, productInfo: Partial<ProductInputInfo>): Promise<ProductInfo|null>
     removeProduct(productId: string): Promise<ProductInfo | null>,
-    removeCategoryFromProduct(productId: string, categoryId: string, userId: string): Promise<ProductInfo | null>
-    removeVariant(productId: string, variantId: string): Promise<ProductInfo | null>
+    removeCategoryFromProduct(productId: string, categoryId: string, userId: string): Promise<ProductInfo | null>,
+    removeVariant(productId: string, variantId: string): Promise<ProductInfo | null>,
+    updateProductSellCount(productId: string, quantity: number): Promise<ProductInfo | null>,
+    getBestSellProduct(query: Partial<searchFilter>): Promise<ProductInfo[]>,
+    getFeaturedProduct(pagination: paginationField): Promise<ProductInfo[]>,
+    getSellerBestSellProduct(sellerId: string, query: searchFilter) : Promise<ProductInfo[]>,
+    getTotalSale(sellerId: string):Promise<number>
 }
 
 export interface ShipmentAddressRepositoryInterface{
@@ -113,6 +122,8 @@ export interface ShipmentAddressRepositoryInterface{
     getShipmentAddressById(addressId: string): Promise<ShipmentInfo | null>,
     updateShipmentAddress(addressId: string, updateAddressInfo: Partial<ShipmentInputInfo>): Promise<ShipmentInfo | null>
     deleteShipmentAddress(addressId: string): Promise<ShipmentInfo|null>
+    getDefaultShipmentAddress(customer: string): Promise<ShipmentInfo | null>
+    getActiveShipmentAddress(customer: string): Promise<ShipmentInfo | null>
 }
 
 export interface VariantRepositoryInterface{

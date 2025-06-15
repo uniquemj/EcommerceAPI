@@ -2,7 +2,7 @@
 import { inject, injectable } from "tsyringe";
 import { OrderRepository } from "../repository/order.repository";
 import { CartInputItem, CartItem } from "../types/cart.types";
-import { DeliverInfo, orderFilter, orderItemFilter } from "../types/order.types";
+import { DeliverInfo, orderFilter, orderItemFilter, OrderSummaryDetail } from "../types/order.types";
 import { paginationField } from "../types/pagination.types";
 import { OrderRepositoryInterface } from "../types/repository.types";
 import createHttpError from "../utils/httperror.utils";
@@ -34,14 +34,40 @@ export class OrderServices {
         return { count, orders }
     }
 
-    getCustomerOrderList = async (query: orderItemFilter, pagination: paginationField, userId: string) => {
-        const orderExist = await this.orderRepository.getCustomerOrderList(userId, pagination)
+    getOrderListForAdmin = async(pagination: paginationField) => {
+        const orders = await this.orderRepository.getAllOrderList(pagination)
+
+        let orderDetail: OrderSummaryDetail[] = []
+
+        for (let order of orders) {
+            const orderItemList = await this.orderItemServices.getOrderItemList(String(order._id))
+
+            const readyToShipItemCount = orderItemList.orderItems.filter((item) => item.order_status == 'shipping').length
+            const deliveredItemCount = orderItemList.orderItems.filter((item)=>item.order_status == 'delivered').length
+            const faildeliveryItemCount = orderItemList.orderItems.filter((item)=>item.order_status == 'faildelivery').length
+            const processingItemCount = orderItemList.orderItems.filter((item)=>item.order_status != 'shipping' && item.order_status != 'delivered' && item.order_status != 'faildelivery').length
+
+            orderDetail.push({
+                orderInfo: order,
+                orderCount: {
+                    shipping: readyToShipItemCount,
+                    delivered: deliveredItemCount,
+                    faildelivery: faildeliveryItemCount,
+                    processing: processingItemCount
+                }
+            })
+        }
+            return orderDetail
+    }
+
+    getCustomerOrderList = async (query: orderItemFilter & orderFilter, pagination: paginationField, userId: string) => {
+        const orderExist = await this.orderRepository.getCustomerOrderList(userId, pagination, query)
 
         if (!orderExist) {
             throw createHttpError.NotFound("Order for User not found.")
         }
         const orders = await Promise.all(orderExist.map(async (order) => {
-            const orderItems = await this.orderItemServices.getOrderItemList(order._id as string, query)
+            const orderItems = await this.orderItemServices.getOrderItemList(order._id as string)
 
             const orderDetail = {
                 order: order,
@@ -71,7 +97,7 @@ export class OrderServices {
 
     createOrder = async (deliveryInfo: DeliverInfo, userId: string) => {
         const customer = await this.customerServices.getCustomerById(userId)
-        if(!customer) {
+        if (!customer) {
             throw createHttpError.BadRequest("No customer exist with email.")
         }
         const cartExist = await this.cartServices.getCartByUserId(userId)
@@ -86,33 +112,35 @@ export class OrderServices {
         const orderInfo = {
             shipping_id: deliveryInfo.shipping_id as string,
             customer_id: userId,
-            orderTotal: orderTotal
+            orderTotal: orderTotal.total
         }
 
 
         const order = await this.orderRepository.createOrder(orderInfo)
         if (order) {
             cartItems.forEach(async (item) => {
-                const orderItem = {
-                    productVariant: item.productVariant,
-                    quantity: item.quantity
-                }
-                const product_id = await this.variantServices.getVariantProduct(item.productVariant)
-                await this.variantServices.updateStock(item.productVariant, -item.quantity)
-                const product = await this.productServices.getProductById(product_id as unknown as string)
+                const variant = await this.variantServices.getVariant(item.productVariant)
 
-                const orderItemInfo = {
-                    order_id: order._id as unknown as string,
-                    item: orderItem,
-                    seller_id: product.seller
+                if (variant.stock > 0) {
+                    const orderItem = {
+                        productVariant: item.productVariant,
+                        quantity: item.quantity
+                    }
+                    const product_id = await this.variantServices.getVariantProduct(item.productVariant)
+                    await this.variantServices.updateStock(item.productVariant, -item.quantity)
+                    const product = await this.productServices.getProductById(product_id as unknown as string)
+                    await this.productServices.updateProductSellCount(String(product._id), item.quantity)
+                    const orderItemInfo = {
+                        order_id: order._id as unknown as string,
+                        item: orderItem,
+                        seller_id: product.seller
+                    }
+                    await this.orderItemServices.createOrderItem(orderItemInfo)
+                    await this.notificationServices.sendOrderNotification(order._id as string, customer.fullname, customer.email, orderTotal.total, cartItems)
+                    await this.cartServices.removeItemFromCart(item.productVariant, String(order.customer_id))
                 }
-                await this.orderItemServices.createOrderItem(orderItemInfo)
             })
-            await this.notificationServices.sendOrderNotification(order._id as string, customer.fullname, customer.email, orderTotal, cartItems)
-
         }
-
-        await this.cartServices.resetCart(userId)
         return order
     }
 

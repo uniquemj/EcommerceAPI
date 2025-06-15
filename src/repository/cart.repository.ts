@@ -2,6 +2,7 @@ import { injectable } from "tsyringe";
 import Cart from "../model/cart.model";
 import { CartInfo, CartInputInfo, CartInputItem, CartItem } from "../types/cart.types";
 import { CartRepositoryInterface } from "../types/repository.types";
+import { populate } from "dotenv";
 
 @injectable()
 export class CartRepository implements CartRepositoryInterface{
@@ -15,7 +16,7 @@ export class CartRepository implements CartRepositoryInterface{
 
     async getCartByUserId(userId: string):Promise<CartInfo | null>{
         return await Cart.findOne({customer: userId})
-        .populate({path: 'items', populate: {path: 'productVariant', select: 'price color stock images', populate: {path: 'product', select: 'seller name'}}})
+        .populate({path: 'items', populate: {path: 'productVariant', select: 'price color stock', populate: [{path: 'images', select: '_id, url'},{path: 'product', select: 'seller name'}]}})
     }
 
     async addItemToCart(itemId: CartInputItem, userId: string): Promise<CartInfo | null>{

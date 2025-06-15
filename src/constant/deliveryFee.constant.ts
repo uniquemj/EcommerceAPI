@@ -1,0 +1,1 @@
+export const DELIVERYFEE = 150

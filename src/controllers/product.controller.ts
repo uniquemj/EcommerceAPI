@@ -18,6 +18,8 @@ import { ProductImagesFields } from "../constant/uploadFields";
 import { parseProductInfo } from "../middlewares/parseProductInfo.middleware";
 import { ProductFileInfo } from "../types/file.types";
 import { parseVariant } from "../middlewares/parseVariant";
+import { object } from "zod";
+import { instanceCachingFactory } from "tsyringe";
 
 export class ProductController{
     readonly router: Router;
@@ -38,12 +40,16 @@ export class ProductController{
         instance.router.get('/all', verifyToken, allowedRole('admin'), instance.getAllProduct)
 
         instance.router.get('/', instance.getProductList)
+        instance.router.get('/best/sell', instance.getBestSellProduct)
+        instance.router.get('/best/sell/:sellerId', instance.getSellerBestSellProduct)
+        instance.router.get('/featured', instance.getFeaturedProduct)
+        instance.router.get('/category/:categoryId', instance.getProductByCategory)
         instance.router.get('/search', instance.searchProducts)
         
         instance.router.get('/seller',verifyToken, allowedRole('seller'), verifySeller,instance.getSellerProductList)
         instance.router.get('/seller/:id',verifyToken, allowedRole('seller'), verifySeller, instance.getSellerProductById)
         instance.router.get('/:id', instance.getProductById)
-
+        instance.router.get('/sell/totalSale/:sellerId', verifyToken, allowedRole('seller'), verifySeller, instance.getTotalSale)
 
         instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, upload.array("variantImages"), parseProductInfo, validate(productSchema), instance.createProduct)
         instance.router.put('/:id', verifyToken, allowedRole('seller'), verifySeller, upload.array("variantImages"), parseProductInfo, validate(updateProductSchema), instance.editProduct)
@@ -51,8 +57,8 @@ export class ProductController{
         // instance.router.delete('/delete/:id', allowedRole('admin'), verifySeller, instance.deleteProduct)
         
         //Variant
-        instance.router.get('/:id/variants', verifyToken, allowedRole('seller', 'admin'), verifySeller, instance.getProductVariant)
-        instance.router.get('/:id/variants/:variantId', verifyToken, allowedRole('seller', 'admin'), verifySeller, instance.getVariantById)
+        instance.router.get('/:id/variants', instance.getProductVariant)
+        instance.router.get('/:id/variants/:variantId', instance.getVariantById)
         instance.router.delete('/:id/variants/:variantId', verifyToken, allowedRole('seller','admin'),verifySeller, instance.removeVariant)
         
         // Remove Category
@@ -95,16 +101,26 @@ export class ProductController{
 
     searchProducts = async(req: AuthRequest, res: Response) =>{
         try{
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+
             const searchFilter = {
                 keyword: req.query.keyword as string,
                 category: req.query.category as string,
                 minPrice: req.query.minPrice ? Number(req.query.minPrice):undefined,
                 maxPrice: req.query.maxPrice ? Number(req.query.maxPrice) : undefined,
+                sortBy: req.query.sortBy as string,
                 page: req.query.page ? parseInt(req.query.page as string): 1,
-                limit: req.query.limit? parseInt(req.query.limit as string): 10
+                limit: req.query.limit? parseInt(req.query.limit as string): 10,
             }
             const product = await this.productServices.searchProduct(searchFilter)
-            handleSuccessResponse(res, "Search Product Fetched.", product)
+            const paginationData = {
+                page: parseInt(page as string) ?? 1,
+                limit: parseInt(limit as string) ?? 10,
+                total_items: product.count,
+                total_pages: Math.ceil(product.count / parseInt(limit as string)),
+            }
+            handleSuccessResponse(res, "Search Product Fetched.", product,200, paginationData)
         }catch(e:any){
             this.logger.error("Error while searching products.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
@@ -127,6 +143,85 @@ export class ProductController{
             handleSuccessResponse(res, "Product Fetched.", product.product, 200, paginationData)
         }catch(e: any){
             this.logger.error("Error while fetching Product list.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getProductByCategory = async(req:AuthRequest, res:Response) => {
+        try{
+            const categoryId = req.params.categoryId
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const result = await this.productServices.getProductByCategory(categoryId, { page: parseInt(page as string), limit: parseInt(limit as string)})
+            handleSuccessResponse(res, "Product Fetched.", result)
+        }catch(e:any){
+            this.logger.error("Error while fetching Product By Category.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+    getBestSellProduct = async(req: AuthRequest, res: Response) =>{
+        try{
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const sortBy = req.query.sortBy || "-sellCount"
+            const products = await this.productServices.getBestSellProduct({page: parseInt(page as string), limit: parseInt(limit as string), sortBy: sortBy as string})
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: products.length,
+                total_pages: Math.ceil(products.length / parseInt(limit as string)),
+            }
+            handleSuccessResponse(res, "Best Selling Product Fetched.", products, 200, paginationData)
+        }catch(e:any){
+            this.logger.error("Error while getting best selling product.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+    getSellerBestSellProduct = async(req: AuthRequest, res: Response) =>{
+        try{
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const sortBy = req.query.sortBy || '-sellCount'
+            const sellerId = req.params.sellerId
+            const products = await this.productServices.getSellerBestSellProduct(sellerId, {page: parseInt(page as string), limit: parseInt(limit as string), sortBy: sortBy as string})
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: products.length,
+                total_pages: Math.ceil(products.length / parseInt(limit as string)),
+            }
+            handleSuccessResponse(res, "Seller Best Selling Product Fetched.", products, 200, paginationData)
+        }catch(e:any){
+            this.logger.error("Error while getting seller best selling product.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getTotalSale = async(req: AuthRequest, res: Response) => {
+        try{
+            const sellerId = req.params.sellerId
+            const result = await this.productServices.getTotalSale(sellerId)
+            handleSuccessResponse(res, "Seller total Sale.", result)
+        }catch(e:any){
+            this.logger.error("Error while fetching total sale of seller", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getFeaturedProduct = async(req: AuthRequest, res: Response) =>{
+        try{
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+            const products = await this.productServices.getFeaturedProducts({page: parseInt(page as string), limit: parseInt(limit as string)})
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: products.length,
+                total_pages: Math.ceil(products.length / parseInt(limit as string)),
+            }
+            handleSuccessResponse(res, "Featured Product Fetched.", products, 200, paginationData)
+        }catch(e:any){
+            this.logger.error("Error while fetching featured product.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
@@ -360,4 +455,6 @@ export class ProductController{
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }
+
+
 }

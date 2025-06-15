@@ -5,7 +5,7 @@ import createHttpError from "../utils/httperror.utils";
 import { allowedRole } from "../middlewares/role.middleware";
 import { DeliverInfo, orderFilter, orderItemFilter } from "../types/order.types";
 import { validate } from "../middlewares/validation.middleware";
-import { adminOrderStatusSchema, deliveryInfoSchema, sellerOrderStatusSchema, updateReturnOrderStatusSchema } from "../validation/order.validate";
+import { adminOrderStatusSchema, deliveryInfoSchema, returnInitializeSchema, sellerOrderStatusSchema, updateReturnOrderStatusSchema } from "../validation/order.validate";
 import { OrderItemServices } from "../services/orderItem.services";
 import { handleSuccessResponse } from "../utils/httpresponse.utils";
 import Logger from "../utils/logger.utils";
@@ -29,21 +29,24 @@ export class OrderController{
         }
         const instance = OrderController.instance
 
+        instance.router.get('/items/:id', allowedRole('seller', 'customer', 'admin'), instance.getOrderItemDetail)
         // Customer
         instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrderList)
         instance.router.get('/customer/:id', allowedRole('customer'), instance.getCustomerOrderDetail)
         instance.router.put('/cancel/:id', allowedRole('customer'), instance.cancelOrder)
         instance.router.post('/', allowedRole('customer'), validate(deliveryInfoSchema), instance.createOrder)
-        instance.router.put('/return/init/:id', allowedRole('customer'), instance.updateOrderReturnInitialize)
+        instance.router.put('/return/init/:id', allowedRole('customer'), validate(returnInitializeSchema), instance.updateOrderReturnInitialize)
         
         // Seller
         instance.router.get('/seller', allowedRole('seller'), instance.getOrderForSeller)
         instance.router.put('/seller/status/:id', allowedRole('seller'), validate(sellerOrderStatusSchema), instance.updateSellerOrderStatus)
-        instance.router.get('/seller/:id', allowedRole('seller'), instance.getSellerOrderDetail)
+        instance.router.get('/items/count/:sellerId', allowedRole('seller'), instance.getSellerOrderItemCountByDate)
         instance.router.put('/return/update/:id', allowedRole('seller'), validate(updateReturnOrderStatusSchema),instance.updateSellerOrderReturnStatus)
         
         // Admin
+        instance.router.get('/summary', allowedRole('admin'), instance.getOrderSummaryForAdmin)
         instance.router.get('/', allowedRole('admin'), instance.getOrderList)
+        instance.router.get('/admin/items', allowedRole('admin'), instance.getOrderItemForAdmin)
         instance.router.get('/items', allowedRole('admin'), instance.getOrderItemList)
         instance.router.get('/:orderId', allowedRole('admin'), instance.getOrderItemsForOrder)
         instance.router.put('/complete/:id', allowedRole('admin'), instance.completeOrder)
@@ -130,7 +133,30 @@ export class OrderController{
         }
     }
 
-    getSellerOrderDetail = async(req: AuthRequest, res: Response) =>{
+    getOrderItemForAdmin = async(req: AuthRequest, res: Response) =>{
+        try{
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+
+
+            const result = await this.orderItemServices.getOrderItemsForAdmin({page: parseInt(page as string), limit: parseInt(limit as string)})
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.length,
+                total_pages: Math.ceil(result.length / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Fetched Order Items for Admin", result, 200, paginationData)
+
+        }catch(e:any){
+            this.logger.error("Error while fetching order items for admin.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getOrderItemDetail = async(req: AuthRequest, res: Response) =>{
         try{
             const orderItemId = req.params.id
             const result = await this.orderItemServices.getOrderItemById(orderItemId)
@@ -255,7 +281,8 @@ export class OrderController{
     updateOrderReturnInitialize= async(req: AuthRequest, res: Response) =>{
         try{
             const orderItemId = req.params.id
-            const result = await this.orderItemServices.updateOrderReturnInitialize(orderItemId)
+            const return_reason = req.body.return_reason
+            const result = await this.orderItemServices.updateOrderReturnInitialize(orderItemId, return_reason)
             handleSuccessResponse(res, "Order Item Initiated for Return.", result)
         }catch(e:any){
             this.logger.error("Error while initializing order item return request.", {object: e, error: new Error()})
@@ -271,6 +298,39 @@ export class OrderController{
             handleSuccessResponse(res, "Return Order Item Status Updated.", result)
         }catch(e:any){
             this.logger.error("Error while updating order item return status.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getSellerOrderItemCountByDate = async(req: AuthRequest, res: Response) => {
+        try{
+            const sellerId = req.params.sellerId
+            const result = await this.orderItemServices.getSellerOrderCountByDate(sellerId)
+            handleSuccessResponse(res, "Order Item Count of Seller by date fetched.", result)
+        }catch(e:any){
+            this.logger.error("Error while fetching OrderItem count By date.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getOrderSummaryForAdmin = async(req: AuthRequest, res: Response) =>{
+        try{
+            const page = req.query.page || 1
+            const limit = req.query.limit || 10
+
+            const result = await this.orderServices.getOrderListForAdmin({page: parseInt(page as string), limit: parseInt(limit as string)})
+
+            const paginationData = {
+                page: parseInt(page as string),
+                limit: parseInt(limit as string),
+                total_items: result.length,
+                total_pages: Math.ceil(result.length / parseInt(limit as string)),
+            }
+
+            handleSuccessResponse(res, "Order List Summary for Admin Received.", result, 200, paginationData)
+
+        }catch(e:any){
+            this.logger.error("Error while fetching Order Summary for Admin", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

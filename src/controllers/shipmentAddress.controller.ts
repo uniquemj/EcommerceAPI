@@ -29,10 +29,12 @@ export class ShipmentAddressController{
 
         instance.router.get('/', allowedRole('customer'), instance.getShipmentAddressList)
         instance.router.get('/:id', allowedRole('customer'), instance.getShipmentAddressById)
+        instance.router.get('/address/default', allowedRole('customer'), instance.getDefaultShipmentAddress)
         instance.router.post('/', allowedRole('customer'), validate(addressSchema),instance.createShipmentAddress)
         instance.router.put('/:id', allowedRole('customer'), validate(updateAddressSchema), instance.editShipmentAddress)
         instance.router.delete('/:id', allowedRole('customer'), instance.deleteShipmentAddress)
-
+        instance.router.put('/address/active/:addressId', allowedRole('customer'), instance.updateActiveShipmentAddress)
+        instance.router.get('/address/active', allowedRole('customer'), instance.getActiveShipmentAddress)
         return instance
     }
 
@@ -86,9 +88,8 @@ export class ShipmentAddressController{
         try{
             const addressId = req.params.id
             const updateAddressInfo = req.body
-            const customer_id = req.user?._id as string
 
-            const result = await this.shipmentAddressServices.updateShipmentAddress(addressId, updateAddressInfo, customer_id)
+            const result = await this.shipmentAddressServices.updateShipmentAddress(addressId, updateAddressInfo)
             handleSuccessResponse(res, "Shipment Address Updated.", result)
         }catch(e:any){
             this.logger.error("Error while updating shipment Address.",{object: e, error: new Error()})
@@ -105,6 +106,40 @@ export class ShipmentAddressController{
             handleSuccessResponse(res, "Shipment Address Deleted.",result)
         }catch(e:any){
             this.logger.error("Error while deleting Shipment Address.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getDefaultShipmentAddress = async(req: AuthRequest, res: Response) => {
+        try{
+            const customer_id = req.user?._id as string
+            const result = await this.shipmentAddressServices.getDefaultShipmentAddress(customer_id)
+            handleSuccessResponse(res, "Shipment Address Deleted.",result)
+        }catch(e:any){
+            this.logger.error("Error while fetching default shipment address.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getActiveShipmentAddress = async(req: AuthRequest, res: Response) => {
+        try{
+            const customer_id = req.user?._id as string
+            const result = await this.shipmentAddressServices.getActiveShipmentAddress(customer_id)
+            handleSuccessResponse(res, "Shipment Address Deleted.",result)
+        }catch(e:any){
+            this.logger.error("Error while fetching default shipment address.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    updateActiveShipmentAddress = async(req:AuthRequest, res: Response) =>{
+        try{
+            const addressId = req.params.addressId
+            const customer = req.user?._id as string
+            const result = await this.shipmentAddressServices.updateActiveShipmentAddress(addressId, {isActive: true }, customer)
+            handleSuccessResponse(res, "Active Shipment Address Changed.", result)
+        }catch(e:any){
+            this.logger.error("Error while updating active shipment address", {object:e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

@@ -62,6 +62,10 @@ export class ProductServices {
         return productExist
     }
 
+    async getProductByCategory(categoryId: string, pagination: paginationField){
+        const product = await this.productRepository.getProductByCategory(categoryId,pagination)
+        return product
+    }
 
     async searchProduct(searchFilter: searchFilter) {
         const filteredProduct = await this.productRepository.searchProduct(searchFilter)
@@ -217,13 +221,12 @@ export class ProductServices {
 
         const variant = await this.variantServices.getVariant(variantId)
 
-
         if (variantImages.length > 0) {
-            await this.cloudServices.destroyImage(String(variant.images))
-            variantImages.forEach(async (image) => {
+            for(const image of variantImages){
                 const result = await this.cloudServices.uploadImage(image, 'variantImages', FileType.Variants)
-                updateInfo.images = result._id
-            })
+                updateInfo.images= result._id
+            }
+            await this.cloudServices.destroyImage(String(variant.images))
         }
 
         const result = await this.variantServices.updateVariant(variantId, updateInfo)
@@ -292,4 +295,35 @@ export class ProductServices {
         const result = await this.productRepository.editProduct(productId, { archieveStatus: status })
         return result
     }
+
+    async updateProductSellCount(productId: string, quantity: number) {
+        const productExist = await this.productRepository.getProductById(productId)
+        if(!productExist){
+            throw createHttpError.NotFound("Product with Id not found.")
+        }
+
+        const result = await this.productRepository.updateProductSellCount(productId, quantity)
+        return result
+    }
+
+    async getBestSellProduct(query: Partial<searchFilter>) {
+        const products = await this.productRepository.getBestSellProduct(query)
+        return products
+    }
+
+    async getSellerBestSellProduct(sellerId: string, query: searchFilter){
+        const products = await this.productRepository.getSellerBestSellProduct(sellerId, query)
+        return products
+    }
+
+    async getFeaturedProducts(pagination: paginationField){
+        const products = await this.productRepository.getFeaturedProduct(pagination)    
+        return products
+    }
+
+    async getTotalSale(sellerId: string){
+        const totalSale = await this.productRepository.getTotalSale(sellerId)
+        return {totalSale: totalSale}
+    }
 }
+

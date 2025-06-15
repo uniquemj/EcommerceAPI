@@ -30,7 +30,9 @@ interface ProductDocument extends Document {
     warrantyPolicy: string,
 
     isActive: boolean,
-    archieveStatus: ArchieveStatus
+    archieveStatus: ArchieveStatus,
+    featured: boolean,
+    sellCount: number
 }
 
 const productSchema: Schema<ProductDocument> = new Schema({
@@ -47,7 +49,9 @@ const productSchema: Schema<ProductDocument> = new Schema({
     warrantyPolicy: { type: String },
 
     isActive: { type: Boolean, default: true },
-    archieveStatus: { type: String, enum: Object.values(ArchieveStatus), default: ArchieveStatus.UnArchieve }
+    archieveStatus: { type: String, enum: Object.values(ArchieveStatus), default: ArchieveStatus.UnArchieve },
+    featured: {type: Boolean, default: false},
+    sellCount: {type: Number, default: 0}
 }, { timestamps: true })
 
 const Product: Model<ProductDocument> = model('product', productSchema)

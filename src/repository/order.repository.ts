@@ -12,11 +12,23 @@ export class OrderRepository implements OrderRepositoryInterface{
         .skip((pagination.page - 1) * pagination.limit)
         .limit(pagination.limit)
     }
-    async getCustomerOrderList(userId: string, pagination: paginationField): Promise<OrderInfo[]|[]>{
-        return await Order.find({customer_id: userId})
+
+    async getAllOrderList (pagination: paginationField):Promise<OrderInfo[]>{
+        return await Order.find({isCanceled: false})
         .skip((pagination.page - 1) * pagination.limit)
         .limit(pagination.limit)
+        .sort('-order_timeStamp')
         .select('-__v')
+        .populate({path: 'shipping_id', select: '-isDeleted'})
+    }
+
+    async getCustomerOrderList(userId: string, pagination: paginationField, query?: orderFilter): Promise<OrderInfo[]|[]>{
+        return await Order.find({customer_id: userId, isCanceled: false, ...query})
+        .skip((pagination.page - 1) * pagination.limit)
+        .limit(pagination.limit)
+        .sort('-order_timeStamp')
+        .select('-__v')
+        .populate({path: 'shipping_id', select: '-isDeleted'})
     }
 
     async getOrderCounts(countFilter: OrderCountFilter): Promise<number>{
@@ -24,11 +36,11 @@ export class OrderRepository implements OrderRepositoryInterface{
     }
 
     async getCustomerOrder(orderId: string, userId: string): Promise<OrderInfo | null>{
-        return await Order.findOne({_id: orderId, customer_id: userId})
+        return await Order.findOne({_id: orderId, customer_id: userId}).populate({path: 'shipping_id'})
     }
     
     async getOrderById(orderId: string): Promise<OrderInfo | null>{
-        return await Order.findById(orderId)
+        return await Order.findById(orderId).populate({path: 'shipping_id'})
     }
 
     async createOrder(orderInfo: OrderInputInfo): Promise<OrderInfo>{

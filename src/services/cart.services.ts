@@ -1,10 +1,11 @@
 import { inject, injectable } from "tsyringe";
 import { CartRepository } from "../repository/cart.repository";
-import { CartInfo, CartInputInfo, CartInputItem, CartItem } from "../types/cart.types";
+import { CartInfo, CartInputInfo, CartInputItem, CartItem, CartTotal } from "../types/cart.types";
 import { CartRepositoryInterface } from "../types/repository.types";
 import { VariantInfo } from "../types/variants.types";
 import createHttpError from "../utils/httperror.utils";
 import { VariantServices } from "./variant.services";
+import { DELIVERYFEE } from "../constant/deliveryFee.constant";
 
 @injectable()
 export class CartServices {
@@ -14,9 +15,6 @@ export class CartServices {
 
     getCartByUserId = async (userId: string) => {
         const cartExist = await this.cartRepository.getCartByUserId(userId)
-        if (!cartExist) {
-            throw createHttpError.NotFound("Cart for user not found.")
-        }
         return cartExist
     }
 
@@ -29,6 +27,7 @@ export class CartServices {
     }
 
     addToCart = async (itemId: string, userId: string, quantity: number = 1) => {
+
         const productItem = await this.variantServices.getVariant(itemId)
 
         if (productItem.stock! < 1) {
@@ -73,7 +72,7 @@ export class CartServices {
 
     removeItemFromCart = async (itemId: string, userId: string) => {
         const itemExist = await this.cartRepository.getCartItem(userId, itemId)
-        if (itemExist!.items.length == 0) {
+        if (!itemExist) {
             throw createHttpError.NotFound("Cart Item not found.")
         }
 
@@ -97,24 +96,30 @@ export class CartServices {
             throw createHttpError.BadRequest("Quantity exceeds product stock.")
         }
         const result = await this.cartRepository.updateQuantity(quantity, userId, itemId) as unknown as CartInfo
-        if (result && result.items[0].quantity < 1) {
+
+        const cartItem = await this.cartRepository.getCartItem(userId, itemId)
+        const filterItem = cartItem?.items.filter((item)=>String(item.productVariant) == itemId)
+ 
+        if (filterItem?.length && filterItem[0].quantity < 1) {
             await this.cartRepository.removeItemFromCart(itemId, userId)
         }
         return result
     }
 
-    getCartTotal = async (userId: string): Promise<number> => {
+    getCartTotal = async (userId: string): Promise<CartTotal> => {
         const cartExist = await this.cartRepository.getCartByUserId(userId)
         if (!cartExist) {
             throw createHttpError.BadRequest("Cart for User not found.")
         }
 
         let cartTotal = 0
-        for (let cartItem of cartExist.items) {
-            const item = await this.variantServices.getVariant(cartItem.productVariant as unknown as string)
-            cartTotal += item?.price! * cartItem.quantity
+        for(const item of cartExist.items){
+            const variant = await this.variantServices.getVariant(item.productVariant as unknown as string)
+            if(variant.stock > 0){
+                cartTotal += variant.price * item.quantity
+            }
         }
-        return cartTotal
+        return {delivery_fee: DELIVERYFEE, subTotal: cartTotal, total: cartTotal + DELIVERYFEE}
     }
 
     resetCart = async (userId: string) => {

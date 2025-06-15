@@ -98,3 +98,19 @@ export interface orderItemFilter{
 export interface OrderCountFilter{
     customer_id?:string
 }
+
+export interface OrderItemDateCount{
+    _id: string,
+    totalOrder: number,
+    totalSale: number
+}
+
+export interface OrderSummaryDetail {
+    orderInfo: OrderInfo,
+    orderCount: {
+        shipping: number,
+        delivered: number,
+        faildelivery: number,
+        processing: number
+    }
+}

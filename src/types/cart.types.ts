@@ -20,3 +20,9 @@ export interface CartInputItem{
     productVariant: string, 
     quantity: number
 }
+
+export interface CartTotal{
+    delivery_fee: number, 
+    subTotal: number, 
+    total: number
+}

@@ -8,7 +8,10 @@ interface ShipmentAddressDocument extends Document{
     phone_number: string,
     region: string,
     city: string,
-    address: string
+    address: string,
+    isDefault: boolean,
+    isActive: boolean,
+    isDeleted: boolean
 }
 
 const shipmentAddressSchema: Schema<ShipmentAddressDocument> = new Schema({
@@ -18,7 +21,10 @@ const shipmentAddressSchema: Schema<ShipmentAddressDocument> = new Schema({
     phone_number: {type: String, minlength: 10},
     region: {type: String},
     city: {type: String},
-    address: {type: String}
+    address: {type: String},
+    isDefault: {type: Boolean, default: false},
+    isActive: {type: Boolean, default: false},
+    isDeleted: {type: Boolean, default: false}
 })
 
 const ShipmentAddress: Model<ShipmentAddressDocument> = model('shipmentAddress', shipmentAddressSchema)

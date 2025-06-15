@@ -8,7 +8,8 @@ interface OrderItemDocument extends Document{
     item: CartItem,
     
     order_status : OrderStatus,
-    seller_id: Schema.Types.ObjectId
+    seller_id: Schema.Types.ObjectId,
+    return_reason: string
 }
 
 
@@ -20,7 +21,8 @@ const orderItemSchema: Schema<OrderItemDocument> = new Schema({
     },
     seller_id: {type: Schema.Types.ObjectId, ref: 'seller'},
     order_status: {type: String, enum: Object.values(OrderStatus), default: OrderStatus.Pending},
-})
+    return_reason: {type: String, min: 10, max: 150}
+},{timestamps: true})
 
 const OrderItem : Model<OrderItemDocument> = model('orderitem', orderItemSchema)
 

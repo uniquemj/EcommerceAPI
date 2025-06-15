@@ -18,12 +18,12 @@ export class EmailServices{
         this.transporter = nodemailer.createTransport({
             service: "gmail",
             auth: {
-                type: "OAuth2",
+                // type: "OAuth2",
                 user: EMAIL,
                 pass: PASSWORD,
-                clientId: clientId,
-                clientSecret: clientSecret,
-                refreshToken: refreshToken
+                // clientId: clientId,
+                // clientSecret: clientSecret,
+                // refreshToken: refreshToken
             } as TransportOptionsWithUnknownProps
         })
     }

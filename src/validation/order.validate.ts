@@ -22,3 +22,7 @@ export const adminOrderStatusSchema = z.object({
 export const updateReturnOrderStatusSchema = z.object({
     order_status: z.nativeEnum(SellerReturnOrderStatus)
 })
+
+export const returnInitializeSchema = z.object({
+    return_reason: z.string().min(10).max(150)
+}).strict()

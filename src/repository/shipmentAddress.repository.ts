@@ -17,7 +17,7 @@ export class ShipmentAddressRepository implements ShipmentAddressRepositoryInter
     }
 
     async getShipmentAddressList(customerId: string, pagination: paginationField): Promise<ShipmentInfo[]>{
-        return await ShipmentAddress.find({customer_id: customerId})
+        return await ShipmentAddress.find({customer_id: customerId, isDeleted: false})
         .skip((pagination.page - 1) * pagination.limit)
         .limit(pagination.limit)
     }
@@ -30,7 +30,27 @@ export class ShipmentAddressRepository implements ShipmentAddressRepositoryInter
         return await ShipmentAddress.findByIdAndUpdate(addressId, updateAddressInfo, {new: true})
     }
 
+    // async deleteShipmentAddress(addressId: string): Promise<ShipmentInfo | null>{
+    //     return await ShipmentAddress.findByIdAndDelete(addressId)
+    // }
+
     async deleteShipmentAddress(addressId: string): Promise<ShipmentInfo | null>{
-        return await ShipmentAddress.findByIdAndDelete(addressId)
+        return await ShipmentAddress.findOneAndUpdate({_id: addressId}, {isDeleted: true})
     }
+
+    async getDefaultShipmentAddress(customer: string): Promise<ShipmentInfo | null>{
+        return await ShipmentAddress.findOne({
+            customer_id: customer,
+            isDefault: true
+        })
+    }
+
+    async getActiveShipmentAddress(customer: string): Promise<ShipmentInfo | null>{
+        return await ShipmentAddress.findOne({
+            customer_id: customer,
+            isActive: true
+        })
+    }
+
+    
 }

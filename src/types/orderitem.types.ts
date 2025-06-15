@@ -8,6 +8,7 @@ export interface OrderItemInfo{
     item: CartItem,
     seller_id: Schema.Types.ObjectId,
     order_status: string,
+    return_reason : string
 }
 
 export interface OrderItemInputInfo{
@@ -15,6 +16,7 @@ export interface OrderItemInputInfo{
     item: CartInputItem,
     seller_id: Schema.Types.ObjectId,
     order_status: string,
+    return_reason?: string
 }
 
 export interface OrderItemCountFilter{

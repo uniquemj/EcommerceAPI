@@ -22,7 +22,8 @@ export interface ProductInfo {
     dangerousGoods: DangerousGoods,
     warrantyType: WarrantyType,
     warrantyPeriod: number,
-    warrantyPolicy: string
+    warrantyPolicy: string,
+    featured: boolean
 }
 
 export interface ProductInputInfo {
@@ -38,7 +39,8 @@ export interface ProductInputInfo {
     dangerousGoods: DangerousGoods,
     warrantyType: WarrantyType,
     warrantyPeriod: number,
-    warrantyPolicy: string
+    warrantyPolicy: string,
+    featured: boolean
 }
 
 export interface ProductFilter {
@@ -56,5 +58,6 @@ export interface searchFilter {
     minPrice?: number,
     maxPrice?: number,
     page?: number,
-    limit?: number
+    limit?: number,
+    sortBy?:string,
 }

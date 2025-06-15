@@ -1,6 +1,6 @@
 import { inject, injectable } from "tsyringe";
 import { OrderItemRepository } from "../repository/orderitem.repository";
-import { orderItemFilter } from "../types/order.types";
+import { orderFilter, orderItemFilter } from "../types/order.types";
 import { OrderItemInfo, OrderItemInputInfo } from "../types/orderitem.types";
 import { paginationField } from "../types/pagination.types";
 import { OrderItemRepositoryInterface } from "../types/repository.types";
@@ -18,11 +18,13 @@ export class OrderItemServices {
 
     getAllOrderItem = async (pagination:paginationField, query: orderItemFilter) => {
         const orderItems = await this.orderItemRepository.getAllOrderItems(pagination, query)
-        if (orderItems.length == 0) {
-            throw createHttpError.NotFound("Order Items list is empty.")
-        }
         const count = await this.orderItemRepository.getOrderItemCount({})
         return {count: count, orderItems}
+    }
+
+    getOrderItemsForAdmin = async(pagination:paginationField) =>{
+        const orderItems = await this.orderItemRepository.getOrderItemsForAdmin(pagination)
+        return orderItems
     }
 
     getOrderItemById = async (orderId: string) => {
@@ -33,7 +35,7 @@ export class OrderItemServices {
         return orderItemExist
     }
 
-    getOrderItemList = async (orderId: string, query: orderItemFilter) => {
+    getOrderItemList = async (orderId: string, query?: orderItemFilter) => {
         const orderItems = await this.orderItemRepository.getOrderItemList(orderId, query)
         const count = orderItems.length
         return {count: count, orderItems}
@@ -41,9 +43,6 @@ export class OrderItemServices {
 
     getOrderForSeller = async (userId: string, pagination: paginationField, query: orderItemFilter) => {
         const orderItems = await this.orderItemRepository.getOrderForSeller(userId, pagination, query)
-        if (orderItems.length == 0) {
-            throw createHttpError.NotFound("No order received.")
-        }
         const count = orderItems.length
         return {count: count, orderItems}
     }
@@ -65,9 +64,7 @@ export class OrderItemServices {
 
 
     updateAdminOrderStatus = async (order_status: string, orderItemId: string) => {
-        console.log(orderItemId)
         const orderExist = await this.orderItemRepository.getOrderItemById(orderItemId)
-        console.log(orderExist)
 
         if (!orderExist) {
             throw createHttpError.NotFound("Order with Id not found.")
@@ -77,7 +74,7 @@ export class OrderItemServices {
         return result
     }
 
-    updateOrderReturnInitialize = async (orderItemId: string) => {
+    updateOrderReturnInitialize = async (orderItemId: string, return_reason: string) => {
         const orderItemExist = await this.orderItemRepository.getOrderItemById(orderItemId)
 
         if (!orderItemExist) {
@@ -87,7 +84,7 @@ export class OrderItemServices {
         if (orderItemExist.order_status as unknown as string != 'delivered') {
             throw createHttpError.BadRequest("Order Item status can't be initiated to return as it's not delivered yet.")
         }
-        const updateOrderItemStatus = await this.orderItemRepository.updateOrderItem({ order_status: "return-initialized" }, orderItemId)
+        const updateOrderItemStatus = await this.orderItemRepository.updateOrderItem({ order_status: "return-initialized" , return_reason: return_reason}, orderItemId)
         return updateOrderItemStatus
     }
 
@@ -104,6 +101,11 @@ export class OrderItemServices {
 
         const result = await this.orderItemRepository.updateOrderItem({ order_status: order_status }, orderItemId)
 
+        return result
+    }
+
+    getSellerOrderCountByDate = async(sellerId: string)=>{
+        const result = await this.orderItemRepository.getOrderItemCountByDate(sellerId)
         return result
     }
 }

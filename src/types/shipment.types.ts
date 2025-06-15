@@ -9,7 +9,10 @@ export interface ShipmentInfo{
     phone_number: string,
     region: string,
     city: string,
-    address: string
+    address: string,
+    isDefault?: boolean,
+    isActive?: boolean,
+    isDeleted?:boolean
 }
 
 export interface ShipmentInputInfo{
@@ -19,7 +22,10 @@ export interface ShipmentInputInfo{
     phone_number: string,
     region: string,
     city: string,
-    address: string
+    address: string,
+    isDefault?: boolean,
+    isActive?: boolean,
+    isDeleted?: boolean
 }
 
 export interface shipmentCountFilter{
