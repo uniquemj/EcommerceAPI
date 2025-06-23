@@ -38,7 +38,8 @@ export class ProductController{
         const instance = ProductController.instance
 
         instance.router.get('/all', verifyToken, allowedRole('admin'), instance.getAllProduct)
-
+        instance.router.get('/all/count', instance.getProductCount)
+        
         instance.router.get('/', instance.getProductList)
         instance.router.get('/best/sell', instance.getBestSellProduct)
         instance.router.get('/best/sell/:sellerId', instance.getSellerBestSellProduct)
@@ -48,8 +49,9 @@ export class ProductController{
         
         instance.router.get('/seller',verifyToken, allowedRole('seller'), verifySeller,instance.getSellerProductList)
         instance.router.get('/seller/:id',verifyToken, allowedRole('seller'), verifySeller, instance.getSellerProductById)
+        instance.router.get('/count/seller', verifyToken, allowedRole('seller'), instance.getSellerProductCount)
         instance.router.get('/:id', instance.getProductById)
-        instance.router.get('/sell/totalSale/:sellerId', verifyToken, allowedRole('seller'), verifySeller, instance.getTotalSale)
+        instance.router.get('/sell/totalSale', verifyToken, allowedRole('seller'), instance.getTotalSale)
 
         instance.router.post('/', verifyToken, allowedRole('seller'), verifySeller, upload.array("variantImages"), parseProductInfo, validate(productSchema), instance.createProduct)
         instance.router.put('/:id', verifyToken, allowedRole('seller'), verifySeller, upload.array("variantImages"), parseProductInfo, validate(updateProductSchema), instance.editProduct)
@@ -99,6 +101,16 @@ export class ProductController{
         }
     }
 
+    getProductCount = async(req: AuthRequest, res: Response) => {
+        try{
+            const result = await this.productServices.getProductCount()
+            handleSuccessResponse(res, "Active Product Fetched.", result)
+        }catch(e:any){
+            this.logger.error("Error while fetching Active Product Count.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
     searchProducts = async(req: AuthRequest, res: Response) =>{
         try{
             const page = req.query.page || 1
@@ -113,6 +125,7 @@ export class ProductController{
                 page: req.query.page ? parseInt(req.query.page as string): 1,
                 limit: req.query.limit? parseInt(req.query.limit as string): 10,
             }
+            console.log(searchFilter)
             const product = await this.productServices.searchProduct(searchFilter)
             const paginationData = {
                 page: parseInt(page as string) ?? 1,
@@ -199,7 +212,7 @@ export class ProductController{
 
     getTotalSale = async(req: AuthRequest, res: Response) => {
         try{
-            const sellerId = req.params.sellerId
+            const sellerId = req.user?._id as string
             const result = await this.productServices.getTotalSale(sellerId)
             handleSuccessResponse(res, "Seller total Sale.", result)
         }catch(e:any){
@@ -457,4 +470,14 @@ export class ProductController{
     }
 
 
+    getSellerProductCount = async(req: AuthRequest, res: Response) => {
+        try{
+            const sellerId = req.user?._id as string
+            const result = await this.productServices.getSellerProductCount(sellerId)
+            handleSuccessResponse(res, "Seller Product Count Fetched.", result)
+        }catch(e:any){
+            this.logger.error("Error while fetching product Count.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
 }

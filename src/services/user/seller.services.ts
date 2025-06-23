@@ -33,6 +33,11 @@ export class SellerServices implements AuthService {
         return {count, sellers}
     }
 
+    async getSellerCount(){
+        const count = await this.sellerRepository.getSellerCount()
+        return count
+    }
+
     async registerUser(sellerInfo: SellerInfo) {
         const sellerExist = await this.sellerRepository.getSeller(sellerInfo.email)
         if (sellerExist) {

@@ -29,7 +29,7 @@ export class OrderController{
         }
         const instance = OrderController.instance
 
-        instance.router.get('/items/:id', allowedRole('seller', 'customer', 'admin'), instance.getOrderItemDetail)
+        instance.router.get('/detail/items/:id', allowedRole('seller', 'customer', 'admin'), instance.getOrderItemDetail)
         // Customer
         instance.router.get('/customer',allowedRole('customer'), instance.getCustomerOrderList)
         instance.router.get('/customer/:id', allowedRole('customer'), instance.getCustomerOrderDetail)
@@ -40,7 +40,7 @@ export class OrderController{
         // Seller
         instance.router.get('/seller', allowedRole('seller'), instance.getOrderForSeller)
         instance.router.put('/seller/status/:id', allowedRole('seller'), validate(sellerOrderStatusSchema), instance.updateSellerOrderStatus)
-        instance.router.get('/items/count/:sellerId', allowedRole('seller'), instance.getSellerOrderItemCountByDate)
+        instance.router.get('/items/count', allowedRole('seller'), instance.getSellerOrderItemCountByDate)
         instance.router.put('/return/update/:id', allowedRole('seller'), validate(updateReturnOrderStatusSchema),instance.updateSellerOrderReturnStatus)
         
         // Admin
@@ -51,7 +51,7 @@ export class OrderController{
         instance.router.get('/:orderId', allowedRole('admin'), instance.getOrderItemsForOrder)
         instance.router.put('/complete/:id', allowedRole('admin'), instance.completeOrder)
         instance.router.put('/admin/status/:id', allowedRole('admin'), validate(adminOrderStatusSchema), instance.updateAdminOrderStatus)
-
+        instance.router.put('/update/payment', allowedRole('admin'), instance.updateOrderPaymentStatus)
         return instance
     }
 
@@ -96,10 +96,10 @@ export class OrderController{
 
     createOrder = async(req: AuthRequest, res: Response) =>{
         try{
-            const deliveryInfo = req.body as DeliverInfo
+            const orderInfo = req.body
             const userId = req.user?._id as string
 
-            const result = await this.orderServices.createOrder(deliveryInfo, userId)
+            const result = await this.orderServices.createOrder(orderInfo.shipping_id, userId, orderInfo.payment_method, orderInfo.stripeData)
             handleSuccessResponse(res, "Order Created.", result)
         }catch(e: any){
             this.logger.error("Error while creating Order.", {object: e, error: new Error()})
@@ -110,15 +110,15 @@ export class OrderController{
     getOrderForSeller = async(req: AuthRequest, res: Response) =>{
         try{
             const sellerId = req.user?._id as string
-            const query= req.query
+            const query= req.query.order_status as string
             const page = req.query.page || 1
             const limit = req.query.limit || 10
 
             delete req.query.page
             delete req.query.limit
-
+            
             const result = await this.orderItemServices.getOrderForSeller(sellerId,{page: parseInt(page as string), limit: parseInt(limit as string)}, query)
-
+  
             const paginationData = {
                 page: parseInt(page as string),
                 limit: parseInt(limit as string),
@@ -141,11 +141,12 @@ export class OrderController{
 
             const result = await this.orderItemServices.getOrderItemsForAdmin({page: parseInt(page as string), limit: parseInt(limit as string)})
 
+
             const paginationData = {
                 page: parseInt(page as string),
                 limit: parseInt(limit as string),
                 total_items: result.length,
-                total_pages: Math.ceil(result.length / parseInt(limit as string)),
+                total_pages: Math.ceil((result.length) / parseInt(limit as string)),
             }
 
             handleSuccessResponse(res, "Fetched Order Items for Admin", result, 200, paginationData)
@@ -243,7 +244,7 @@ export class OrderController{
     getOrderItemList = async(req: AuthRequest, res: Response) =>{
         try{
 
-            const query = req.query
+            const query = req.query.order_status as string
             const page = req.query.page || 1
             const limit = req.query.limit || 10
 
@@ -302,9 +303,20 @@ export class OrderController{
         }
     }
 
+    updateOrderPaymentStatus = async(req: AuthRequest, res: Response) =>{
+        try{
+            const {order_id} = req.body
+            const result = await this.orderServices.updateOrderPaymentStatus(order_id)
+            handleSuccessResponse(res, "Return Order Payment Status.", result)
+        }catch(e:any){
+            this.logger.error("Error while updating payment status.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
     getSellerOrderItemCountByDate = async(req: AuthRequest, res: Response) => {
         try{
-            const sellerId = req.params.sellerId
+            const sellerId = req.user?._id as string
             const result = await this.orderItemServices.getSellerOrderCountByDate(sellerId)
             handleSuccessResponse(res, "Order Item Count of Seller by date fetched.", result)
         }catch(e:any){

@@ -87,11 +87,12 @@ export interface OrderItemRepositoryInterface{
     createOrderItem(orderItemInfo: Partial<OrderItemInputInfo>): Promise<OrderItemInfo>,
     getOrderItemById(orderId: string): Promise<OrderItemInfo | null>,
     getOrderItemList(orderId: string, query?: orderItemFilter): Promise<OrderItemInfo[]>
-    getAllOrderItems(pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[]>
-    getOrderForSeller(userId: string, pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[]>
+    getAllOrderItems(pagination: paginationField, query?: string): Promise<OrderItemInfo[]>
+    getOrderForSeller(userId: string, pagination: paginationField, query?: orderItemFilter): Promise<OrderItemInfo[]>
     updateOrderItem(updateOrderItemInfo: Partial<OrderItemInfo>, orderItemId: string): Promise<OrderItemInfo|null>
     getOrderItemCountByDate(sellerId: string): Promise<OrderItemDateCount[]>,
-    getOrderItemsForAdmin(pagination: paginationField): Promise<OrderItemInfo[]>
+    getOrderItemsForAdmin(pagination: paginationField): Promise<OrderItemInfo[]>,
+    getOrderForSellerCount(userId: string, query?: orderItemFilter): Promise<number>
 }
 
 export interface ProductRepositoryInterface{
@@ -112,7 +113,8 @@ export interface ProductRepositoryInterface{
     getBestSellProduct(query: Partial<searchFilter>): Promise<ProductInfo[]>,
     getFeaturedProduct(pagination: paginationField): Promise<ProductInfo[]>,
     getSellerBestSellProduct(sellerId: string, query: searchFilter) : Promise<ProductInfo[]>,
-    getTotalSale(sellerId: string):Promise<number>
+    getTotalSale(sellerId: string):Promise<number>,
+    getProductCount(): Promise<number>
 }
 
 export interface ShipmentAddressRepositoryInterface{

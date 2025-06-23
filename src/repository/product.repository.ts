@@ -19,6 +19,11 @@ export class ProductRepository implements ProductRepositoryInterface {
             .populate(this.categoryPopulate)
             .populate('seller', '_id, store_name').populate(this.defaultVariantPopulate)
     }
+    async getProductCount(): Promise<number> {
+        return await Product.find({ isActive: true}).countDocuments()
+    }
+
+
 
     async getProductList(pagination: paginationField): Promise<ProductInfo[]> {
         return await Product.find({ isActive: true, archieveStatus: ArchieveStatus.UnArchieve })
@@ -53,6 +58,7 @@ export class ProductRepository implements ProductRepositoryInterface {
             .populate(this.defaultVariantPopulate)
             .populate({ path: 'variants', populate: [{ path: 'product', select: '_id name' }, { path: 'images', select: '_id url' }] })
             .select('-isActive')
+            .sort('-createdAt')
     }
 
     async getSellerProductById(id: string, userId: string): Promise<ProductInfo | null> {
@@ -75,44 +81,51 @@ export class ProductRepository implements ProductRepositoryInterface {
             .select('-isActive -archieveStatus')
     }
 
+
     // async searchProduct(searchFilter: searchFilter): Promise<{ products: ProductInfo[], total: number }> {
-    //     const { keyword, category, minPrice, maxPrice, page, limit, sortBy } = searchFilter
-    //     const pipeline: any[] = []
+    //     const { keyword, category, minPrice, maxPrice, page, limit, sortBy } = searchFilter;
+    //     console.log(keyword, category)
+    //     const pipeline: any[] = [];
+
     //     pipeline.push({
     //         $match: {
     //             "archieveStatus": ArchieveStatus.UnArchieve
     //         }
-    //     })
-    //     //Text search
+    //     });
+
     //     if (keyword) {
+    //         pipeline.push({
+    //             $lookup: {
+    //                 from: 'categories',
+    //                 localField: 'category',
+    //                 foreignField: '_id',
+    //                 as: 'category'
+    //             }
+    //         });
+    //         pipeline.push({ $unwind: '$category' });
+
+    //         pipeline.push({
+    //             $lookup: {
+    //                 from: 'categories',
+    //                 localField: 'category.parent_category',
+    //                 foreignField: '_id',
+    //                 as: 'parent_category',
+    //             }
+    //         });
+    //         pipeline.push({ $unwind: { path: '$parent_category', preserveNullAndEmptyArrays: true } });
+
     //         pipeline.push({
     //             $match: {
     //                 $or: [
     //                     { "name": { $regex: keyword, $options: 'i' } },
     //                     { "description": { $regex: keyword, $options: 'i' } },
+    //                     { 'category.title': { $regex: keyword, $options: 'i' } },
+    //                     { 'parent_category.title': { $regex: keyword, $options: 'i' } }
     //                 ]
     //             }
-    //         })
-    //         // pipeline.push(
-    //         //     {
-    //         //         $lookup: {
-    //         //             from: 'sellers',
-    //         //             localField: 'seller',
-    //         //             foreignField: '_id',
-    //         //             as: 'seller'
-    //         //         },
-    //         //     },
-    //         //     { $unwind: '$seller' },
-    //         //     {
-    //         //         $match: {
-    //         //             'seller.store_name': {
-    //         //                 $regex: keyword,
-    //         //                 $options: 'i'
-    //         //             }
-    //         //         }
-    //         //     }
-    //         // )
+    //         });
     //     }
+
     //     pipeline.push(
     //         {
     //             $lookup: {
@@ -121,8 +134,8 @@ export class ProductRepository implements ProductRepositoryInterface {
     //                 foreignField: '_id',
     //                 as: 'variants',
     //             }
-    //         }, { $unwind: '$variants' },
-    //         // Step 3: Lookup images inside each variant
+    //         },
+    //         { $unwind: '$variants' },
     //         {
     //             $lookup: {
     //                 from: 'files',
@@ -142,69 +155,58 @@ export class ProductRepository implements ProductRepositoryInterface {
     //                 variants: { $push: '$variants' },
     //             },
     //         }
-    //     )
+    //     );
+
     //     // Variant Filter
-    //     const variantMatch: Record<string, any> = {}
+    //     const variantMatch: Record<string, any> = {};
 
     //     if (minPrice && minPrice !== undefined) {
-    //         variantMatch['variants.price'] = { $gte: minPrice }
+    //         variantMatch['variants.price'] = { $gte: minPrice };
     //     }
 
     //     if (maxPrice && maxPrice !== undefined) {
     //         variantMatch['variants.price'] = {
     //             ...(variantMatch['variants.price'] || []),
     //             $lte: maxPrice
-    //         }
+    //         };
     //     }
 
     //     if (Object.keys(variantMatch).length) {
-    //         pipeline.push({ $match: variantMatch })
+    //         pipeline.push({ $match: variantMatch });
     //     }
 
-    //     pipeline.push(
-    //         {
-    //             $lookup: {
-    //                 from: 'categories',
-    //                 localField: 'category',
-    //                 foreignField: '_id',
-    //                 as: 'category'
-    //             }
-    //         },
-    //         { $unwind: '$category' },
-
-    //         {
-    //             $lookup: {
-    //                 from: 'categories',
-    //                 localField: 'category.parent_category',
-    //                 foreignField: '_id',
-    //                 as: 'parent_category',
-    //             },
-    //         },
-    //         { $unwind: { path: '$parent_category', preserveNullAndEmptyArrays: true } }
-    //     )
-
-    //     if (category || keyword) {
+    //     // Only do category-specific filtering if category is provided separately from keyword
+    //     if (category && !keyword) {
     //         pipeline.push(
+    //             {
+    //                 $lookup: {
+    //                     from: 'categories',
+    //                     localField: 'category',
+    //                     foreignField: '_id',
+    //                     as: 'category'
+    //                 }
+    //             },
+    //             { $unwind: '$category' },
+    //             {
+    //                 $lookup: {
+    //                     from: 'categories',
+    //                     localField: 'category.parent_category',
+    //                     foreignField: '_id',
+    //                     as: 'parent_category',
+    //                 }
+    //             },
+    //             { $unwind: { path: '$parent_category', preserveNullAndEmptyArrays: true } },
     //             {
     //                 $match: {
     //                     $or: [
-    //                         {
-    //                             'category.title': {
-    //                                 $regex: category || keyword,
-    //                                 $options: 'i'
-    //                             }
-    //                         },
-    //                         {
-    //                             'parent_category.title': {
-    //                                 $regex: category || keyword,
-    //                                 $options: 'i'
-    //                             }
-    //                         }
+    //                         { 'category.title': { $regex: category, $options: 'i' } },
+    //                         { 'parent_category.title': { $regex: category, $options: 'i' } }
     //                     ]
     //                 }
     //             }
-    //         )
+    //         );
     //     }
+
     //     pipeline.push(
     //         {
     //             $lookup: {
@@ -224,14 +226,36 @@ export class ProductRepository implements ProductRepositoryInterface {
     //             }
     //         },
     //         { $unwind: '$defaultVariant.images' },
-    //     )
+    //     );
 
-    //     const offset = (page! - 1) * limit!
+
+    //     pipeline.push(
+    //         {
+    //             $lookup: {
+    //                 from: 'categories',
+    //                 localField: 'category',
+    //                 foreignField: '_id',
+    //                 as: 'category'
+    //             }
+    //         },
+    //         { $unwind: '$category' },
+    //         {
+    //             $lookup: {
+    //                 from: 'categories',
+    //                 localField: 'category.parent_category',
+    //                 foreignField: '_id',
+    //                 as: 'parent_category'
+    //             }
+    //         },
+    //         { $unwind: { path: '$parent_category', preserveNullAndEmptyArrays: true } }
+    //     );
+
+    //     const offset = (page! - 1) * limit!;
 
     //     pipeline.push(
     //         { $skip: offset },
     //         { $limit: limit }
-    //     )
+    //     );
 
     //     const allowedSortKeys = ['createdAt', '-createdAt'];
     //     const safeSort = allowedSortKeys.includes(sortBy as string) ? sortBy : '-createdAt';
@@ -243,7 +267,9 @@ export class ProductRepository implements ProductRepositoryInterface {
     //         $sort: {
     //             [sortKey as string]: sortOrder,
     //         }
-    //     })
+    //     });
+
+
 
     //     pipeline.push(
     //         {
@@ -251,216 +277,208 @@ export class ProductRepository implements ProductRepositoryInterface {
     //                 name: 1,
     //                 category: 1,
     //                 seller: 1,
-    //                 // 'seller.store_name': 1,
     //                 variants: 1,
     //                 productDescription: 1,
     //                 productHightlights: 1,
     //                 defaultVariant: 1
     //             }
     //         }
-    //     )
+    //     );
+
     //     const [products, total] = await Promise.all([
     //         Product.aggregate(pipeline),
     //         Product.aggregate([
     //             ...pipeline.filter((stage) => !['$skip', '$limit'].includes(Object.keys(stage)[0])),
     //             { $count: 'total' },
     //         ])
-    //     ])
-
-
-    //     const count = total.length > 0 ? total[0].total : 0
-    //     return { products, total: count }
+    //     ]);
+    //     console.log(products)
+    //     const count = total.length > 0 ? total[0].total : 0;
+    //     return { products, total: count };
     // }
 
     async searchProduct(searchFilter: searchFilter): Promise<{ products: ProductInfo[], total: number }> {
-        const { keyword, category, minPrice, maxPrice, page, limit, sortBy } = searchFilter;
-        const pipeline: any[] = [];
-
-        pipeline.push({
+    const { keyword, category, minPrice, maxPrice, page, limit, sortBy } = searchFilter;
+    
+    const pipeline: any[] = [
+        // Initial match for unarchived products
+        {
             $match: {
                 "archieveStatus": ArchieveStatus.UnArchieve
             }
-        });
+        },
+        
+        // Lookup category and parent category once at the beginning
+        {
+            $lookup: {
+                from: 'categories',
+                localField: 'category',
+                foreignField: '_id',
+                as: 'category'
+            }
+        },
+        { $unwind: '$category' },
+        {
+            $lookup: {
+                from: 'categories',
+                localField: 'category.parent_category',
+                foreignField: '_id',
+                as: 'parent_category',
+            }
+        },
+        { $unwind: { path: '$parent_category', preserveNullAndEmptyArrays: true } },
+        
+        // Combined keyword and category matching
+        // {
+        //     $match: {
+        //         $and: [
+        //             // Only apply keyword filter if keyword exists
+        //             ...(keyword ? [{
+        //                 $or: [
+        //                     { "name": { $regex: keyword, $options: 'i' } },
+        //                     { "description": { $regex: keyword, $options: 'i' } },
+        //                     { 'category.title': { $regex: keyword, $options: 'i' } },
+        //                     { 'parent_category.title': { $regex: keyword, $options: 'i' } }
+        //                 ]
+        //             }] : []),
+        //             // Only apply category filter if category exists
+        //             ...(category ? [{
+        //                 $or: [
+        //                     { 'category.title': { $regex: category, $options: 'i' } },
+        //                     { 'parent_category.title': { $regex: category, $options: 'i' } }
+        //                 ]
+        //             }] : [])
+        //         ].filter(Boolean) // Remove empty conditions
+        //     }
+        // },
 
-        if (keyword) {
-            pipeline.push({
-                $lookup: {
-                    from: 'categories',
-                    localField: 'category',
-                    foreignField: '_id',
-                    as: 'category'
-                }
-            });
-            pipeline.push({ $unwind: '$category' });
-
-            pipeline.push({
-                $lookup: {
-                    from: 'categories',
-                    localField: 'category.parent_category',
-                    foreignField: '_id',
-                    as: 'parent_category',
-                }
-            });
-            pipeline.push({ $unwind: { path: '$parent_category', preserveNullAndEmptyArrays: true } });
-
-            pipeline.push({
-                $match: {
+        {
+    $match: {
+        ...(keyword || category ? {
+            $and: [
+                // Only apply keyword filter if keyword exists
+                ...(keyword ? [{
                     $or: [
                         { "name": { $regex: keyword, $options: 'i' } },
                         { "description": { $regex: keyword, $options: 'i' } },
                         { 'category.title': { $regex: keyword, $options: 'i' } },
                         { 'parent_category.title': { $regex: keyword, $options: 'i' } }
                     ]
-                }
-            });
-        }
-
-        pipeline.push(
-            {
-                $lookup: {
-                    from: 'variants',
-                    localField: 'variants',
-                    foreignField: '_id',
-                    as: 'variants',
-                }
-            },
-            { $unwind: '$variants' },
-            {
-                $lookup: {
-                    from: 'files',
-                    localField: 'variants.images',
-                    foreignField: '_id',
-                    as: 'variants.images',
-                }
-            },
-            {
-                $group: {
-                    _id: '$_id',
-                    name: { $first: '$name' },
-                    description: { $first: '$description' },
-                    category: { $first: '$category' },
-                    defaultVariant: { $first: '$defaultVariant' },
-                    createdAt: { $first: '$createdAt' },
-                    variants: { $push: '$variants' },
-                },
-            }
-        );
-
-        // Variant Filter
-        const variantMatch: Record<string, any> = {};
-
-        if (minPrice && minPrice !== undefined) {
-            variantMatch['variants.price'] = { $gte: minPrice };
-        }
-
-        if (maxPrice && maxPrice !== undefined) {
-            variantMatch['variants.price'] = {
-                ...(variantMatch['variants.price'] || []),
-                $lte: maxPrice
-            };
-        }
-
-        if (Object.keys(variantMatch).length) {
-            pipeline.push({ $match: variantMatch });
-        }
-
-        // Only do category-specific filtering if category is provided separately from keyword
-        if (category && !keyword) {
-            pipeline.push(
-                {
-                    $lookup: {
-                        from: 'categories',
-                        localField: 'category',
-                        foreignField: '_id',
-                        as: 'category'
-                    }
-                },
-                { $unwind: '$category' },
-                {
-                    $lookup: {
-                        from: 'categories',
-                        localField: 'category.parent_category',
-                        foreignField: '_id',
-                        as: 'parent_category',
-                    }
-                },
-                { $unwind: { path: '$parent_category', preserveNullAndEmptyArrays: true } },
-                {
-                    $match: {
-                        $or: [
-                            { 'category.title': { $regex: category, $options: 'i' } },
-                            { 'parent_category.title': { $regex: category, $options: 'i' } }
-                        ]
-                    }
-                }
-            );
-        }
-
-        pipeline.push(
-            {
-                $lookup: {
-                    from: 'variants',
-                    localField: 'defaultVariant',
-                    foreignField: '_id',
-                    as: 'defaultVariant',
-                },
-            },
-            { $unwind: '$defaultVariant' },
-            {
-                $lookup: {
-                    from: 'files',
-                    localField: 'defaultVariant.images',
-                    foreignField: '_id',
-                    as: 'defaultVariant.images',
-                }
-            },
-            { $unwind: '$defaultVariant.images' },
-        );
-
-        const offset = (page! - 1) * limit!;
-
-        pipeline.push(
-            { $skip: offset },
-            { $limit: limit }
-        );
-
-        const allowedSortKeys = ['createdAt', '-createdAt'];
-        const safeSort = allowedSortKeys.includes(sortBy as string) ? sortBy : '-createdAt';
-
-        const sortKey = safeSort?.replace('-', '');
-        const sortOrder = safeSort?.startsWith('-') ? -1 : 1;
-
-        pipeline.push({
-            $sort: {
-                [sortKey as string]: sortOrder,
-            }
-        });
-
-        pipeline.push(
-            {
-                $project: {
-                    name: 1,
-                    category: 1,
-                    seller: 1,
-                    variants: 1,
-                    productDescription: 1,
-                    productHightlights: 1,
-                    defaultVariant: 1
-                }
-            }
-        );
-
-        const [products, total] = await Promise.all([
-            Product.aggregate(pipeline),
-            Product.aggregate([
-                ...pipeline.filter((stage) => !['$skip', '$limit'].includes(Object.keys(stage)[0])),
-                { $count: 'total' },
-            ])
-        ]);
-
-        const count = total.length > 0 ? total[0].total : 0;
-        return { products, total: count };
+                }] : []),
+                // Only apply category filter if category exists
+                ...(category ? [{
+                    $or: [
+                        { 'category.title': { $regex: category, $options: 'i' } },
+                        { 'parent_category.title': { $regex: category, $options: 'i' } }
+                    ]
+                }] : [])
+            ].filter(Boolean) // Remove empty conditions
+        } : {}) // Empty object when no filters
     }
+},
+        
+        // Variant processing
+        {
+            $lookup: {
+                from: 'variants',
+                localField: 'variants',
+                foreignField: '_id',
+                as: 'variants',
+            }
+        },
+        { $unwind: '$variants' },
+        {
+            $lookup: {
+                from: 'files',
+                localField: 'variants.images',
+                foreignField: '_id',
+                as: 'variants.images',
+            }
+        },
+        {
+            $group: {
+                _id: '$_id',
+                name: { $first: '$name' },
+                description: { $first: '$description' },
+                category: { $first: '$category' },
+                parent_category: { $first: '$parent_category' },
+                defaultVariant: { $first: '$defaultVariant' },
+                createdAt: { $first: '$createdAt' },
+                variants: { $push: '$variants' },
+            }
+        },
+        
+        // Price filtering
+        ...(minPrice || maxPrice ? [{
+            $match: {
+                'variants.price': {
+                    ...(minPrice ? { $gte: minPrice } : {}),
+                    ...(maxPrice ? { $lte: maxPrice } : {})
+                }
+            }
+        }] : []),
+        
+        // Default variant processing
+        {
+            $lookup: {
+                from: 'variants',
+                localField: 'defaultVariant',
+                foreignField: '_id',
+                as: 'defaultVariant',
+            }
+        },
+        { $unwind: '$defaultVariant' },
+        {
+            $lookup: {
+                from: 'files',
+                localField: 'defaultVariant.images',
+                foreignField: '_id',
+                as: 'defaultVariant.images',
+            }
+        },
+        { $unwind: '$defaultVariant.images' }
+    ];
+    
+    // Count total before pagination
+    const countPipeline = [...pipeline, { $count: 'total' }];
+    const total = await Product.aggregate(countPipeline);
+    const count = total.length > 0 ? total[0].total : 0;
+    
+    // Add sorting
+    const allowedSortKeys = ['createdAt', '-createdAt'];
+    const safeSort = allowedSortKeys.includes(sortBy as string) ? sortBy : '-createdAt';
+    const sortKey = safeSort?.replace('-', '');
+    const sortOrder = safeSort?.startsWith('-') ? -1 : 1;
+    
+    pipeline.push({
+        $sort: {
+            [sortKey as string]: sortOrder,
+        }
+    });
+    
+    // Add pagination
+    const offset = (page! - 1) * limit!;
+    pipeline.push(
+        { $skip: offset },
+        { $limit: limit }
+    );
+    
+    // Projection
+    pipeline.push({
+        $project: {
+            name: 1,
+            category: 1,
+            seller: 1,
+            variants: 1,
+            productDescription: 1,
+            productHightlights: 1,
+            defaultVariant: 1
+        }
+    });
+    
+    const products = await Product.aggregate(pipeline);
+    return { products, total: count };
+}
     async createProduct(productInfo: Partial<ProductInputInfo>): Promise<ProductInfo> {
         const product = await Product.create(productInfo)
         return product

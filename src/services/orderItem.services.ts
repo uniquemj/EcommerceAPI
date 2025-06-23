@@ -16,10 +16,10 @@ export class OrderItemServices {
         return result
     }
 
-    getAllOrderItem = async (pagination:paginationField, query: orderItemFilter) => {
+    getAllOrderItem = async (pagination:paginationField, query: string) => {
         const orderItems = await this.orderItemRepository.getAllOrderItems(pagination, query)
         const count = await this.orderItemRepository.getOrderItemCount({})
-        return {count: count, orderItems}
+        return {count: orderItems.length, orderItems}
     }
 
     getOrderItemsForAdmin = async(pagination:paginationField) =>{
@@ -41,9 +41,10 @@ export class OrderItemServices {
         return {count: count, orderItems}
     }
 
-    getOrderForSeller = async (userId: string, pagination: paginationField, query: orderItemFilter) => {
-        const orderItems = await this.orderItemRepository.getOrderForSeller(userId, pagination, query)
-        const count = orderItems.length
+    getOrderForSeller = async (userId: string, pagination: paginationField, query?: string) => {
+        const orderItems = await this.orderItemRepository.getOrderForSeller(userId, pagination,{order_status: query})
+       
+        const count = await this.orderItemRepository.getOrderForSellerCount(userId, {order_status: query})
         return {count: count, orderItems}
     }
 

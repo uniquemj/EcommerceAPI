@@ -16,7 +16,7 @@ export class CustomerRepository implements CustomerRepositoryInterface{
     }
 
     async getCustomerCount():Promise<number>{
-        return await Customer.countDocuments()
+        return await Customer.find({is_email_verified: true}).countDocuments()
     }
 
     async getCustomerById(id: string): Promise<CustomerInfo | null>{

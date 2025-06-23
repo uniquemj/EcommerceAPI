@@ -39,7 +39,7 @@ export class SellerController{
         instance.router.post('/profile', verifyToken, allowedRole('seller'), upload.fields(SellerImages), validate(addBusinessInfoSchema), instance.addBusinessInfo)
         instance.router.put('/profile', verifyToken, allowedRole('seller'), validate(updateBusinessInfoSchema), instance.updateSellerInfo)
         instance.router.put('/password', verifyToken, allowedRole('seller'), validate(updatePasswordSchema), instance.updatePassword)
-
+        instance.router.get('/verify/count', instance.getSellerCount)
         instance.router.get('/', verifyToken, allowedRole('admin'), instance.getSellerList)
         instance.router.get('/:id', verifyToken, allowedRole('admin'), instance.getSellerById)
         instance.router.post('/verify-seller/:id', verifyToken, allowedRole('admin'), instance.verifySeller)
@@ -162,6 +162,16 @@ export class SellerController{
             handleSuccessResponse(res, "Seller List Fetched.", result.sellers, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching seller list.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getSellerCount = async(req:AuthRequest, res: Response) => {
+        try{    
+            const result = await this.sellerServices.getSellerCount()
+            handleSuccessResponse(res, "Total Verified Sellers Fetched.", result)
+        }catch(e:any){
+            this.logger.error("Error while fetching total Seller Count.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

@@ -33,11 +33,11 @@ export class OrderItemRepository implements OrderItemRepositoryInterface {
             .sort('-createdAt')
     }
 
-    async getAllOrderItems(pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[] | []> {
+    async getAllOrderItems(pagination: paginationField, query?: string): Promise<OrderItemInfo[] | []> {
         const customerPopulate = { path: "customer_id", select: "-_id fullname" }
         const shippingPopulate = { path: "shipping_id", select: "-_id -customer_id -__v" }
         const orderPopulate = { path: "order_id", select: " -__v -orderTotal", populate: [customerPopulate, shippingPopulate] }
-        return await OrderItem.find({ ...query })
+        return await OrderItem.find({ order_status: query })
             .populate(this.productVariantPopulate)
             .skip((pagination.page - 1) * pagination.limit)
             .limit(pagination.limit)
@@ -67,19 +67,32 @@ export class OrderItemRepository implements OrderItemRepositoryInterface {
             .select('-__v')
             .sort('-createdAt')
     }
-    async getOrderForSeller(userId: string, pagination: paginationField, query: orderItemFilter): Promise<OrderItemInfo[]> {
+    async getOrderForSeller(userId: string, pagination: paginationField, query?: orderItemFilter): Promise<OrderItemInfo[]> {
+        let searchFilter = query?.['order_status'] ? query : null
+
         const customerPopulate = { path: "customer_id", select: "-_id fullname" }
         const shippingPopulate = { path: "shipping_id", select: "-_id -customer_id -__v" }
         const orderPopulate = { path: "order_id", select: " -__v -orderTotal", populate: [customerPopulate, shippingPopulate] }
 
 
-        return await OrderItem.find({ seller_id: userId, ...query })
+        return await OrderItem.find({ seller_id: userId, ...searchFilter })
             .skip((pagination.page - 1) * pagination.limit)
             .limit(pagination.limit)
             .populate(this.productVariantPopulate)
             .populate(orderPopulate)
             .select('-seller_id')
             .sort('-createdAt')
+    }
+    
+    async getOrderForSellerCount(userId: string, query?: orderItemFilter): Promise<number> {
+        let searchFilter = query?.['order_status'] ? query : null
+
+        const customerPopulate = { path: "customer_id", select: "-_id fullname" }
+        const shippingPopulate = { path: "shipping_id", select: "-_id -customer_id -__v" }
+        const orderPopulate = { path: "order_id", select: " -__v -orderTotal", populate: [customerPopulate, shippingPopulate] }
+
+
+        return await OrderItem.find({ seller_id: userId, ...searchFilter }).countDocuments()
     }
 
     async getOrderItemCount(countFilter: OrderItemCountFilter): Promise<number> {

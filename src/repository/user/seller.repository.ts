@@ -18,7 +18,7 @@ export class SellerRepository implements SellerRepositoryInterface{
     }
 
     async getSellerCount(): Promise<number>{
-        return await Seller.countDocuments()
+        return await Seller.find({is_verified: true}).countDocuments()
     }
     async getSellerById(id: string): Promise<SellerInfo | null>{
         return await Seller.findById(id)

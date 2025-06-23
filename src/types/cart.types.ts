@@ -26,3 +26,4 @@ export interface CartTotal{
     subTotal: number, 
     total: number
 }
+

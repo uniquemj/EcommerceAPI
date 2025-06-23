@@ -2,7 +2,7 @@
 import { inject, injectable } from "tsyringe";
 import { OrderRepository } from "../repository/order.repository";
 import { CartInputItem, CartItem } from "../types/cart.types";
-import { DeliverInfo, orderFilter, orderItemFilter, OrderSummaryDetail } from "../types/order.types";
+import { DeliverInfo, orderFilter, orderItemFilter, OrderSummaryDetail, PaymentMethod, PaymentStatus } from "../types/order.types";
 import { paginationField } from "../types/pagination.types";
 import { OrderRepositoryInterface } from "../types/repository.types";
 import createHttpError from "../utils/httperror.utils";
@@ -27,9 +27,6 @@ export class OrderServices {
 
     getOrderList = async (pagination: paginationField, query: orderFilter) => {
         const orders = await this.orderRepository.getOrderList(pagination, query)
-        if (orders.length == 0) {
-            throw createHttpError.NotFound("Order List is Empty.")
-        }
         const count = await this.orderRepository.getOrderCounts({})
         return { count, orders }
     }
@@ -95,7 +92,7 @@ export class OrderServices {
         return orderResponse
     }
 
-    createOrder = async (deliveryInfo: DeliverInfo, userId: string) => {
+    createOrder = async (shipping_id: string, userId: string, payment_method: PaymentMethod, stripeData?: {paymentIntentId: string}) => {
         const customer = await this.customerServices.getCustomerById(userId)
         if (!customer) {
             throw createHttpError.BadRequest("No customer exist with email.")
@@ -109,14 +106,26 @@ export class OrderServices {
 
         const orderTotal = await this.cartServices.getCartTotal(userId)
 
+        let payment_status = PaymentStatus.UnPaid;
+        let payment_intent_id: string | undefined;
+
+        if(payment_method == PaymentMethod.CARD && stripeData){
+            payment_status = PaymentStatus.Paid;
+            payment_intent_id = stripeData.paymentIntentId
+        }
+
         const orderInfo = {
-            shipping_id: deliveryInfo.shipping_id as string,
+            shipping_id:shipping_id,
             customer_id: userId,
-            orderTotal: orderTotal.total
+            orderTotal: orderTotal.total,
+            payment_method: payment_method,
+            payment_status,
+            payment_intent_id
         }
 
 
         const order = await this.orderRepository.createOrder(orderInfo)
+        
         if (order) {
             cartItems.forEach(async (item) => {
                 const variant = await this.variantServices.getVariant(item.productVariant)
@@ -187,6 +196,24 @@ export class OrderServices {
         }
 
         const result = await this.orderRepository.updateOrder(order_id, { isCompleted: true })
+        return result
+    }
+
+    updateOrderItemAdminStatus = async(order_status: string, orderItemId: string) => {
+        const orderItem = await this.orderItemServices.getOrderItemById(orderItemId)
+        if(!orderItem){
+            throw createHttpError.NotFound("Order Item with Id not found.")
+        }
+        const updateItemStatus = await this.orderItemServices.updateAdminOrderStatus(order_status, orderItemId)
+    }
+
+    updateOrderPaymentStatus = async(order_id: string) =>{
+        const orderExist = await this.orderRepository.getOrderById(order_id)
+        if (!orderExist) {
+            throw createHttpError.NotFound("Order of Id not found.")
+        }
+
+        const result = await this.orderRepository.updateOrder(order_id, {payment_status: PaymentStatus.Paid})
         return result
     }
 }

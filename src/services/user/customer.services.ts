@@ -23,6 +23,11 @@ export class CustomerServices implements AuthService {
         return {count: count, customer:customers}
     }
 
+    async getCustomerCount() {
+        const count = await this.customerRepository.getCustomerCount()
+        return count
+    }
+
     async getCustomerById(id: string) {
         const customerExist = await this.customerRepository.getCustomerById(id)
         if (!customerExist) {

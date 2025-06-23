@@ -54,6 +54,11 @@ export class ProductServices {
         return { count: productCount, product: productExist }
     }
 
+    async getSellerProductCount(sellerId: string){
+        const productCount = await this.productRepository.getProductCounts({seller: sellerId})
+        return productCount
+    }
+
     async getSellerProductById(productId: string, sellerID: string) {
         const productExist = await this.productRepository.getSellerProductById(productId, sellerID)
         if (!productExist) {
@@ -324,6 +329,11 @@ export class ProductServices {
     async getTotalSale(sellerId: string){
         const totalSale = await this.productRepository.getTotalSale(sellerId)
         return {totalSale: totalSale}
+    }
+
+    async getProductCount(){
+        const count = await this.productRepository.getProductCount()
+        return count
     }
 }
 

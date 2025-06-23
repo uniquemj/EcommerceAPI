@@ -29,8 +29,8 @@ const createHttpError = {
     BadGateway: <T>(message: string, errors: T[] = []) =>{
         return new HttpError(502, message, errors)
     },
-    Custom: <T>(statuscode: number, message: string, errors: T[]=[])=>{
-        return new HttpError(statuscode, message, errors)
+    Custom: <T>(statusCode: number, message: string, errors: T[]=[])=>{
+        return new HttpError(statusCode, message, errors)
     }
 }
 

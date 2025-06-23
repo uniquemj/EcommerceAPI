@@ -32,6 +32,7 @@ export class CustomerController{
         const instance = CustomerController.instance
 
         instance.router.post('/verify/:code', instance.verifyEmail)
+        instance.router.get('/verify/count', instance.getCustomerCount)
         instance.router.post('/resend-verification',validate(resendVerificationEmailSchema), instance.resendVerificationEmail)
         instance.router.put('/', verifyToken, allowedRole('customer'), validate(updateCustomerProfileSchema), instance.updateCustomerProfile)
         instance.router.put('/password', verifyToken, allowedRole('customer'), validate(updatePasswordSchema), instance.updatePassword)
@@ -117,6 +118,16 @@ export class CustomerController{
             handleSuccessResponse(res, "Customer List Fetched.", result.customer, 200, paginationData)
         }catch(e:any){
             this.logger.error("Error while fetching customer list.", {object: e, error: new Error()})
+            throw createHttpError.Custom(e.statusCode, e.message, e.errors)
+        }
+    }
+
+    getCustomerCount = async(req: AuthRequest, res: Response) =>{
+        try{
+            const result = await this.customerService.getCustomerCount()
+            handleSuccessResponse(res, "Active Customer Count fetched.", result)
+        }catch(e:any){
+            this.logger.error("Error while fetching active customer count.", {object: e, error: new Error()})
             throw createHttpError.Custom(e.statusCode, e.message, e.errors)
         }
     }

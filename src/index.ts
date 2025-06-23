@@ -12,11 +12,19 @@ import { AuditTrailRepository } from './repository/audit.repository'
 import { AuditTrailServices } from './services/audit.services'
 import { createAuditTrailMiddleware} from './middlewares/auditTrail.middleware'
 import { corsOptions } from "./middlewares/cors.middleware"
+import {container} from './constant/container.dependencies'
+import { WebhookServices } from "./services/webhook.services"
+import { WebhookController } from "./controllers/webhook.controller"
 
 const app = express()
 const logger = Logger.getInstance().logger()
 const auditTrailRepository = new AuditTrailRepository()
 const auditTrailServices = new AuditTrailServices(auditTrailRepository)
+
+const webhookServices = container.resolve(WebhookServices)
+const webhookController = WebhookController.initController(webhookServices)
+
+app.use('/api/webhook/', express.raw({type: 'application/json'}), webhookController.router)
 
 app.use(express.json())
 app.use(cors(corsOptions))

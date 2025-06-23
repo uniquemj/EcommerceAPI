@@ -2,8 +2,7 @@ import { Schema } from "mongoose";
 import { CartItem } from "./cart.types";
 
 export enum PaymentMethod{
-    Esewa="e-sewa",
-    Khalti = "khalti",
+    CARD = 'card',
     COD = "cash-on-delivery"
 }
 
@@ -22,10 +21,7 @@ export enum SellerOrderStatus{
     ToPack="to_pack",
     ToArrangeShipment = "to_arrange_shipment",
     ToHandOver = "to_handover",
-    Shipping = "shipping"
-}
-
-export enum SellerReturnOrderStatus{
+    Shipping = "shipping",
     ReturnAccepted = "return-accepted",
     ReturnRejected = "return-rejected"
 }
@@ -78,7 +74,8 @@ export interface OrderInputInfo{
 
     payment_method?: PaymentMethod,
     payment_status?: PaymentStatus,
-
+    payment_intent_id?: string,
+    
     isCanceled?:boolean,
     isCompleted?: boolean,
     

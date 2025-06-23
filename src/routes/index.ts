@@ -32,6 +32,10 @@ import { AuditTrailRepository } from '../repository/audit.repository'
 import { AuditTrailServices } from '../services/audit.services'
 import { AuditTrailController } from '../controllers/audit.controller'
 import {container} from '../constant/container.dependencies'
+import { PaymentController } from '../controllers/payment.controller'
+import { PaymentServices } from '../services/payment.services'
+import { WebhookServices } from '../services/webhook.services'
+import { WebhookController } from '../controllers/webhook.controller'
 
 const router = express.Router()
 
@@ -85,6 +89,14 @@ const authController = AuthController.initController(authServiceFactory, logger)
 const auditTrailServices = container.resolve(AuditTrailServices)
 const auditTrailController = AuditTrailController.initController(auditTrailServices)
 
+// Payment
+const paymentServices = container.resolve(PaymentServices)
+const paymentController = PaymentController.initController(paymentServices)
+
+// Webhook
+const webhookServices = container.resolve(WebhookServices)
+const webhookController = WebhookController.initController(webhookServices)
+
 //User Route
 router.use('/auth', authController.router)
 
@@ -110,4 +122,9 @@ router.use('/shipment', verifyToken, shipmetAddressController.router)
 // Audit Trail Log
 router.use('/audit-log', verifyToken, auditTrailController.router)
 
+// Payment
+router.use('/payment', paymentController.router )
+
+// webhook
+// router.use('/webhook', webhookController.router )
 export default router

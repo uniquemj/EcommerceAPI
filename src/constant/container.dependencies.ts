@@ -27,6 +27,8 @@ import { ShipmentAddressServices } from '../services/shipmentAddress.services'
 import { FileRepository } from '../repository/file.repository'
 import { FileServices } from '../services/file.services'
 import { CloudServices } from '../services/cloud.services'
+import { PaymentServices } from '../services/payment.services'
+import { WebhookServices } from '../services/webhook.services'
 
 //Audit
 container.register<AuditTrailRepositoryInterface>('AuditTrailRepositoryInterface', {useClass: AuditTrailRepository})
@@ -93,4 +95,11 @@ container.register(FileServices, {useClass: FileServices})
 
 //cloud
 container.register(CloudServices, {useClass: CloudServices})
+
+//payment
+container.register(PaymentServices, {useClass: PaymentServices})
+
+//webhook
+container.register(WebhookServices, {useClass: WebhookServices})
+
 export {container}
